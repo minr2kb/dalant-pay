@@ -1,5 +1,15 @@
-import { err, marketAdminRoute, ok, route } from "@/lib/api/route-helpers";
+import { createParser } from "@routar/core";
+import {
+  err,
+  marketAdminRoute,
+  ok,
+  parseRequest,
+  route,
+} from "@/lib/api/route-helpers";
+import { ordersRouter } from "@/lib/api/router";
 import { mapOrder } from "@/lib/db";
+
+const createOrderParser = createParser(ordersRouter.endpoints.create);
 
 export const GET = route<{ marketId: string }>(
   async (req, { supabase, params }) => {
@@ -20,10 +30,12 @@ export const GET = route<{ marketId: string }>(
 
 export const POST = marketAdminRoute<{ marketId: string }>(
   async (req, { supabase, params, userId: verifiedBy }) => {
-    const body = (await req.json()) as {
-      userId: string;
-      items: Array<{ name: string; price: number; qty: number }>;
-    };
+    const parsed = await parseRequest(createOrderParser.parseRequest, {
+      path: params,
+      body: await req.json(),
+    });
+    if (parsed instanceof Response) return parsed;
+    const { body } = parsed;
 
     const [{ data: participant, error: e1 }, { data: marketItems }] =
       await Promise.all([

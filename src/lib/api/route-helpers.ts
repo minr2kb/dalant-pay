@@ -1,3 +1,4 @@
+import type { RequestShape } from "@routar/core";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase"; // service role — bypasses RLS for trusted server code
@@ -11,6 +12,22 @@ export function ok<T>(data: T, status = 200) {
 
 export function err(message: string, status = 500) {
   return NextResponse.json({ error: message }, { status });
+}
+
+/**
+ * Runs a `createParser(spec).parseRequest` against the raw request envelope,
+ * returning the validated data or a 400 response. Route handlers check
+ * `if (parsed instanceof Response) return parsed;` before using the result.
+ */
+export async function parseRequest<T>(
+  parse: (raw: RequestShape) => Promise<T>,
+  raw: RequestShape,
+): Promise<T | Response> {
+  try {
+    return await parse(raw);
+  } catch (e) {
+    return err(e instanceof Error ? e.message : "Invalid request", 400);
+  }
 }
 
 type RouteCtx<P> = { supabase: Supabase; params: P };

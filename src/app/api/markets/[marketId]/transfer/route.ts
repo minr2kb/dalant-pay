@@ -1,14 +1,19 @@
-import { authRoute, err, ok } from "@/lib/api/route-helpers";
+import { createParser } from "@routar/core";
+import { authRoute, err, ok, parseRequest } from "@/lib/api/route-helpers";
+import { transferRouter } from "@/lib/api/router";
+
+const transferParser = createParser(transferRouter.endpoints.transfer);
 
 export const POST = authRoute<{ marketId: string }>(
   async (req, { supabase, params, userId: fromUserId }) => {
-    const body = (await req.json()) as { toUserId?: string; amount?: number };
+    const parsed = await parseRequest(transferParser.parseRequest, {
+      path: params,
+      body: await req.json(),
+    });
+    if (parsed instanceof Response) return parsed;
+    const { body } = parsed;
     const { marketId } = params;
 
-    if (!body.toUserId || typeof body.amount !== "number")
-      return err("Invalid request", 400);
-    if (!Number.isInteger(body.amount) || body.amount < 1)
-      return err("Amount must be a positive integer", 400);
     if (body.toUserId === fromUserId)
       return err("자신에게는 전송할 수 없습니다", 400);
 

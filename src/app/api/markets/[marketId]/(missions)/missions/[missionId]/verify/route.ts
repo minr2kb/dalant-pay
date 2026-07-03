@@ -1,14 +1,18 @@
-import { authRoute, err, ok } from "@/lib/api/route-helpers";
+import { createParser } from "@routar/core";
+import { authRoute, err, ok, parseRequest } from "@/lib/api/route-helpers";
+import { missionsRouter } from "@/lib/api/router";
 import { verifyMissionQR } from "@/lib/qr-server";
+
+const verifyMissionParser = createParser(missionsRouter.endpoints.verify);
 
 export const POST = authRoute<{ marketId: string; missionId: string }>(
   async (req, { supabase, params, userId: verifiedBy }) => {
-    const body = (await req.json()) as {
-      token?: string;
-      userId?: string;
-      slot?: number;
-      photoUrls?: string[];
-    };
+    const parsed = await parseRequest(verifyMissionParser.parseRequest, {
+      path: params,
+      body: await req.json(),
+    });
+    if (parsed instanceof Response) return parsed;
+    const { body } = parsed;
     const { marketId, missionId } = params;
 
     if (!body.token && !body.userId) return err("QR 인증이 필요해요", 400);

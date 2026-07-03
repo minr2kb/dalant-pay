@@ -1,6 +1,16 @@
-import { err, marketAdminRoute, ok, route } from "@/lib/api/route-helpers";
+import { createParser } from "@routar/core";
+import {
+  err,
+  marketAdminRoute,
+  ok,
+  parseRequest,
+  route,
+} from "@/lib/api/route-helpers";
+import { missionsRouter } from "@/lib/api/router";
 import { getMission } from "@/lib/data/missions";
 import { mapMission } from "@/lib/db";
+
+const updateMissionParser = createParser(missionsRouter.endpoints.update);
 
 export const GET = route<{ missionId: string }>(
   async (req, { supabase, params }) => {
@@ -16,7 +26,12 @@ export const GET = route<{ missionId: string }>(
 
 export const PATCH = marketAdminRoute<{ marketId: string; missionId: string }>(
   async (req, { supabase, params }) => {
-    const body = await req.json();
+    const parsed = await parseRequest(updateMissionParser.parseRequest, {
+      path: params,
+      body: await req.json(),
+    });
+    if (parsed instanceof Response) return parsed;
+    const { body } = parsed;
 
     const update: Record<string, unknown> = {};
     if ("title" in body) update.title = body.title;

@@ -1,4 +1,8 @@
-import { authRoute, err, ok } from "@/lib/api/route-helpers";
+import { createParser } from "@routar/core";
+import { authRoute, err, ok, parseRequest } from "@/lib/api/route-helpers";
+import { adminRouter } from "@/lib/api/router";
+
+const adminAuthParser = createParser(adminRouter.endpoints.auth);
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
 function rateLimit(ip: string): boolean {
@@ -19,7 +23,12 @@ export const POST = authRoute<{ marketId: string }>(
       req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
     if (!rateLimit(ip)) return err("Too many attempts", 429);
 
-    const body = (await req.json()) as { code: string };
+    const parsed = await parseRequest(adminAuthParser.parseRequest, {
+      path: params,
+      body: await req.json(),
+    });
+    if (parsed instanceof Response) return parsed;
+    const { body } = parsed;
 
     const { data: market } = await supabase
       .from("markets")

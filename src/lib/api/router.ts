@@ -55,7 +55,10 @@ export const participantsRouter = defineRouter("/markets", {
     path: "/:marketId/participants/:userId/points",
     request: {
       path: marketAndUser,
-      body: z.object({ amount: z.number(), memo: z.string().optional() }),
+      body: z.object({
+        amount: z.number().int(),
+        memo: z.string().optional(),
+      }),
     },
     response: z.object({
       userId: z.string(),
@@ -110,8 +113,8 @@ export const missionsRouter = defineRouter("/markets", {
         description: z.string().optional(),
         type: z.enum(["user_qr", "upload", "admin_qr", "manual"]),
         isGroup: z.boolean(),
-        reward: z.number(),
-        limitCount: z.number().nullable(),
+        reward: z.number().int().min(0),
+        limitCount: z.number().int().min(1).nullable(),
         activeFrom: z.string().nullable(),
         activeUntil: z.string().nullable(),
       }),
@@ -128,8 +131,8 @@ export const missionsRouter = defineRouter("/markets", {
         description: z.string().optional(),
         type: z.enum(["user_qr", "upload", "admin_qr", "manual"]).optional(),
         isGroup: z.boolean().optional(),
-        reward: z.number().optional(),
-        limitCount: z.number().nullable().optional(),
+        reward: z.number().int().min(0).optional(),
+        limitCount: z.number().int().min(1).nullable().optional(),
         activeFrom: z.string().nullable().optional(),
         activeUntil: z.string().nullable().optional(),
         isActive: z.boolean().optional(),
@@ -223,7 +226,7 @@ export const itemsRouter = defineRouter("/markets", {
     path: "/:marketId/items",
     request: {
       path: marketId,
-      body: z.object({ name: z.string(), price: z.number() }),
+      body: z.object({ name: z.string(), price: z.number().int().min(0) }),
     },
     response: MarketItemSchema,
   }),

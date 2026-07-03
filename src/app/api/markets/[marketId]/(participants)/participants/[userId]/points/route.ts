@@ -1,40 +1,41 @@
-import { err, marketAdminRoute, ok } from "@/lib/api/route-helpers";
+import { createParser } from "@routar/core";
+import {
+  err,
+  marketAdminRoute,
+  ok,
+  parseRequest,
+} from "@/lib/api/route-helpers";
+import { participantsRouter } from "@/lib/api/router";
+
+const adjustPointsParser = createParser(
+  participantsRouter.endpoints.adjustPoints,
+);
 
 export const PATCH = marketAdminRoute<{ marketId: string; userId: string }>(
   async (req, { supabase, params }) => {
-    const body = (await req.json()) as { amount: number; memo?: string };
-    if (typeof body.amount !== "number" || !Number.isInteger(body.amount))
-      return err("amount must be an integer", 400);
+    const parsed = await parseRequest(adjustPointsParser.parseRequest, {
+      path: params,
+      body: await req.json(),
+    });
+    if (parsed instanceof Response) return parsed;
+    const { body } = parsed;
 
     const { marketId, userId } = params;
 
-    const { data: p, error: e1 } = await supabase
-      .from("market_participants")
-      .select("balance")
-      .eq("market_id", marketId)
-      .eq("user_id", userId)
-      .single();
+    const { data, error } = await supabase.rpc("grant_manual_points", {
+      p_market_id: marketId,
+      p_user_id: userId,
+      p_amount: body.amount,
+      p_memo: body.memo ?? null,
+    });
 
-    if (e1 || !p) return err("Not found", 404);
+    if (error) {
+      if (error.message.includes("participant not found"))
+        return err("Not found", 404);
+      return err(error.message);
+    }
 
-    const newBalance = p.balance + body.amount;
-
-    const [{ error: e2 }, { error: e3 }] = await Promise.all([
-      supabase
-        .from("market_participants")
-        .update({ balance: newBalance })
-        .eq("market_id", marketId)
-        .eq("user_id", userId),
-      supabase.from("point_logs").insert({
-        market_id: marketId,
-        user_id: userId,
-        amount: body.amount,
-        reason_type: "manual",
-        memo: body.memo ?? null,
-      }),
-    ]);
-
-    if (e2 || e3) return err((e2 ?? e3)?.message ?? "Error");
+    const newBalance = (data as { newBalance: number }).newBalance;
 
     return ok({
       userId,
