@@ -37,11 +37,15 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname === "/robots.txt" ||
     pathname === "/manifest.webmanifest" ||
-    // 마켓 QR 랜딩(공유 페이지)은 미가입자도 봐야 하므로 공개. 하위 경로(/home 등)는 제외.
-    /^\/markets\/[^/]+$/.test(pathname);
+    // 마켓 QR 랜딩(공유 페이지)과 그 og:image는 미가입자·링크 미리보기 봇도 봐야 하므로 공개.
+    // 그 외 하위 경로(/home 등)는 제외.
+    /^\/markets\/[^/]+$/.test(pathname) ||
+    /^\/markets\/[^/]+\/opengraph-image$/.test(pathname);
 
   if (!user && !isPublic) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   if (user && pathname === "/login") {

@@ -19,9 +19,11 @@ const CODE_LENGTH = 4;
 function AdminCodeForm({
   marketId,
   onClose,
+  unmount,
 }: {
   marketId: string;
   onClose: () => void;
+  unmount: () => void;
 }) {
   const router = useRouter();
   const [code, setCode] = useState("");
@@ -37,7 +39,10 @@ function AdminCodeForm({
         .then((result) => {
           if (result.granted) {
             localStorage.setItem(STORAGE_KEY, "true");
-            onClose();
+            // onClose()(=history.back())를 부르면 뒤이은 router.push와
+            // 내비게이션이 경쟁해서 뒤로가기가 이겨버릴 수 있다 — 페이지를
+            // 아예 떠나므로 히스토리 조작 없이 즉시 언마운트만 한다.
+            unmount();
             router.push(`/markets/${marketId}/admin/home`);
           } else {
             setError(true);
@@ -145,7 +150,9 @@ export function AdminAccessButton({
   }
 
   const handleOpen = () =>
-    openModal((close) => <AdminCodeForm marketId={marketId} onClose={close} />);
+    openModal((close, unmount) => (
+      <AdminCodeForm marketId={marketId} onClose={close} unmount={unmount} />
+    ));
 
   return compact ? (
     <button

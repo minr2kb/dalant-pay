@@ -43,7 +43,9 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
 
   if (!existingUser) {
-    return NextResponse.redirect(new URL("/onboarding", origin));
+    const onboardingUrl = new URL("/onboarding", origin);
+    onboardingUrl.searchParams.set("next", next);
+    return NextResponse.redirect(onboardingUrl);
   }
 
   return NextResponse.redirect(new URL(next, origin));

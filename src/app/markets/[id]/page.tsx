@@ -17,14 +17,13 @@ export async function generateMetadata(
 
   const title = data.title as string;
   const description = (data.description as string | null) ?? undefined;
-  const images = ["/android-chrome-512x512.png"];
   return {
     title,
     description,
-    // Next.js replaces the whole openGraph/twitter object per-segment rather than
-    // deep-merging with the layout default, so images must be repeated here.
-    openGraph: { title, description, images },
-    twitter: { card: "summary", title, description, images },
+    // og:image/twitter:image come from ./opengraph-image.tsx (dynamically
+    // rendered per market) — leaving images unset here lets that apply.
+    openGraph: { title, description },
+    twitter: { card: "summary", title, description },
   };
 }
 

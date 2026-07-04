@@ -66,7 +66,10 @@ export default function OnboardingPage() {
     });
 
     setSaving(false);
-    if (!error) router.push("/markets");
+    if (!error) {
+      const next = new URLSearchParams(location.search).get("next");
+      router.push(next || "/markets");
+    }
   }
 
   const canProceed =
