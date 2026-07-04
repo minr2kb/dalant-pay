@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { AdminAccessButton } from "@/components/AdminAccessButton";
 import { HomeScanButton } from "@/components/HomeScanButton";
+import { InstallPwaBanner } from "@/components/InstallPwaBanner";
 import { NumberTicker } from "@/components/NumberTicker";
 import { PayQRButton } from "@/components/PayQRButton";
 import { TransferModal } from "@/components/TransferModal";
@@ -37,6 +38,8 @@ export function UserHomeClient({
 
   return (
     <div className="px-4 space-y-6 max-w-lg mx-auto">
+      <InstallPwaBanner />
+
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-gray-400 dark:text-gray-500">
