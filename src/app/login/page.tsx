@@ -71,6 +71,14 @@ export default function LoginPage() {
         <p className="text-center text-xs text-white/60">
           로그인시 이용약관에 동의합니다
         </p>
+        {process.env.NODE_ENV === "development" && (
+          <a
+            href="/api/dev/login"
+            className="block text-center text-xs text-white/50 underline"
+          >
+            개발자 로그인 (로컬 전용)
+          </a>
+        )}
       </div>
     </div>
   );
