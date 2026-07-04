@@ -1,9 +1,9 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
 import { participantsQuery } from "@/lib/query/queries";
 
 export function JoinButton({ marketId }: { marketId: string }) {
@@ -20,6 +20,8 @@ export function JoinButton({ marketId }: { marketId: string }) {
         }
         router.push(`/markets/${marketId}/home`);
       },
+      // 로그인 안 한 방문자가 공유 링크로 들어와 눌렀을 때
+      onError: () => router.push("/login"),
     }),
   );
 

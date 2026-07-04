@@ -11,9 +11,29 @@ const notoSansKR = Noto_Sans_KR({
   variable: "--font-noto-sans-kr",
 });
 
+const title = "달란트페이";
+const description = "오프라인 모임을 위한 미션 인증 기반 달란트 결제 서비스";
+
 export const metadata: Metadata = {
-  title: "달란트페이",
-  description: "오프라인 모임을 위한 미션 인증 기반 달란트 결제 서비스",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000",
+  ),
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    siteName: title,
+    locale: "ko_KR",
+    type: "website",
+    images: ["/android-chrome-512x512.png"],
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+    images: ["/android-chrome-512x512.png"],
+  },
 };
 
 export default function RootLayout({

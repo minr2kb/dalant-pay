@@ -34,7 +34,11 @@ export async function proxy(request: NextRequest) {
     pathname === "/login" ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api");
+    pathname.startsWith("/api") ||
+    pathname === "/robots.txt" ||
+    pathname === "/manifest.webmanifest" ||
+    // 마켓 QR 랜딩(공유 페이지)은 미가입자도 봐야 하므로 공개. 하위 경로(/home 등)는 제외.
+    /^\/markets\/[^/]+$/.test(pathname);
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));

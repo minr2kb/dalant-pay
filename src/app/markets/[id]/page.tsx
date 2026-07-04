@@ -1,14 +1,39 @@
 import { Calendar, Users } from "lucide-react";
+import type { Metadata } from "next";
 import { mapMarket } from "@/lib/db";
-import { createClient } from "@/lib/supabase/server";
+import { supabase } from "@/lib/supabase";
 import { JoinButton } from "./JoinButton";
+
+export async function generateMetadata(
+  props: PageProps<"/markets/[id]">,
+): Promise<Metadata> {
+  const { id } = await props.params;
+  const { data } = await supabase
+    .from("markets")
+    .select("title, description")
+    .eq("id", id)
+    .single();
+  if (!data) return {};
+
+  const title = data.title as string;
+  const description = (data.description as string | null) ?? undefined;
+  const images = ["/android-chrome-512x512.png"];
+  return {
+    title,
+    description,
+    // Next.js replaces the whole openGraph/twitter object per-segment rather than
+    // deep-merging with the layout default, so images must be repeated here.
+    openGraph: { title, description, images },
+    twitter: { card: "summary", title, description, images },
+  };
+}
 
 export default async function MarketJoinPage(
   props: PageProps<"/markets/[id]">,
 ) {
   const { id } = await props.params;
-  const supabase = await createClient();
 
+  // 로그인 전 방문자(QR 랜딩)도 봐야 하는 공개 화면이라 세션 클라이언트 대신 서비스롤로 조회한다.
   const { data: marketRow } = await supabase
     .from("markets")
     .select("*")
