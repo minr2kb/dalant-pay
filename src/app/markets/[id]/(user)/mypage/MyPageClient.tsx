@@ -4,6 +4,7 @@ import { useSuspenseQueries } from "@tanstack/react-query";
 import { LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { MarketShareButton } from "@/components/MarketShareButton";
 import { Button } from "@/components/ui/button";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
@@ -75,6 +76,8 @@ export function MyPageClient({
           highlight
         />
       </div>
+
+      <MarketShareButton marketId={marketId} marketTitle={market.title} />
 
       <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3">
         <p className="text-sm text-gray-500 dark:text-gray-400">화면 모드</p>
