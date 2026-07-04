@@ -13,33 +13,7 @@ import {
 } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/server";
 import { AdminHomeClient } from "./AdminHomeClient";
-
-function Skeleton() {
-  return (
-    <div className="px-4 max-w-lg mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="h-7 w-40 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
-        <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800" />
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-20 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
-          />
-        ))}
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-24 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
+import Loading from "./loading";
 
 export default async function AdminHomePage(
   props: PageProps<"/markets/[id]/admin/home">,
@@ -59,7 +33,7 @@ export default async function AdminHomePage(
   qc.setQueryData(pointLogsQuery.list({ marketId }).queryKey, pointLogs);
   return (
     <HydrationBoundary state={dehydrate(qc)}>
-      <Suspense fallback={<Skeleton />}>
+      <Suspense fallback={<Loading />}>
         <AdminHomeClient marketId={marketId} />
       </Suspense>
     </HydrationBoundary>

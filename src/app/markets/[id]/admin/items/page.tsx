@@ -64,6 +64,8 @@ function ListSkeleton() {
   );
 }
 
+// full-route skeleton (shown during navigation, before this component mounts) lives in ./loading.tsx
+
 function AdminItemsContent({ marketId }: { marketId: string }) {
   const createMutation = useMutation(
     itemsQuery.create({ invalidates: [itemsQuery.$key] }),

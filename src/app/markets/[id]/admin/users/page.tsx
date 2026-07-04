@@ -5,6 +5,7 @@ import { getQueryClient } from "@/lib/query/get-query-client";
 import { participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/server";
 import { AdminUsersClient } from "./AdminUsersClient";
+import Loading from "./loading";
 
 export default async function AdminUsersPage(
   props: PageProps<"/markets/[id]/admin/users">,
@@ -20,18 +21,7 @@ export default async function AdminUsersPage(
         유저 관리
       </h1>
       <HydrationBoundary state={dehydrate(qc)}>
-        <Suspense
-          fallback={
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="h-16 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
-                />
-              ))}
-            </div>
-          }
-        >
+        <Suspense fallback={<Loading />}>
           <AdminUsersClient marketId={marketId} />
         </Suspense>
       </HydrationBoundary>
