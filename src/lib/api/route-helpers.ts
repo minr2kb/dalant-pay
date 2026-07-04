@@ -50,11 +50,9 @@ export function authRoute<P = Record<string, string>>(
       props.params,
       createSsrClient(),
     ]);
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
-    if (!user) return err("Unauthorized", 401);
-    return fn(req, { supabase, params, userId: user.id });
+    const { data } = await ssrClient.auth.getClaims();
+    if (!data) return err("Unauthorized", 401);
+    return fn(req, { supabase, params, userId: data.claims.sub });
   };
 }
 
@@ -66,17 +64,16 @@ export function marketAdminRoute<P extends { marketId: string }>(
       props.params,
       createSsrClient(),
     ]);
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
-    if (!user) return err("Unauthorized", 401);
+    const { data } = await ssrClient.auth.getClaims();
+    if (!data) return err("Unauthorized", 401);
+    const userId = data.claims.sub;
     const { data: p } = await supabase
       .from("market_participants")
       .select("role")
       .eq("market_id", params.marketId)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
     if (p?.role !== "admin") return err("Forbidden", 403);
-    return fn(req, { supabase, params, userId: user.id });
+    return fn(req, { supabase, params, userId });
   };
 }

@@ -6,20 +6,19 @@ export const dynamic = "force-dynamic";
 
 export default async function MarketsPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims.sub;
 
   const [{ data: markets }, { data: myParticipations }] = await Promise.all([
     supabase
       .from("markets")
       .select("*, market_participants(count)")
       .order("created_at", { ascending: false }),
-    user
+    userId
       ? supabase
           .from("market_participants")
           .select("market_id")
-          .eq("user_id", user.id)
+          .eq("user_id", userId)
       : Promise.resolve({ data: [] }),
   ]);
 
