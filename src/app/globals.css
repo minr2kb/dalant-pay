@@ -150,4 +150,10 @@
   html {
     @apply font-sans;
   }
+  /* iOS Safari sizes <input type="date"> by its internal date segments and
+     calendar icon, ignoring width:100% when that content needs more room —
+     cap it explicitly so it can't push past its container. */
+  input[type="date"] {
+    max-width: 100%;
+  }
 }
