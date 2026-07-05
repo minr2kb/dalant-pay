@@ -77,7 +77,20 @@ export const PointLogSchema = z.object({
   itemName: z.string().optional(),
   orderId: z.string().optional(),
   memo: z.string().optional(),
+  photoUrl: z.string().optional(),
+  slot: z.number().optional(),
+  verifiedByUserId: z.string().optional(),
   createdAt: z.string(),
+});
+
+export const PendingMissionLogSchema = z.object({
+  id: z.string(),
+  missionId: z.string(),
+  missionTitle: z.string(),
+  reward: z.number(),
+  userId: z.string(),
+  slot: z.number(),
+  photoUrl: z.string().nullable(),
 });
 
 export const MarketItemSchema = z.object({

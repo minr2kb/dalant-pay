@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { mapMission } from "@/lib/db";
+import { mapMission, mapPendingMissionLog } from "@/lib/db";
 import { getMissionStatus } from "@/types";
 
 export async function listMissions(
@@ -54,4 +54,21 @@ export async function getMission(
   if (error || !mission) throw new Error("Not found");
   const logs = (logsResult.data ?? []) as Record<string, unknown>[];
   return mapMission(mission as Record<string, unknown>, logs);
+}
+
+export async function listPendingMissionLogs(
+  supabase: SupabaseClient,
+  marketId: string,
+) {
+  const { data, error } = await supabase
+    .from("mission_logs")
+    .select(
+      "id, mission_id, user_id, slot, photo_url, missions!inner(title, reward, market_id)",
+    )
+    .is("verified_at", null)
+    .eq("missions.market_id", marketId);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) =>
+    mapPendingMissionLog(r as Record<string, unknown>),
+  );
 }

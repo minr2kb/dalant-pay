@@ -51,7 +51,7 @@ function ScanInner({ marketId }: { marketId: string }) {
     null,
   );
   const [groupUsers, setGroupUsers] = useState<string[]>([]);
-  const [pendingPhotoUrls, setPendingPhotoUrls] = useState<string[]>([]);
+  const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
   const [rawToken, setRawToken] = useState<string | null>(null);
 
   function handleScan(val: string) {
@@ -64,8 +64,6 @@ function ScanInner({ marketId }: { marketId: string }) {
     }
 
     if (qr.type === "mission") {
-      if (qr.photoUrls && qr.photoUrls.length > 0)
-        setPendingPhotoUrls(qr.photoUrls);
       const participant = participants.find((p) => p.user.id === qr.userId);
       if (participant) setSelectedUser(participant);
       const mission = scannableMissions.find((m) => m.id === qr.missionId);
@@ -73,6 +71,7 @@ function ScanInner({ marketId }: { marketId: string }) {
         setSelectedMission(mission);
         setRawToken(qr.token);
         setState("confirm");
+        loadPendingPhoto(mission, qr.userId);
         return;
       }
       const anyMission = missions.find((m) => m.id === qr.missionId);
@@ -92,14 +91,35 @@ function ScanInner({ marketId }: { marketId: string }) {
     setState("picking_mission");
   }
 
+  async function loadPendingPhoto(mission: Mission, targetUserId: string) {
+    setPendingPhotoUrl(null);
+    if (mission.type !== "upload") return;
+    const res = await fetch(
+      `/api/markets/${marketId}/missions/${mission.id}?userId=${targetUserId}`,
+    );
+    const { data } = (await res.json()) as {
+      data: {
+        slots?: { verifiedAt: string | null; photoUrl: string | null }[];
+      };
+    };
+    const pendingSlot = data.slots?.find((s) => s.verifiedAt === null);
+    setPendingPhotoUrl(pendingSlot?.photoUrl ?? null);
+  }
+
   function selectMission(mission: Mission) {
     setSelectedMission(mission);
-    setState(selectedUser ? "confirm" : "picking_user");
+    if (selectedUser) {
+      setState("confirm");
+      loadPendingPhoto(mission, selectedUser.user.id);
+    } else {
+      setState("picking_user");
+    }
   }
 
   function selectUser(participant: MarketParticipant) {
     setSelectedUser(participant);
     setState("confirm");
+    if (selectedMission) loadPendingPhoto(selectedMission, participant.user.id);
   }
 
   function toggleGroupUser(uid: string) {
@@ -115,16 +135,12 @@ function ScanInner({ marketId }: { marketId: string }) {
         marketId,
         missionId: selectedMission.id,
         ...(rawToken ? { token: rawToken } : { userId: selectedUser.user.id }),
-        ...(pendingPhotoUrls.length > 0 ? { photoUrls: pendingPhotoUrls } : {}),
       }),
       ...extraUserIds.map((uid) =>
         verifyMutation.mutateAsync({
           marketId,
           missionId: selectedMission.id,
           userId: uid,
-          ...(pendingPhotoUrls.length > 0
-            ? { photoUrls: pendingPhotoUrls }
-            : {}),
         }),
       ),
     ]);
@@ -145,7 +161,7 @@ function ScanInner({ marketId }: { marketId: string }) {
     setSelectedMission(null);
     setSelectedUser(null);
     setGroupUsers([]);
-    setPendingPhotoUrls([]);
+    setPendingPhotoUrl(null);
     setRawToken(null);
   }
 
@@ -250,27 +266,20 @@ function ScanInner({ marketId }: { marketId: string }) {
               </p>
             </div>
             {selectedMission.type === "upload" &&
-              pendingPhotoUrls.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {pendingPhotoUrls.map((url) => (
-                    // biome-ignore lint/performance/noImgElement: <explanation>
-                    <img
-                      key={url}
-                      src={url}
-                      alt=""
-                      className="aspect-square w-full rounded-xl object-cover"
-                    />
-                  ))}
-                </div>
-              )}
-            {selectedMission.type === "upload" &&
-              pendingPhotoUrls.length === 0 && (
+              (pendingPhotoUrl ? (
+                // biome-ignore lint/performance/noImgElement: <explanation>
+                <img
+                  src={pendingPhotoUrl}
+                  alt=""
+                  className="mx-auto aspect-square w-40 rounded-xl object-cover"
+                />
+              ) : (
                 <div className="rounded-xl bg-amber-50 px-4 py-3 text-center">
                   <p className="text-sm text-amber-700">
-                    QR에 사진이 포함되지 않았어요
+                    업로드된 인증 사진이 없어요
                   </p>
                 </div>
-              )}
+              ))}
             <div className="flex gap-3">
               <Button
                 variant="outline"

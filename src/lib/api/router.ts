@@ -7,6 +7,7 @@ import {
   MissionSchema,
   OrderItemSchema,
   OrderSchema,
+  PendingMissionLogSchema,
   PointLogSchema,
   TransferResponseSchema,
 } from "./schemas";
@@ -155,7 +156,6 @@ export const missionsRouter = defineRouter("/markets", {
         token: z.string().optional(),
         userId: z.string().optional(),
         slot: z.number().optional(),
-        photoUrls: z.array(z.string()).optional(),
       }),
     },
     response: z.object({
@@ -166,6 +166,21 @@ export const missionsRouter = defineRouter("/markets", {
       reward: z.number(),
       verifiedAt: z.string(),
     }),
+  }),
+  uploadPhoto: endpoint({
+    method: "POST",
+    path: "/:marketId/missions/:missionId/photo",
+    request: {
+      path: marketAndMission,
+      body: z.object({ photoUrl: z.string() }),
+    },
+    response: z.object({ slot: z.number(), photoUrl: z.string() }),
+  }),
+  pendingLogs: endpoint({
+    method: "GET",
+    path: "/:marketId/missions/pending",
+    request: { path: marketId },
+    response: z.array(PendingMissionLogSchema),
   }),
 });
 

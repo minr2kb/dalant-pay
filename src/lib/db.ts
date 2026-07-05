@@ -5,6 +5,7 @@ import type {
   Mission,
   MissionSlotData,
   Order,
+  PendingMissionLog,
   PointLog,
   User,
 } from "@/types";
@@ -90,6 +91,14 @@ export function mapMission(
 }
 
 export function mapPointLog(row: Record<string, unknown>): PointLog {
+  const missionLog = row.mission_logs as
+    | {
+        photo_url: string | null;
+        slot: number | null;
+        verified_by: string | null;
+      }
+    | null
+    | undefined;
   return {
     id: row.id as string,
     marketId: row.market_id as string,
@@ -103,6 +112,11 @@ export function mapPointLog(row: Record<string, unknown>): PointLog {
     ...(row.item_name ? { itemName: row.item_name as string } : {}),
     ...(row.order_id ? { orderId: row.order_id as string } : {}),
     ...(row.memo ? { memo: row.memo as string } : {}),
+    ...(missionLog?.photo_url ? { photoUrl: missionLog.photo_url } : {}),
+    ...(missionLog?.slot != null ? { slot: missionLog.slot } : {}),
+    ...(missionLog?.verified_by
+      ? { verifiedByUserId: missionLog.verified_by }
+      : {}),
     createdAt: row.created_at as string,
   };
 }
@@ -124,5 +138,23 @@ export function mapItem(row: Record<string, unknown>): MarketItem {
     id: row.id as string,
     name: row.name as string,
     price: row.price as number,
+  };
+}
+
+export function mapPendingMissionLog(
+  row: Record<string, unknown>,
+): PendingMissionLog {
+  const mission = row.missions as
+    | { title: string; reward: number }
+    | null
+    | undefined;
+  return {
+    id: row.id as string,
+    missionId: row.mission_id as string,
+    missionTitle: mission?.title ?? "미션",
+    reward: mission?.reward ?? 0,
+    userId: row.user_id as string,
+    slot: row.slot as number,
+    photoUrl: (row.photo_url as string | null) ?? null,
   };
 }

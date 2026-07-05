@@ -8,7 +8,7 @@ export async function listPointLogs(
 ) {
   let query = supabase
     .from("point_logs")
-    .select("*")
+    .select("*, mission_logs(photo_url, slot, verified_by)")
     .eq("market_id", marketId)
     .order("created_at", { ascending: false });
   if (opts?.userId) query = query.eq("user_id", opts.userId);

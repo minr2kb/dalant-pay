@@ -13,7 +13,6 @@ interface QRModalProps {
   missionId: string;
   userId: string;
   missionTitle: string;
-  photoUrls?: string[];
   hint?: string;
   disabled?: boolean;
   buttonText?: string;
@@ -24,12 +23,10 @@ function QRContent({
   missionId,
   missionTitle,
   hint,
-  photoUrls,
   onClose,
-}: Pick<
-  QRModalProps,
-  "marketId" | "missionId" | "missionTitle" | "hint" | "photoUrls"
-> & { onClose: () => void }) {
+}: Pick<QRModalProps, "marketId" | "missionId" | "missionTitle" | "hint"> & {
+  onClose: () => void;
+}) {
   const [qrValue, setQrValue] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -41,17 +38,13 @@ function QRContent({
       .then((r) => r.json())
       .then(({ data }: { data: { token: string } }) => {
         if (cancelled) return;
-        setQrValue(
-          photoUrls?.length
-            ? `${data.token}|${photoUrls.join(",")}`
-            : data.token,
-        );
+        setQrValue(data.token);
         setSecondsLeft(300);
       });
     return () => {
       cancelled = true;
     };
-  }, [marketId, missionId, photoUrls, refreshTick]);
+  }, [marketId, missionId, refreshTick]);
 
   useInterval(
     () => {
@@ -117,7 +110,6 @@ export function QRModal({
   marketId,
   missionId,
   missionTitle,
-  photoUrls,
   hint,
   disabled = false,
   buttonText = "QR 생성하기",
@@ -130,7 +122,6 @@ export function QRModal({
             marketId={marketId}
             missionId={missionId}
             missionTitle={missionTitle}
-            photoUrls={photoUrls}
             hint={hint}
             onClose={close}
           />

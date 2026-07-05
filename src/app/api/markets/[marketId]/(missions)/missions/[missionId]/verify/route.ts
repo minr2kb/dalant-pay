@@ -1,6 +1,7 @@
 import { createParser } from "@routar/core";
 import { authRoute, err, ok, parseRequest } from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
+import { resolveNextSlot } from "@/lib/mission-slots";
 import { verifyMissionQR } from "@/lib/qr-server";
 
 const verifyMissionParser = createParser(missionsRouter.endpoints.verify);
@@ -76,29 +77,24 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
 
     const { data: existingLogs } = await supabase
       .from("mission_logs")
-      .select("slot")
+      .select("slot, verified_at")
       .eq("mission_id", missionId)
       .eq("user_id", targetUserId);
 
-    const usedSlots = new Set(
-      (existingLogs ?? []).map((l) => l.slot as number),
-    );
-    if (mission.limit_count !== null && usedSlots.size >= mission.limit_count)
+    const logs = (existingLogs ?? []).map((l) => ({
+      slot: l.slot as number,
+      verifiedAt: l.verified_at as string | null,
+    }));
+    const verifiedCount = logs.filter((l) => l.verifiedAt !== null).length;
+    if (mission.limit_count !== null && verifiedCount >= mission.limit_count)
       return err("이미 완료한 미션이에요", 422);
 
+    // 업로드형 미션은 인증 전 업로드 시점에 만든 미인증 로그(slot)를 그대로 확정한다
+    const pendingLog = logs.find((l) => l.verifiedAt === null);
     const slotNum =
       body.slot ??
-      (() => {
-        if (mission.limit_count === null) {
-          const maxUsed = usedSlots.size > 0 ? Math.max(...usedSlots) : 0;
-          return maxUsed + 1;
-        }
-        return (
-          Array.from({ length: mission.limit_count }, (_, i) => i + 1).find(
-            (s) => !usedSlots.has(s),
-          ) ?? 1
-        );
-      })();
+      pendingLog?.slot ??
+      resolveNextSlot(logs, mission.limit_count);
 
     const verifiedAt = new Date().toISOString();
     const verifierName =
@@ -125,15 +121,6 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       )
         return err("이미 인증된 미션이에요", 409);
       return err("적립에 실패했어요", 500);
-    }
-
-    if (body.photoUrls && body.photoUrls.length > 0) {
-      await supabase
-        .from("mission_logs")
-        .update({ photo_url: body.photoUrls.join(",") })
-        .eq("mission_id", missionId)
-        .eq("user_id", targetUserId)
-        .eq("slot", slotNum);
     }
 
     return ok({

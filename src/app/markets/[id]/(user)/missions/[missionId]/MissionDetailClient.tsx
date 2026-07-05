@@ -1,16 +1,14 @@
 "use client";
 
-import { useSuspenseQueries } from "@tanstack/react-query";
-import { CheckCircle2, ChevronLeft, Loader2, Plus, X } from "lucide-react";
+import { useMutation, useSuspenseQueries } from "@tanstack/react-query";
+import { Camera, CheckCircle2, ChevronLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MissionSlot } from "@/components/MissionSlot";
 import { QRModal } from "@/components/QRModal";
 import { marketsQuery, missionsQuery } from "@/lib/query/queries";
 import { uploadMissionPhoto } from "@/lib/upload";
 import { getMissionStatus } from "@/types";
-
-const MAX_PHOTOS = 3;
 
 const TYPE_LABEL: Record<string, string> = {
   user_qr: "유저 간 인증",
@@ -34,22 +32,8 @@ export function MissionDetailClient({
   missionId: string;
   userId: string;
 }) {
-  const storageKey = `upload:${missionId}:${userId}`;
-
-  const [photoUrls, setPhotoUrls] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      return JSON.parse(localStorage.getItem(storageKey) ?? "[]");
-    } catch {
-      return [];
-    }
-  });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(photoUrls));
-  }, [storageKey, photoUrls]);
 
   const [{ data: mission }, { data: market }] = useSuspenseQueries({
     queries: [
@@ -58,30 +42,46 @@ export function MissionDetailClient({
     ],
   });
 
+  const uploadPhotoMutation = useMutation(
+    missionsQuery.uploadPhoto({
+      invalidates: [missionsQuery.$key],
+    }),
+  );
+
+  const isUnlimited = mission.limitCount === null;
+  const nextPendingSlot = mission.slots?.find((s) => s.verifiedAt === null);
+  const isPast = getMissionStatus(mission) === "past";
+  // 무제한 미션은 slots에 완료 로그만 내려오므로 nextPendingSlot이 절대 안 잡힘 → 잠그지 않는다
+  const isUserDone =
+    !isUnlimited && !nextPendingSlot && (mission.slots?.length ?? 0) > 0;
+  const isLocked = isPast || isUserDone;
+  const canVerify = isUnlimited || !!nextPendingSlot;
+  const pendingPhotoUrl = nextPendingSlot?.photoUrl ?? null;
+  // 무제한 미션에서 아직 미인증 로그가 없을 때의 다음 slot 번호 예측 (서버의 resolveNextSlot과 동일한 규칙)
+  const predictedSlot =
+    nextPendingSlot?.slot ?? (mission.slots?.length ?? 0) + 1;
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || photoUrls.length >= MAX_PHOTOS) return;
+    if (!file) return;
     e.target.value = "";
     setUploading(true);
     setUploadError(false);
     try {
-      const url = await uploadMissionPhoto(file, marketId, missionId, userId);
-      setPhotoUrls((prev) => [...prev, url]);
+      const photoUrl = await uploadMissionPhoto(
+        file,
+        marketId,
+        missionId,
+        userId,
+        predictedSlot,
+      );
+      await uploadPhotoMutation.mutateAsync({ marketId, missionId, photoUrl });
     } catch {
       setUploadError(true);
     } finally {
       setUploading(false);
     }
   }
-
-  function removePhoto(index: number) {
-    setPhotoUrls((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  const nextPendingSlot = mission.slots?.find((s) => s.verifiedAt === null);
-  const isPast = getMissionStatus(mission) === "past";
-  const isUserDone = !nextPendingSlot && (mission.slots?.length ?? 0) > 0;
-  const isLocked = isPast || isUserDone;
 
   return (
     <div>
@@ -140,64 +140,66 @@ export function MissionDetailClient({
           <div className="space-y-3">
             {mission.type === "upload" && (
               <div className="space-y-2">
-                <div className="grid grid-cols-3 gap-2">
-                  {photoUrls.map((url, i) => (
-                    <div key={url} className="relative aspect-square">
-                      {/** biome-ignore lint/performance/noImgElement: <explanation> */}
-                      <img
-                        src={url}
-                        alt=""
-                        className="h-full w-full rounded-xl object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(i)}
-                        className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-800 text-white"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                  {photoUrls.length < MAX_PHOTOS && (
-                    <label className="flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:border-emerald-300 hover:text-emerald-400 transition-colors">
-                      {uploading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Plus className="h-5 w-5" />
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        disabled={uploading}
-                        onChange={handleFileChange}
-                      />
-                    </label>
+                <label className="relative mx-auto flex aspect-square w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:border-emerald-300 hover:text-emerald-400 transition-colors">
+                  {pendingPhotoUrl && (
+                    // biome-ignore lint/performance/noImgElement: <explanation>
+                    <img
+                      src={pendingPhotoUrl}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
                   )}
-                </div>
+                  <div
+                    className={
+                      pendingPhotoUrl
+                        ? "relative flex h-full w-full items-center justify-center bg-black/40 text-white"
+                        : ""
+                    }
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1">
+                        <Camera className="h-6 w-6" />
+                        {pendingPhotoUrl && (
+                          <span className="text-xs font-medium">다시 촬영</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={handleFileChange}
+                  />
+                </label>
                 {uploadError && (
                   <p className="text-center text-xs text-red-500">
                     업로드 실패. 다시 시도해주세요
                   </p>
                 )}
-                {photoUrls.length === 0 && !uploadError && (
+                {!pendingPhotoUrl && !uploadError && (
                   <p className="text-center text-xs text-gray-400 dark:text-gray-500">
-                    사진을 업로드해야 QR을 생성할 수 있어요 (최대 {MAX_PHOTOS}
-                    장)
+                    사진을 업로드해야 QR을 생성할 수 있어요
                   </p>
                 )}
               </div>
             )}
-            {nextPendingSlot && (
+            {canVerify && (
               <QRModal
                 marketId={marketId}
                 missionId={missionId}
                 userId={userId}
                 missionTitle={mission.title}
-                photoUrls={photoUrls.length > 0 ? photoUrls : undefined}
                 hint={QR_HINT[mission.type]}
-                disabled={mission.type === "upload" && photoUrls.length === 0}
-                buttonText={`${nextPendingSlot.slot}회차 인증하기`}
+                disabled={mission.type === "upload" && !pendingPhotoUrl}
+                buttonText={
+                  nextPendingSlot
+                    ? `${nextPendingSlot.slot}회차 인증하기`
+                    : "인증하기"
+                }
               />
             )}
             {mission.type === "admin_qr" && (
@@ -214,13 +216,25 @@ export function MissionDetailClient({
         )}
 
         <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            인증 현황
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              인증 현황
+            </h2>
+            {isUnlimited && (
+              <span className="rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                무제한
+              </span>
+            )}
+          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {mission.slots?.map((slot) => (
               <MissionSlot key={slot.slot} slot={slot} slotNumber={slot.slot} />
             ))}
+            {isUnlimited && !isPast && (
+              <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4 text-gray-300 dark:text-gray-600">
+                <span className="text-sm">계속 인증할 수 있어요</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

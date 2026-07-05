@@ -18,14 +18,13 @@ const EMPTY: Record<Tab, string> = {
 };
 
 function isCompleted(mission: Mission): boolean {
+  // 무제한 미션은 완료 처리하지 않고 계속 진행중 탭에 둔다
+  if (mission.limitCount === null) return false;
   if (!mission.slots || mission.slots.length === 0) return false;
-  if (mission.limitCount !== null) {
-    return (
-      mission.slots.filter((s) => s.verifiedAt !== null).length >=
-      mission.limitCount
-    );
-  }
-  return mission.slots.some((s) => s.verifiedAt !== null);
+  return (
+    mission.slots.filter((s) => s.verifiedAt !== null).length >=
+    mission.limitCount
+  );
 }
 
 export function MissionList({

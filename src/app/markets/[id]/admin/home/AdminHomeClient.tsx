@@ -2,17 +2,11 @@
 
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { keyBy, orderBy } from "es-toolkit";
-import {
-  Coins,
-  Gift,
-  ScanLine,
-  ShoppingBag,
-  TrendingDown,
-  TrendingUp,
-  User,
-} from "lucide-react";
+import { Coins, ScanLine, ShieldCheck, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
+import { openPointLogDetail } from "@/components/PointLogDetailModal";
+import { PointLogItem } from "@/components/PointLogItem";
 import {
   marketsQuery,
   missionsQuery,
@@ -60,9 +54,7 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             {market.title}
           </h1>
-          <span className="rounded-full bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 text-[10px] font-medium text-purple-500">
-            관리자
-          </span>
+          <ShieldCheck className="h-4 w-4 text-emerald-500" />
         </div>
         <Link
           href={`/markets/${marketId}/home`}
@@ -143,51 +135,35 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
 
       {recentLogs.length > 0 && (
         <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            최근 활동
-          </h2>
-          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              최근 활동
+            </h2>
+            <Link
+              href={`/markets/${marketId}/admin/activity`}
+              className="text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              전체보기
+            </Link>
+          </div>
+          <div className="space-y-2">
             {recentLogs.map((log) => {
-              const participant = participantMap[log.userId];
-              const label =
-                log.reasonType === "mission"
-                  ? log.missionTitle
-                  : log.reasonType === "purchase"
-                    ? log.itemName
-                    : log.reasonType === "transfer"
-                      ? (log.memo ?? `${market.pointLabel} 전송`)
-                      : (log.memo ?? "수동 지급");
+              const participantName =
+                participantMap[log.userId]?.user.realName ?? "알 수 없음";
               return (
-                <div key={log.id} className="flex items-center gap-3 px-4 py-3">
-                  <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${log.amount > 0 ? "bg-emerald-50 dark:bg-emerald-900/30" : "bg-rose-50 dark:bg-rose-900/30"}`}
-                  >
-                    {log.amount > 0 ? (
-                      log.reasonType === "manual" ? (
-                        <Gift className="h-4 w-4 text-emerald-500" />
-                      ) : (
-                        <TrendingUp className="h-4 w-4 text-emerald-500" />
-                      )
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-rose-500" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
-                      {participant?.user.realName ?? "알 수 없음"}
-                    </p>
-                    {label && (
-                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                        {label}
-                      </p>
-                    )}
-                  </div>
-                  <span
-                    className={`text-sm font-bold tabular-nums shrink-0 ${log.amount > 0 ? "text-emerald-500" : "text-rose-500"}`}
-                  >
-                    {log.amount > 0 ? `+${log.amount}` : log.amount}
-                  </span>
-                </div>
+                <PointLogItem
+                  key={log.id}
+                  log={log}
+                  pointLabel={market.pointLabel}
+                  participantName={participantName}
+                  onClick={() =>
+                    openPointLogDetail({
+                      log,
+                      participantName,
+                      pointLabel: market.pointLabel,
+                    })
+                  }
+                />
               );
             })}
           </div>

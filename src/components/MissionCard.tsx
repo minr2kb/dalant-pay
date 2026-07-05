@@ -14,6 +14,7 @@ function getMissionStatus(
   if (!mission.slots) return "pending";
   const completed = mission.slots.filter((s) => s.verifiedAt !== null).length;
   if (completed === 0) return "pending";
+  if (mission.limitCount === null) return "partial"; // 무제한은 계속 진행중 상태 유지
   if (completed === mission.limitCount) return "completed";
   return "partial";
 }
@@ -80,6 +81,14 @@ export function MissionCard({ mission, marketId }: MissionCardProps) {
               </span>
             </div>
           )}
+
+        {mission.limitCount === null && completedCount > 0 && (
+          <div className="flex items-center justify-end">
+            <span className="text-[11px] tabular-nums text-gray-400 dark:text-gray-500">
+              {completedCount}회 인증
+            </span>
+          </div>
+        )}
       </div>
     </Link>
   );

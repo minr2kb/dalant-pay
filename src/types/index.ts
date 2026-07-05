@@ -75,7 +75,20 @@ export interface PointLog {
   itemName?: string;
   orderId?: string;
   memo?: string;
+  photoUrl?: string;
+  slot?: number;
+  verifiedByUserId?: string;
   createdAt: string;
+}
+
+export interface PendingMissionLog {
+  id: string;
+  missionId: string;
+  missionTitle: string;
+  reward: number;
+  userId: string;
+  slot: number;
+  photoUrl: string | null;
 }
 
 export interface OrderItem {
@@ -112,3 +125,23 @@ export function getPointLogLabel(log: PointLog): string {
       return log.memo ?? "수동 지급";
   }
 }
+
+export function getPointLogSub(log: PointLog, pointLabel = "달란트"): string {
+  switch (log.reasonType) {
+    case "mission":
+      return log.verifiedByName ? `${log.verifiedByName} 인증` : "미션 인증";
+    case "purchase":
+      return "마켓 구매";
+    case "transfer":
+      return log.amount > 0 ? `${pointLabel} 받음` : `${pointLabel} 전송`;
+    case "manual":
+      return "관리자 지급";
+  }
+}
+
+export const POINT_LOG_CATEGORY: Record<PointReasonType, { label: string }> = {
+  mission: { label: "미션 인증" },
+  purchase: { label: "마켓 구매" },
+  manual: { label: "수동 지급" },
+  transfer: { label: "포인트 전송" },
+};

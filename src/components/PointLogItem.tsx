@@ -1,28 +1,30 @@
 "use client";
 
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
+  ArrowLeftRight,
   Award,
   ChevronDown,
   ChevronUp,
   ShoppingBag,
-  TrendingDown,
   TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
-import type { Order, PointLog } from "@/types";
+import { getPointLogSub, type Order, type PointLog } from "@/types";
 
 interface PointLogItemProps {
   log: PointLog;
   order?: Order;
   pointLabel?: string;
+  participantName?: string;
+  onClick?: () => void;
 }
 
 export function PointLogItem({
   log,
   order,
   pointLabel = "달란트",
+  participantName,
+  onClick,
 }: PointLogItemProps) {
   const [expanded, setExpanded] = useState(false);
   const isPositive = log.amount > 0;
@@ -37,71 +39,44 @@ export function PointLogItem({
           ? (log.memo ?? `${pointLabel} 전송`)
           : (log.memo ?? "수동 지급");
 
-  const sub =
-    log.reasonType === "mission" && log.verifiedByName
-      ? `${log.verifiedByName} 인증`
-      : isPurchase
-        ? "마켓 구매"
+  const sub = getPointLogSub(log, pointLabel);
+
+  const Icon =
+    log.reasonType === "purchase"
+      ? ShoppingBag
+      : log.reasonType === "manual"
+        ? Award
         : log.reasonType === "transfer"
-          ? log.amount > 0
-            ? `${pointLabel} 받음`
-            : `${pointLabel} 전송`
-          : "관리자 지급";
+          ? ArrowLeftRight
+          : TrendingUp;
 
-  const iconBg = isPositive
-    ? log.reasonType === "manual"
-      ? "bg-purple-50 dark:bg-purple-900/30"
-      : log.reasonType === "transfer"
-        ? "bg-blue-50 dark:bg-blue-900/30"
-        : "bg-emerald-50 dark:bg-emerald-900/30"
-    : log.reasonType === "transfer"
-      ? "bg-blue-50 dark:bg-blue-900/30"
-      : "bg-rose-50 dark:bg-rose-900/30";
-
-  const amountColor = isPositive
-    ? log.reasonType === "manual"
-      ? "text-purple-500"
-      : log.reasonType === "transfer"
-        ? "text-blue-500"
-        : "text-emerald-500"
-    : log.reasonType === "transfer"
-      ? "text-blue-500"
-      : "text-rose-500";
+  const amountColor = isPositive ? "text-emerald-500" : "text-rose-500";
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
       <button
         type="button"
-        onClick={() => isPurchase && order && setExpanded((v) => !v)}
+        onClick={
+          onClick ?? (() => isPurchase && order && setExpanded((v) => !v))
+        }
         className={`flex w-full items-center justify-between px-4 py-4 text-left ${
-          isPurchase && order ? "cursor-pointer" : "cursor-default"
+          onClick || (isPurchase && order) ? "cursor-pointer" : "cursor-default"
         }`}
       >
         <div className="flex items-center gap-3">
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}
-          >
-            {log.reasonType === "transfer" ? (
-              isPositive ? (
-                <ArrowDownLeft className="h-4 w-4 text-blue-500" />
-              ) : (
-                <ArrowUpRight className="h-4 w-4 text-blue-500" />
-              )
-            ) : isPositive ? (
-              log.reasonType === "manual" ? (
-                <Award className="h-4 w-4 text-purple-500" />
-              ) : (
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
-              )
-            ) : (
-              <TrendingDown className="h-4 w-4 text-rose-500" />
-            )}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+            <Icon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
               {label}
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">{sub}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {participantName && (
+                <span className="font-medium">{participantName} · </span>
+              )}
+              {sub}
+            </p>
             <p className="text-xs text-gray-300 dark:text-gray-600">
               {new Date(log.createdAt).toLocaleString("ko-KR", {
                 month: "short",
@@ -118,7 +93,8 @@ export function PointLogItem({
             {isPositive ? "+" : ""}
             {log.amount}
           </span>
-          {isPurchase &&
+          {!onClick &&
+            isPurchase &&
             order &&
             (expanded ? (
               <ChevronUp className="h-4 w-4 text-gray-300" />
