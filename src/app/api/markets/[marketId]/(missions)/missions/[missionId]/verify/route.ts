@@ -63,7 +63,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       targetUserId = body.userId!;
     }
 
-    if (targetUserId === verifiedBy)
+    if (targetUserId === verifiedBy && verifierRole !== "admin")
       return err("본인의 QR은 인증할 수 없어요", 403);
 
     const { data: participant, error: e2 } = await supabase
@@ -110,10 +110,11 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       p_verified_at: verifiedAt,
       p_reward: mission.reward,
       p_mission_title: mission.title,
+      p_allow_self: verifierRole === "admin",
     });
 
     if (e3) {
-      if (e3.message.includes("mission_logs_check"))
+      if (e3.message.includes("self verification not allowed"))
         return err("본인의 QR은 인증할 수 없어요", 403);
       if (
         e3.message.includes("already exists") ||
