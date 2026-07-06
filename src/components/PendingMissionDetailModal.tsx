@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { openImageViewer } from "@/components/ImageViewer";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
 import { openModal } from "@/lib/overlay";
@@ -91,13 +92,15 @@ function PendingMissionDetail({
         {log.photoUrl && (
           <div className="grid grid-cols-3 gap-2">
             {log.photoUrl.split(",").map((url) => (
-              // biome-ignore lint/performance/noImgElement: <explanation>
-              <img
+              <button
                 key={url}
-                src={url}
-                alt=""
-                className="aspect-square w-full rounded-xl object-cover"
-              />
+                type="button"
+                onClick={() => openImageViewer(url)}
+                className="aspect-square w-full overflow-hidden rounded-xl"
+              >
+                {/** biome-ignore lint/performance/noImgElement: thumbnail only */}
+                <img src={url} alt="" className="h-full w-full object-cover" />
+              </button>
             ))}
           </div>
         )}

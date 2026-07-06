@@ -1,11 +1,13 @@
 "use client";
 
-import { X } from "lucide-react";
+import { ShoppingBag, X } from "lucide-react";
+import { openImageViewer } from "@/components/ImageViewer";
 import { Modal } from "@/components/Modal";
 import { openModal } from "@/lib/overlay";
 import {
   getPointLogLabel,
   getPointLogSub,
+  type Order,
   POINT_LOG_CATEGORY,
   type PointLog,
 } from "@/types";
@@ -23,11 +25,13 @@ function PointLogDetail({
   log,
   participantName,
   pointLabel,
+  order,
   onClose,
 }: {
   log: PointLog;
   participantName: string;
   pointLabel: string;
+  order?: Order;
   onClose: () => void;
 }) {
   const photoUrls = log.photoUrl ? log.photoUrl.split(",") : [];
@@ -102,16 +106,45 @@ function PointLogDetail({
           )}
         </div>
 
+        {order && (
+          <div className="rounded-2xl bg-gray-50 dark:bg-gray-800 p-4 space-y-2">
+            {order.items.map((item) => (
+              <div
+                key={item.name}
+                className="flex items-center justify-between text-sm"
+              >
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                  <ShoppingBag className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
+                  <span>
+                    {item.name} × {item.qty}
+                  </span>
+                </div>
+                <span className="tabular-nums text-gray-500 dark:text-gray-400">
+                  {item.price * item.qty}
+                </span>
+              </div>
+            ))}
+            <div className="flex justify-between border-t border-gray-100 dark:border-gray-700 pt-2 text-xs text-gray-400 dark:text-gray-500">
+              <span>{order.verifiedByName} 처리</span>
+              <span className="font-medium tabular-nums text-rose-400">
+                -{order.total} 합계
+              </span>
+            </div>
+          </div>
+        )}
+
         {photoUrls.length > 0 && (
           <div className="grid grid-cols-3 gap-2">
             {photoUrls.map((url) => (
-              // biome-ignore lint/performance/noImgElement: <explanation>
-              <img
+              <button
                 key={url}
-                src={url}
-                alt=""
-                className="aspect-square w-full rounded-xl object-cover"
-              />
+                type="button"
+                onClick={() => openImageViewer(url)}
+                className="aspect-square w-full overflow-hidden rounded-xl"
+              >
+                {/** biome-ignore lint/performance/noImgElement: thumbnail only */}
+                <img src={url} alt="" className="h-full w-full object-cover" />
+              </button>
             ))}
           </div>
         )}
@@ -124,16 +157,19 @@ export function openPointLogDetail({
   log,
   participantName,
   pointLabel,
+  order,
 }: {
   log: PointLog;
   participantName: string;
   pointLabel: string;
+  order?: Order;
 }) {
   openModal((close) => (
     <PointLogDetail
       log={log}
       participantName={participantName}
       pointLabel={pointLabel}
+      order={order}
       onClose={close}
     />
   ));

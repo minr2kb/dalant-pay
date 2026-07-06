@@ -1,12 +1,8 @@
 "use client";
 
 import { useSuspenseQueries } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  ArrowRightLeft,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
+import { keyBy } from "es-toolkit";
+import { ArrowRight, ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { AdminAccessButton } from "@/components/AdminAccessButton";
@@ -14,6 +10,8 @@ import { HomeScanButton } from "@/components/HomeScanButton";
 import { InstallPwaBanner } from "@/components/InstallPwaBanner";
 import { NumberTicker } from "@/components/NumberTicker";
 import { PayQRButton } from "@/components/PayQRButton";
+import { openPointLogDetail } from "@/components/PointLogDetailModal";
+import { PointLogItem } from "@/components/PointLogItem";
 import { TransferModal } from "@/components/TransferModal";
 import { Button } from "@/components/ui/button";
 import { openModal } from "@/lib/overlay";
@@ -33,8 +31,9 @@ export function UserHomeClient({
     ],
   });
 
-  const { participant: user, pointLogs } = participants;
-  const recentLogs = useMemo(() => pointLogs.slice(0, 3), [pointLogs]);
+  const { participant: user, pointLogs, orders } = participants;
+  const recentLogs = useMemo(() => pointLogs.slice(0, 5), [pointLogs]);
+  const orderMap = useMemo(() => keyBy(orders, (o) => o.id), [orders]);
 
   return (
     <div className="px-4 space-y-6 max-w-lg mx-auto">
@@ -107,54 +106,21 @@ export function UserHomeClient({
         </div>
 
         <div className="space-y-2">
-          {recentLogs.map((log, i) => {
-            const label =
-              log.reasonType === "mission"
-                ? log.missionTitle
-                : log.reasonType === "purchase"
-                  ? log.itemName
-                  : log.reasonType === "transfer"
-                    ? (log.memo ?? `${market.pointLabel} 전송`)
-                    : (log.memo ?? "수동 지급");
-            const isPositive = log.amount > 0;
-
-            return (
-              <div
-                key={log.id}
-                className="flex items-center justify-between rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-400 fill-mode-both"
-                style={{ animationDelay: `${200 + i * 75}ms` }}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full ${isPositive ? "bg-emerald-50 dark:bg-emerald-900/30" : "bg-rose-50 dark:bg-rose-900/30"}`}
-                  >
-                    {isPositive ? (
-                      <TrendingUp className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-rose-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                      {label}
-                    </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
-                      {new Date(log.createdAt).toLocaleDateString("ko-KR", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <span
-                  className={`text-sm font-bold tabular-nums ${isPositive ? "text-emerald-500" : "text-rose-500"}`}
-                >
-                  {isPositive ? "+" : ""}
-                  {log.amount}
-                </span>
-              </div>
-            );
-          })}
+          {recentLogs.map((log) => (
+            <PointLogItem
+              key={log.id}
+              log={log}
+              pointLabel={market.pointLabel}
+              onClick={() =>
+                openPointLogDetail({
+                  log,
+                  participantName: user.displayName,
+                  pointLabel: market.pointLabel,
+                  order: log.orderId ? orderMap[log.orderId] : undefined,
+                })
+              }
+            />
+          ))}
           {recentLogs.length === 0 && (
             <p className="py-4 text-center text-sm text-gray-400">
               아직 내역이 없어요

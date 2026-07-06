@@ -2,7 +2,14 @@
 
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { keyBy, orderBy } from "es-toolkit";
-import { Coins, ScanLine, ShieldCheck, ShoppingBag, User } from "lucide-react";
+import {
+  ArrowRight,
+  Coins,
+  CreditCard,
+  ScanLine,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { openPointLogDetail } from "@/components/PointLogDetailModal";
@@ -50,11 +57,16 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
   return (
     <div className="px-4 max-w-lg mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             {market.title}
-          </h1>
-          <ShieldCheck className="h-4 w-4 text-emerald-500" />
+          </p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              관리자화면
+            </h1>
+            <ShieldCheck className="h-4 w-4 text-emerald-500" />
+          </div>
         </div>
         <Link
           href={`/markets/${marketId}/home`}
@@ -110,7 +122,7 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
           },
           {
             href: "pos",
-            icon: ShoppingBag,
+            icon: CreditCard,
             label: "물품 결제",
             bg: "bg-rose-50 dark:bg-rose-900/30",
             color: "text-rose-500",
@@ -141,9 +153,9 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
             </h2>
             <Link
               href={`/markets/${marketId}/admin/activity`}
-              className="text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+              className="flex items-center gap-1 text-xs text-emerald-500"
             >
-              전체보기
+              전체 보기 <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
           <div className="space-y-2">

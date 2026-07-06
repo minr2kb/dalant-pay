@@ -3,6 +3,7 @@
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { useMemo } from "react";
+import { openPointLogDetail } from "@/components/PointLogDetailModal";
 import { PointLogItem } from "@/components/PointLogItem";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 export function HistoryClient({
@@ -41,8 +42,15 @@ export function HistoryClient({
           <PointLogItem
             key={log.id}
             log={log}
-            order={log.orderId ? orderMap[log.orderId] : undefined}
             pointLabel={market.pointLabel}
+            onClick={() =>
+              openPointLogDetail({
+                log,
+                participantName: user.displayName,
+                pointLabel: market.pointLabel,
+                order: log.orderId ? orderMap[log.orderId] : undefined,
+              })
+            }
           />
         ))}
         {logs.length === 0 && (

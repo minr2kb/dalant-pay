@@ -1,7 +1,13 @@
 "use client";
 
 import { overlay } from "overlay-kit";
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
+
+// 중첩 모달(모달 위에 또 모달)에서 popstate 하나가 열려있는 모든 인스턴스에
+// 브로드캐스트되는 걸 막기 위한 스택 — 가장 최근에 열린(스택 최상단) 것만
+// 자기 차례에 반응해서 닫히게 한다. 아니면 안쪽 모달을 닫을 때 바깥쪽까지
+// 같이 닫혀버린다(뒤로가기 1번에 리스너 전부가 반응하므로).
+const overlayStack: symbol[] = [];
 
 function HistoryAwareModal({
   close,
@@ -12,20 +18,31 @@ function HistoryAwareModal({
   unmount: () => void;
   render: (close: () => void, unmount: () => void) => ReactNode;
 }) {
+  const idRef = useRef<symbol | null>(null);
+  if (idRef.current === null) idRef.current = Symbol();
+
   useEffect(() => {
+    const id = idRef.current as symbol;
+    overlayStack.push(id);
     window.history.pushState({ overlay: true }, "");
+
     const handlePop = () => {
+      if (overlayStack[overlayStack.length - 1] !== id) return;
+      overlayStack.pop();
       close();
       unmount();
     };
     window.addEventListener("popstate", handlePop);
-    return () => window.removeEventListener("popstate", handlePop);
+    return () => {
+      window.removeEventListener("popstate", handlePop);
+      const idx = overlayStack.lastIndexOf(id);
+      if (idx !== -1) overlayStack.splice(idx, 1);
+    };
   }, [close, unmount]);
 
-  // 뒤로가기로 닫기(X 버튼/배경 클릭용) — 열 때 쌓은 히스토리 엔트리를 정리한다.
+  // 뒤로가기로 닫기(X 버튼/배경 클릭용) — 실제 close/unmount는 popstate 핸들러가
+  // 스택 최상단인지 확인한 뒤에 처리한다.
   function closeViaBack() {
-    close();
-    unmount();
     window.history.back();
   }
 

@@ -1,4 +1,5 @@
 import { CheckCircle2, QrCode } from "lucide-react";
+import { openImageViewer } from "@/components/ImageViewer";
 import type { MissionSlotData } from "@/types";
 
 interface MissionSlotProps {
@@ -18,12 +19,18 @@ export function MissionSlot({ slot, slotNumber }: MissionSlotProps) {
       }`}
     >
       {slot.photoUrl && (
-        // biome-ignore lint/performance/noImgElement: thumbnail only
-        <img
-          src={slot.photoUrl}
-          alt=""
-          className="h-14 w-14 shrink-0 rounded-xl object-cover"
-        />
+        <button
+          type="button"
+          onClick={() => openImageViewer(slot.photoUrl as string)}
+          className="h-14 w-14 shrink-0 overflow-hidden rounded-xl"
+        >
+          {/** biome-ignore lint/performance/noImgElement: thumbnail only */}
+          <img
+            src={slot.photoUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </button>
       )}
       <div className="min-w-0 flex-1 space-y-2">
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
