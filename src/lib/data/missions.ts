@@ -63,7 +63,7 @@ export async function listPendingMissionLogs(
   const { data, error } = await supabase
     .from("mission_logs")
     .select(
-      "id, mission_id, user_id, slot, photo_url, missions!inner(title, reward, market_id)",
+      "id, mission_id, user_id, slot, photo_url, missions!inner(title, reward, market_id, is_group)",
     )
     .is("verified_at", null)
     .eq("missions.market_id", marketId);

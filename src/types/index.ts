@@ -89,6 +89,7 @@ export interface PendingMissionLog {
   userId: string;
   slot: number;
   photoUrl: string | null;
+  isGroup: boolean;
 }
 
 export interface OrderItem {
