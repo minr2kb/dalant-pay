@@ -20,7 +20,8 @@ export default function LoginPage() {
     setPending(true);
     const supabase = createClient();
     const next = new URLSearchParams(location.search).get("next");
-    const callbackUrl = new URL("/auth/callback", location.origin);
+    const baseOrigin = process.env.NEXT_PUBLIC_SITE_URL || location.origin;
+    const callbackUrl = new URL("/auth/callback", baseOrigin);
     if (next) callbackUrl.searchParams.set("next", next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "kakao",
