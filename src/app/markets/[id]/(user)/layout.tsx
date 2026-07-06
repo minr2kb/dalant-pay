@@ -1,10 +1,8 @@
+import { AuthGate } from "@/components/AuthGate";
 import { FloatingTabBar } from "@/components/FloatingTabBar";
-import { MarketRealtimeProvider } from "@/components/MarketRealtimeProvider";
-import { getCurrentUserId } from "@/lib/auth";
 
 export default async function UserLayout(props: LayoutProps<"/markets/[id]">) {
   const { id } = await props.params;
-  const userId = await getCurrentUserId();
 
   const tabs = [
     { label: "홈", segment: "home", href: `/markets/${id}/home`, icon: "Home" },
@@ -30,8 +28,9 @@ export default async function UserLayout(props: LayoutProps<"/markets/[id]">) {
 
   return (
     <div className="min-h-svh bg-gray-50 dark:bg-gray-950">
-      <MarketRealtimeProvider marketId={id} userId={userId ?? ""} />
-      <main className="min-h-svh pb-28 pt-4">{props.children}</main>
+      <AuthGate marketId={id}>
+        <main className="min-h-svh pb-28 pt-4">{props.children}</main>
+      </AuthGate>
       <FloatingTabBar tabs={tabs} />
     </div>
   );
