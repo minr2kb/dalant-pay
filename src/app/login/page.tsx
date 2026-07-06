@@ -1,7 +1,9 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import localFont from "next/font/local";
 import Image from "next/image";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const gmarketSans = localFont({
@@ -12,17 +14,21 @@ const gmarketSans = localFont({
 });
 
 export default function LoginPage() {
+  const [pending, setPending] = useState(false);
+
   async function handleKakaoLogin() {
+    setPending(true);
     const supabase = createClient();
     const next = new URLSearchParams(location.search).get("next");
     const callbackUrl = new URL("/auth/callback", location.origin);
     if (next) callbackUrl.searchParams.set("next", next);
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "kakao",
       options: {
         redirectTo: callbackUrl.toString(),
       },
     });
+    if (error) setPending(false);
   }
 
   return (
@@ -53,23 +59,28 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={handleKakaoLogin}
-          className="flex h-14 w-full max-w-sm mx-auto items-center justify-center gap-2.5 rounded-full bg-[#FEE500] font-semibold text-[#3C1E1E] transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer"
+          disabled={pending}
+          className="flex h-14 w-full max-w-sm mx-auto items-center justify-center gap-2.5 rounded-full bg-[#FEE500] font-semibold text-[#3C1E1E] transition-all hover:opacity-90 active:scale-[0.98] cursor-pointer disabled:opacity-70 disabled:cursor-default"
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 20 20"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M10 2C5.582 2 2 4.686 2 8c0 2.13 1.338 4.002 3.352 5.126L4.6 16.23a.25.25 0 0 0 .37.27l3.74-2.48A9.19 9.19 0 0 0 10 14c4.418 0 8-2.686 8-6s-3.582-6-8-6z"
-              fill="#3C1E1E"
-            />
-          </svg>
-          카카오로 시작하기
+          {pending ? (
+            <Loader2 className="h-[18px] w-[18px] animate-spin" />
+          ) : (
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M10 2C5.582 2 2 4.686 2 8c0 2.13 1.338 4.002 3.352 5.126L4.6 16.23a.25.25 0 0 0 .37.27l3.74-2.48A9.19 9.19 0 0 0 10 14c4.418 0 8-2.686 8-6s-3.582-6-8-6z"
+                fill="#3C1E1E"
+              />
+            </svg>
+          )}
+          {pending ? "이동 중..." : "카카오로 시작하기"}
         </button>
         <p className="text-center text-xs text-white/60">
           로그인시 이용약관에 동의합니다
