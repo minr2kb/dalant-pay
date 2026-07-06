@@ -16,7 +16,7 @@ const description = "오프라인 모임을 위한 미션 인증 기반 달란�
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
   title,
   description,
@@ -26,13 +26,11 @@ export const metadata: Metadata = {
     siteName: title,
     locale: "ko_KR",
     type: "website",
-    images: ["/android-chrome-512x512.png"],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title,
     description,
-    images: ["/android-chrome-512x512.png"],
   },
 };
 

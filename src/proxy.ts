@@ -37,10 +37,9 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname === "/robots.txt" ||
     pathname === "/manifest.webmanifest" ||
-    // 마켓 QR 랜딩(공유 페이지)과 그 og:image는 미가입자·링크 미리보기 봇도 봐야 하므로 공개.
-    // 그 외 하위 경로(/home 등)는 제외.
+    // 마켓 QR 랜딩(공유 페이지)은 미가입자·링크 미리보기 봇도 봐야 하므로 공개.
+    // 그 외 하위 경로(/home 등)는 제외. og:image는 정적 파일이라 미들웨어 matcher에서 이미 제외됨.
     /^\/markets\/[^/]+$/.test(pathname) ||
-    /^\/markets\/[^/]+\/opengraph-image$/.test(pathname) ||
     // 마켓별 PWA manifest도 브라우저가 로그인 세션 없이 직접 fetch하므로 공개.
     /^\/markets\/[^/]+\/manifest\.webmanifest$/.test(pathname);
 
