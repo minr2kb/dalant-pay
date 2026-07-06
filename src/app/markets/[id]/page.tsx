@@ -1,5 +1,7 @@
 import { Calendar, Users } from "lucide-react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getCurrentUserId } from "@/lib/auth";
 import { mapMarket } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { JoinButton } from "./JoinButton";
@@ -36,6 +38,19 @@ export default async function MarketJoinPage(
   props: PageProps<"/markets/[id]">,
 ) {
   const { id } = await props.params;
+
+  // 이미 참여 중인 유저(특히 PWA start_url로 매번 여기부터 여는 경우)는
+  // 참여 화면을 거칠 필요 없이 바로 홈으로 — 안 그러면 페이지 로드가 두 번 겹친다.
+  const userId = await getCurrentUserId();
+  if (userId) {
+    const { data: existingParticipant } = await supabase
+      .from("market_participants")
+      .select("id")
+      .eq("market_id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existingParticipant) redirect(`/markets/${id}/home`);
+  }
 
   // 로그인 전 방문자(QR 랜딩)도 봐야 하는 공개 화면이라 세션 클라이언트 대신 서비스롤로 조회한다.
   const { data: marketRow } = await supabase
