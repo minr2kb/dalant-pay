@@ -44,7 +44,7 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
   const pathname = usePathname();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setPendingHref is a stable useState setter, intentionally omitted so this reset only fires on pathname change, not on setter identity
   useEffect(() => {
     setPendingHref(null);
   }, [pathname]);

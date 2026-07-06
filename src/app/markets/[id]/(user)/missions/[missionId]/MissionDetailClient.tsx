@@ -142,7 +142,7 @@ export function MissionDetailClient({
               <div className="space-y-2">
                 <label className="relative mx-auto flex aspect-square w-32 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-400 dark:text-gray-500 hover:border-emerald-300 hover:text-emerald-400 transition-colors">
                   {pendingPhotoUrl && (
-                    // biome-ignore lint/performance/noImgElement: <explanation>
+                    // biome-ignore lint/performance/noImgElement: small upload preview thumbnail from a dynamic Supabase storage URL, not a build-time asset next/image can optimize
                     <img
                       src={pendingPhotoUrl}
                       alt=""

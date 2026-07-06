@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { ArrowLeft, QrCode, Search, UserRound, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +8,6 @@ import { Modal } from "@/components/Modal";
 import { QRScanner } from "@/components/QRScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { transferApi } from "@/lib/api/client";
 import { parseQR } from "@/lib/qr";
 import {
   marketsQuery,

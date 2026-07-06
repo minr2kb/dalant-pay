@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { CheckCircle2, ScanLine, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -49,7 +49,7 @@ function ConfirmModal({
       });
       setDone(true);
     } catch (e) {
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
       setVerifyError((e as any)?.body?.error ?? "인증에 실패했어요");
     }
   }

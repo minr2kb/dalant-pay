@@ -42,6 +42,8 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     const verifierRole = (verifierParticipant as { role?: string } | null)
       ?.role;
 
+    if (!verifierParticipant) return err("이 마켓의 참여자가 아니에요", 403);
+
     if (
       (mission.type === "admin_qr" || mission.type === "upload") &&
       verifierRole !== "admin"
@@ -59,7 +61,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       targetUserId = parsed.userId;
     } else {
       if (verifierRole !== "admin") return err("권한이 없어요", 403);
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      // biome-ignore lint/style/noNonNullAssertion: schema types userId as optional, but the !body.token && !body.userId guard above already ensures it's present here since body.token is falsy in this branch
       targetUserId = body.userId!;
     }
 

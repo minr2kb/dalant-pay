@@ -3,7 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @view-transition {
-  /* biome-ignore lint/correctness/noUnknownProperty: <explanation> */
+  /* biome-ignore lint/correctness/noUnknownProperty: `navigation` is a valid @view-transition descriptor per the View Transitions spec, not yet recognized by biome's known-properties list */
   navigation: auto;
 }
 
