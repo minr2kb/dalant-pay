@@ -1,29 +1,30 @@
 "use client";
 
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useIsRestoring, useQueries } from "@tanstack/react-query";
 import { orderBy } from "es-toolkit";
 import { useMemo } from "react";
+import { useSessionUserId } from "@/components/AuthGate";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { cn } from "@/lib/utils";
+import { RankingSkeleton } from "./RankingSkeleton";
 
-export function RankingClient({
-  marketId,
-  userId,
-}: {
-  marketId: string;
-  userId: string;
-}) {
-  const [{ data: market }, { data: participants }] = useSuspenseQueries({
+export function RankingClient({ marketId }: { marketId: string }) {
+  const userId = useSessionUserId();
+  const isRestoring = useIsRestoring();
+
+  const [{ data: market }, { data: participants }] = useQueries({
     queries: [
-      marketsQuery.get({ marketId }),
-      participantsQuery.list({ marketId }),
+      { ...marketsQuery.get({ marketId }), enabled: !!userId },
+      { ...participantsQuery.list({ marketId }), enabled: !!userId },
     ],
   });
 
   const ranked = useMemo(
-    () => orderBy(participants, [(p) => p.balance], ["desc"]),
+    () => orderBy(participants ?? [], [(p) => p.balance], ["desc"]),
     [participants],
   );
+
+  if (isRestoring || !market || !participants) return <RankingSkeleton />;
   const maxBalance = ranked[0]?.balance ?? 0;
   const pct = (balance: number) =>
     maxBalance > 0 ? Math.round((balance / maxBalance) * 100) : 0;
