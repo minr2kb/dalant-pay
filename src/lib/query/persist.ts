@@ -1,4 +1,5 @@
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import type { Query } from "@tanstack/react-query";
 import { del, get, set } from "idb-keyval";
 import { createSafeStorage } from "@/lib/query/persist-storage";
 import {
@@ -8,7 +9,8 @@ import {
 } from "@/lib/query/queries";
 
 // 캐시 포맷(쿼리 키 구조, 응답 스키마)이 바뀌면 이 값을 올려서 옛 캐시를 통째로 버린다.
-export const CACHE_BUSTER = "v1";
+// v2: pending 상태 쿼리까지 저장되던 버그 수정 — 이전에 잘못 저장된 캐시를 폐기.
+export const CACHE_BUSTER = "v2";
 
 // 모든 라우터가 prefix "/markets"를 공유해 $key[0]이 항상 "markets"로 겹친다 —
 // 태그만으로는 구분이 안 되므로 (root + path 템플릿) 전체를 접두어로 비교한다.
@@ -24,7 +26,11 @@ const PERSISTED_KEY_PREFIXES = [
   missionsQuery.list.queryKey(),
 ] as const;
 
-export function shouldPersistQuery(query: { queryKey: readonly unknown[] }) {
+export function shouldPersistQuery(query: Query) {
+  // pending 상태(아직 안 끝난 fetch)를 저장하면, 나중에 복원할 때 그 Promise를
+  // 실제로 이어받을 방법이 없어 "dehydrated as pending... CancelledError"로
+  // 터진다 — success로 끝난 쿼리만 저장한다.
+  if (query.state.status !== "success") return false;
   return PERSISTED_KEY_PREFIXES.some((prefix) =>
     prefix.every((segment, i) => query.queryKey[i] === segment),
   );
