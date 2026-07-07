@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/style/noNonNullAssertion: <explanation> */
+/** biome-ignore-all lint/style/noNonNullAssertion: NEXT_PUBLIC_SUPABASE_URL/ANON_KEY are required env vars set at build/deploy time and must fail loudly if missing */
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -47,7 +47,11 @@ export async function proxy(request: NextRequest) {
     /^\/markets\/[^/]+$/.test(pathname) ||
     // 마켓별 PWA manifest도 브라우저가 로그인 세션 없이 직접 fetch하므로 공개.
     /^\/markets\/[^/]+\/manifest\.webmanifest$/.test(pathname) ||
-    OPTIMISTIC_AUTH_ROUTES.test(pathname);
+    OPTIMISTIC_AUTH_ROUTES.test(pathname) ||
+    // 마켓 목록 — 루트 PWA(start_url: "/")가 /login을 거쳐 결국 도착하는 화면이라
+    // AuthGate가 낙관적으로 처리하도록 우회. (user) 그룹과 달리 marketId가 없는
+    // 최상위 라우트라 별도 정확 매치로 둔다.
+    pathname === "/markets";
 
   if (!user && !isPublic) {
     const loginUrl = new URL("/login", request.url);

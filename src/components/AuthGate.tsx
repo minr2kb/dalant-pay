@@ -14,14 +14,16 @@ export function AuthGate({
   marketId,
   children,
 }: {
-  marketId: string;
+  marketId?: string;
   children: ReactNode;
 }) {
   const { userId } = useOptimisticSession();
 
   return (
     <SessionUserIdContext.Provider value={userId}>
-      {userId && <MarketRealtimeProvider marketId={marketId} userId={userId} />}
+      {userId && marketId && (
+        <MarketRealtimeProvider marketId={marketId} userId={userId} />
+      )}
       {children}
     </SessionUserIdContext.Provider>
   );
