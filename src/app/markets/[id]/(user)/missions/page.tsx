@@ -32,7 +32,8 @@ export default async function MissionsPage(
   props: PageProps<"/markets/[id]/missions">,
 ) {
   const { id: marketId } = await props.params;
-  const userId = (await getCurrentUserId()) ?? undefined;
+  const userId = await getCurrentUserId();
+  if (!userId) return null;
   const supabase = await createClient();
   const qc = getQueryClient();
   const missions = await listMissions(supabase, marketId, { userId }).catch(
