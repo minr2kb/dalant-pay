@@ -1,27 +1,36 @@
 "use client";
 
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useIsRestoring, useQueries } from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { useMemo } from "react";
+import { useSessionUserId } from "@/components/AuthGate";
 import { openPointLogDetail } from "@/components/PointLogDetailModal";
 import { PointLogItem } from "@/components/PointLogItem";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
-export function HistoryClient({
-  marketId,
-  userId,
-}: {
-  marketId: string;
-  userId: string;
-}) {
-  const [{ data: market }, { data: participants }] = useSuspenseQueries({
+import { HistorySkeleton } from "./HistorySkeleton";
+
+export function HistoryClient({ marketId }: { marketId: string }) {
+  const userId = useSessionUserId();
+  const isRestoring = useIsRestoring();
+
+  const [{ data: market }, { data: participants }] = useQueries({
     queries: [
-      marketsQuery.get({ marketId }),
-      participantsQuery.get({ marketId, userId }),
+      { ...marketsQuery.get({ marketId }), enabled: !!userId },
+      {
+        ...participantsQuery.get({ marketId, userId: userId ?? "" }),
+        enabled: !!userId,
+      },
     ],
   });
 
-  const { participant: user, pointLogs: logs, orders } = participants;
-  const orderMap = useMemo(() => keyBy(orders, (o) => o.id), [orders]);
+  const orderMap = useMemo(
+    () => keyBy(participants?.orders ?? [], (o) => o.id),
+    [participants],
+  );
+
+  if (isRestoring || !market || !participants) return <HistorySkeleton />;
+
+  const { participant: user, pointLogs: logs } = participants;
 
   return (
     <div className="px-4 max-w-lg mx-auto space-y-5">
