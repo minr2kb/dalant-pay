@@ -1,11 +1,12 @@
 "use client";
 
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useIsRestoring, useMutation, useQueries } from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { ArrowRight, ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { AdminAccessButton } from "@/components/AdminAccessButton";
+import { useSessionUserId } from "@/components/AuthGate";
 import { HomeScanButton } from "@/components/HomeScanButton";
 import { InstallPwaBanner } from "@/components/InstallPwaBanner";
 import { NumberTicker } from "@/components/NumberTicker";
@@ -16,24 +17,42 @@ import { TransferModal } from "@/components/TransferModal";
 import { Button } from "@/components/ui/button";
 import { openModal } from "@/lib/overlay";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
+import { HomeSkeleton } from "./HomeSkeleton";
 
-export function UserHomeClient({
-  marketId,
-  userId,
-}: {
-  marketId: string;
-  userId: string;
-}) {
-  const [{ data: market }, { data: participants }] = useSuspenseQueries({
+export function UserHomeClient({ marketId }: { marketId: string }) {
+  const userId = useSessionUserId();
+  const isRestoring = useIsRestoring();
+
+  const { mutate: ensureJoined } = useMutation(
+    participantsQuery.join({ invalidates: [participantsQuery.$key] }),
+  );
+
+  useEffect(() => {
+    if (userId) ensureJoined({ marketId });
+  }, [userId, marketId, ensureJoined]);
+
+  const [{ data: market }, { data: participants }] = useQueries({
     queries: [
-      marketsQuery.get({ marketId }),
-      participantsQuery.get({ marketId, userId }),
+      { ...marketsQuery.get({ marketId }), enabled: !!userId },
+      {
+        ...participantsQuery.get({ marketId, userId: userId ?? "" }),
+        enabled: !!userId,
+      },
     ],
   });
 
-  const { participant: user, pointLogs, orders } = participants;
-  const recentLogs = useMemo(() => pointLogs.slice(0, 5), [pointLogs]);
-  const orderMap = useMemo(() => keyBy(orders, (o) => o.id), [orders]);
+  const recentLogs = useMemo(
+    () => participants?.pointLogs.slice(0, 5) ?? [],
+    [participants],
+  );
+  const orderMap = useMemo(
+    () => keyBy(participants?.orders ?? [], (o) => o.id),
+    [participants],
+  );
+
+  if (isRestoring || !market || !participants) return <HomeSkeleton />;
+
+  const user = participants.participant;
 
   return (
     <div className="px-4 space-y-6 max-w-lg mx-auto">
@@ -80,7 +99,7 @@ export function UserHomeClient({
             openModal((close) => (
               <TransferModal
                 marketId={marketId}
-                userId={userId}
+                userId={user.user.id}
                 onClose={close}
               />
             ))
