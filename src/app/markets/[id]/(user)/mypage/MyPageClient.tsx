@@ -1,14 +1,16 @@
 "use client";
 
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useIsRestoring, useQueries } from "@tanstack/react-query";
 import { LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useSessionUserId } from "@/components/AuthGate";
 import { MarketShareButton } from "@/components/MarketShareButton";
 import { Button } from "@/components/ui/button";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { MyPageSkeleton } from "./MyPageSkeleton";
 
 const THEME_OPTIONS = [
   { value: "system", label: "시스템", icon: Monitor },
@@ -16,27 +18,25 @@ const THEME_OPTIONS = [
   { value: "dark", label: "다크", icon: Moon },
 ] as const;
 
-export function MyPageClient({
-  marketId,
-  userId,
-}: {
-  marketId: string;
-  userId: string;
-}) {
+export function MyPageClient({ marketId }: { marketId: string }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const userId = useSessionUserId();
+  const isRestoring = useIsRestoring();
 
-  const [
-    { data: market },
-    {
-      data: { participant },
-    },
-  ] = useSuspenseQueries({
+  const [{ data: market }, { data: participants }] = useQueries({
     queries: [
-      marketsQuery.get({ marketId }),
-      participantsQuery.get({ marketId, userId }),
+      { ...marketsQuery.get({ marketId }), enabled: !!userId },
+      {
+        ...participantsQuery.get({ marketId, userId: userId ?? "" }),
+        enabled: !!userId,
+      },
     ],
   });
+
+  const participant = participants?.participant;
+
+  if (isRestoring || !market || !participant) return <MyPageSkeleton />;
 
   const user = participant.user;
 
