@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsRestoring, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MarketCard } from "@/components/MarketCard";
 import { marketsQuery } from "@/lib/query/queries";
@@ -8,14 +8,15 @@ import { MarketsSkeleton } from "./MarketsSkeleton";
 
 export function MarketsListClient() {
   const userId = useSessionUserId();
-  const isRestoring = useIsRestoring();
 
   const { data: items } = useQuery({
     ...marketsQuery.list(),
     enabled: !!userId,
   });
 
-  if (isRestoring || !items) return <MarketsSkeleton />;
+  // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
+  // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
+  if (!items) return <MarketsSkeleton />;
 
   const joined = items.filter((i) => i.isJoined);
   const available = items.filter((i) => !i.isJoined);

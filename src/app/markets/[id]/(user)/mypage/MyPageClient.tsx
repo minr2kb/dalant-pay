@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsRestoring, useQueries } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -18,11 +18,18 @@ const THEME_OPTIONS = [
   { value: "dark", label: "다크", icon: Moon },
 ] as const;
 
-export function MyPageClient({ marketId }: { marketId: string }) {
+export function MyPageClient({
+  marketId,
+  initialUserId,
+}: {
+  marketId: string;
+  initialUserId: string | null;
+}) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const userId = useSessionUserId();
-  const isRestoring = useIsRestoring();
+  // useSessionUserId()가 비동기로 채워지기 전엔 서버가 이미 검증한 initialUserId로 쿼리 키를
+  // 맞춰서 SSR prefetch 캐시를 첫 렌더부터 바로 쓴다 — UserHomeClient와 동일한 이유.
+  const userId = useSessionUserId() ?? initialUserId;
 
   const [{ data: market }, { data: participants }] = useQueries({
     queries: [
@@ -36,7 +43,9 @@ export function MyPageClient({ marketId }: { marketId: string }) {
 
   const participant = participants?.participant;
 
-  if (isRestoring || !market || !participant) return <MyPageSkeleton />;
+  // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
+  // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
+  if (!market || !participant) return <MyPageSkeleton />;
 
   const user = participant.user;
 

@@ -1,7 +1,4 @@
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import type { Query } from "@tanstack/react-query";
-import { del, get, set } from "idb-keyval";
-import { createSafeStorage } from "@/lib/query/persist-storage";
 import {
   marketsQuery,
   missionsQuery,
@@ -12,6 +9,11 @@ import {
 // v3: marketsQuery.list(마켓 목록 + 참여 여부) 추가 — /markets가 PWA start_url 계열
 // 진입점이라 이것도 캐시 우선으로 전환.
 export const CACHE_BUSTER = "v3";
+
+// 서버 컴포넌트가 "이 브라우저는 캐시가 있을 가능성이 높다"를 쿠키만 보고 판단하기 위한 값
+// (IndexedDB는 서버에서 못 읽으니까). Providers가 마운트될 때마다 세팅 — 실제 캐시 유무를
+// 정확히 추적하진 않지만, 재방문자를 걸러내는 용도로는 충분하다.
+export const CLIENT_CACHE_COOKIE = "dp-cached";
 
 // 모든 라우터가 prefix "/markets"를 공유해 $key[0]이 항상 "markets"로 겹친다 —
 // 태그만으로는 구분이 안 되므로 (root + path 템플릿) 전체를 접두어로 비교한다.
@@ -36,11 +38,4 @@ export function shouldPersistQuery(query: Query) {
   return PERSISTED_KEY_PREFIXES.some((prefix) =>
     prefix.every((segment, i) => query.queryKey[i] === segment),
   );
-}
-
-export function createHomeCachePersister() {
-  return createAsyncStoragePersister({
-    storage: createSafeStorage({ get, set, del }),
-    key: "dalant-pay-query-cache",
-  });
 }
