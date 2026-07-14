@@ -1,6 +1,6 @@
 "use client";
 
-import { useIsRestoring, useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { ArrowRight, ArrowRightLeft } from "lucide-react";
 import Link from "next/link";
@@ -19,9 +19,18 @@ import { openModal } from "@/lib/overlay";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { HomeSkeleton } from "./HomeSkeleton";
 
-export function UserHomeClient({ marketId }: { marketId: string }) {
-  const userId = useSessionUserId();
-  const isRestoring = useIsRestoring();
+export function UserHomeClient({
+  marketId,
+  initialUserId,
+}: {
+  marketId: string;
+  initialUserId: string | null;
+}) {
+  // useSessionUserId()는 클라이언트에서 로컬 세션을 다시 비동기로 확인한 뒤에야 값이 채워진다.
+  // 그 확인이 끝나기 전엔 initialUserId(서버가 getClaims()로 이미 검증한 값)로 즉시 쿼리 키를
+  // 맞춰서, 서버 prefetch가 채워둔 캐시를 첫 렌더부터 바로 쓴다. 세션이 실제로 무효하면
+  // AuthGate가 별도로 리다이렉트하므로 보안 경계는 그대로 유지된다.
+  const userId = useSessionUserId() ?? initialUserId;
 
   const { mutate: ensureJoined } = useMutation(
     participantsQuery.join({ invalidates: [participantsQuery.$key] }),
@@ -50,7 +59,9 @@ export function UserHomeClient({ marketId }: { marketId: string }) {
     [participants],
   );
 
-  if (isRestoring || !market || !participants) return <HomeSkeleton />;
+  // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
+  // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다.
+  if (!market || !participants) return <HomeSkeleton />;
 
   const user = participants.participant;
 
@@ -118,6 +129,7 @@ export function UserHomeClient({ marketId }: { marketId: string }) {
           </h2>
           <Link
             href={`/markets/${marketId}/history`}
+            prefetch={false}
             className="flex items-center gap-1 text-xs text-emerald-500"
           >
             전체 보기 <ArrowRight className="h-3 w-3" />

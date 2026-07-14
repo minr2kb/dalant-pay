@@ -61,6 +61,18 @@ function PosInner({ marketId }: { marketId: string }) {
     );
   }
 
+  function selectUser(participant: MarketParticipant) {
+    if (participant.balance < total) {
+      toast.error("잔액이 부족해요", {
+        description: `${participant.user.realName}님의 잔액은 ${participant.balance} ${pointLabel}이에요`,
+      });
+      setScanState("scanning");
+      return;
+    }
+    setScannedUser(participant);
+    setScanState("confirm");
+  }
+
   function handleScan(val: string) {
     const qr = parseQR(val);
     if (qr?.type === "mission") {
@@ -70,8 +82,7 @@ function PosInner({ marketId }: { marketId: string }) {
     if (qr?.type === "pay") {
       const participant = participants.find((p) => p.user.id === qr.userId);
       if (participant) {
-        setScannedUser(participant);
-        setScanState("confirm");
+        selectUser(participant);
         return;
       }
       toast.error("이 마켓의 참여자 QR이 아니에요");
@@ -243,10 +254,7 @@ function PosInner({ marketId }: { marketId: string }) {
                   <button
                     key={p.user.id}
                     type="button"
-                    onClick={() => {
-                      setScannedUser(p);
-                      setScanState("confirm");
-                    }}
+                    onClick={() => selectUser(p)}
                     className="flex h-14 w-full items-center gap-3 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 text-left hover:bg-rose-50 hover:border-rose-200 transition-colors"
                   >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-bold text-gray-600 dark:text-gray-300">

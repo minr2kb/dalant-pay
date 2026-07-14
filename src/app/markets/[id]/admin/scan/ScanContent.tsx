@@ -220,7 +220,7 @@ function ScanInner({ marketId }: { marketId: string }) {
                 누구의 QR인가요?
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                {selectedMission.title} · +{selectedMission.reward} {pointLabel}
+                {selectedMission.title} +{selectedMission.reward} {pointLabel}
               </p>
             </div>
             <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -261,7 +261,7 @@ function ScanInner({ marketId }: { marketId: string }) {
                 {selectedMission.title}
               </h3>
               <p className="text-sm text-gray-500">
-                {selectedUser.user.realName} · +{selectedMission.reward}{" "}
+                {selectedUser.user.realName} +{selectedMission.reward}{" "}
                 {pointLabel}
               </p>
             </div>
@@ -348,7 +348,7 @@ function ScanInner({ marketId }: { marketId: string }) {
           <div>
             <p className="text-xl font-bold text-white">적립 완료!</p>
             <p className="mt-1 text-sm text-white/60">
-              {selectedMission.title} · +{selectedMission.reward} {pointLabel}
+              {selectedMission.title} +{selectedMission.reward} {pointLabel}
             </p>
           </div>
           <Button

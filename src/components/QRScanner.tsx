@@ -51,6 +51,7 @@ export function QRScanner({
     }
 
     let active = true;
+    let resumeTimer: ReturnType<typeof setTimeout> | undefined;
 
     function scanFrame() {
       if (!active) return;
@@ -65,11 +66,14 @@ export function QRScanner({
           const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(img.data, img.width, img.height);
           if (code?.data) {
-            active = false;
-            cancelAnimationFrame(rafRef.current);
-            streamRef.current?.getTracks().forEach((t) => t.stop());
-            streamRef.current = null;
             onScanRef.current(code.data);
+            // If onScan led to an overlay/close, this effect's cleanup runs
+            // (deps change) and clears this timer before it fires. Otherwise
+            // (invalid QR, rejected user, etc.) scanning resumes on its own —
+            // the camera must never appear to "freeze" after a rejected scan.
+            resumeTimer = setTimeout(() => {
+              if (active) scanFrame();
+            }, 1200);
             return;
           }
         }
@@ -106,6 +110,7 @@ export function QRScanner({
 
     return () => {
       active = false;
+      clearTimeout(resumeTimer);
       cancelAnimationFrame(rafRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
