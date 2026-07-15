@@ -8,17 +8,21 @@ export async function joinMarket(
 ) {
   const { data: existing } = await supabase
     .from("market_participants")
-    .select("id, display_name")
+    .select("id, display_name, user:users!user_id(real_name)")
     .eq("market_id", marketId)
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (existing)
+  if (existing) {
+    const realName =
+      (existing as unknown as { user?: { real_name?: string } }).user
+        ?.real_name ?? "";
     return {
       isNew: false,
       hasConflict: false,
-      displayName: existing.display_name as string | null,
+      displayName: (existing.display_name as string | null) ?? realName,
     };
+  }
 
   const { data: userRow } = await supabase
     .from("users")

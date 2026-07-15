@@ -105,7 +105,8 @@ function PosInner({ marketId }: { marketId: string }) {
       });
       setScanState("done");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "결제에 실패했습니다.";
+      // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
+      const msg = (e as any)?.body?.error ?? "결제에 실패했습니다.";
       toast.error("결제 실패", { description: msg });
     }
   }
