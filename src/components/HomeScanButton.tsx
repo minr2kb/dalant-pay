@@ -4,6 +4,7 @@ import { useMutation, useQueries } from "@tanstack/react-query";
 import { CheckCircle2, ScanLine, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useSessionUserId } from "@/components/AuthGate";
 import { Modal } from "@/components/Modal";
 import { QRScanner } from "@/components/QRScanner";
 import { Button } from "@/components/ui/button";
@@ -141,6 +142,7 @@ export function HomeScanButton({
   pointLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const userId = useSessionUserId();
 
   const [{ data: participants = [] }, { data: missions = [] }] = useQueries({
     queries: [
@@ -170,6 +172,10 @@ export function HomeScanButton({
     }
     if (mission.type !== "user_qr") {
       toast.error("관리자 인증이 필요한 미션이에요");
+      return;
+    }
+    if (qr.userId === userId) {
+      toast.error("본인의 QR은 인증할 수 없어요");
       return;
     }
 

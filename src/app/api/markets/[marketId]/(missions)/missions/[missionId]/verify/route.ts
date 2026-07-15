@@ -49,8 +49,6 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       verifierRole !== "admin"
     )
       return err("관리자만 인증할 수 있는 미션이에요", 403);
-    if (mission.type === "user_qr" && verifierRole === "admin")
-      return err("유저 간 인증 미션이에요. 다른 참여자가 스캔해야 해요", 403);
 
     let targetUserId: string;
     if (body.token) {
