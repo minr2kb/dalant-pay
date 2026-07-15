@@ -86,6 +86,7 @@ export function mapMission(
     activeFrom: (row.active_from as string | null) ?? null,
     activeUntil: (row.active_until as string | null) ?? null,
     isActive: row.is_active as boolean,
+    sortOrder: row.sort_order as number,
     ...(slots ? { slots } : {}),
   };
 }

@@ -1,7 +1,16 @@
 "use client";
 
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronUp,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { Suspense, use, useCallback, useState } from "react";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Button } from "@/components/ui/button";
@@ -63,6 +72,7 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
     missionsQuery.delete({ invalidates: [missionsQuery.$key] }),
   );
 
+  const [isReordering, setIsReordering] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -103,6 +113,30 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
       missionId,
       isActive: !current,
     });
+  }
+
+  async function moveMission(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= missions.length || isReordering) return;
+    const a = missions[index];
+    const b = missions[target];
+    setIsReordering(true);
+    try {
+      await Promise.all([
+        updateMutation.mutateAsync({
+          marketId,
+          missionId: a.id,
+          sortOrder: b.sortOrder,
+        }),
+        updateMutation.mutateAsync({
+          marketId,
+          missionId: b.id,
+          sortOrder: a.sortOrder,
+        }),
+      ]);
+    } finally {
+      setIsReordering(false);
+    }
   }
 
   async function deleteMission(missionId: string) {
@@ -151,12 +185,30 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
         </div>
 
         <div className="space-y-3">
-          {missions.map((mission) => (
+          {missions.map((mission, index) => (
             <div
               key={mission.id}
               className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden"
             >
               <div className="flex items-center gap-3 px-4 py-4">
+                <div className="flex shrink-0 flex-col">
+                  <button
+                    type="button"
+                    onClick={() => moveMission(index, -1)}
+                    disabled={index === 0 || isReordering}
+                    className="p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-30 dark:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveMission(index, 1)}
+                    disabled={index === missions.length - 1 || isReordering}
+                    className="p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-30 dark:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() =>

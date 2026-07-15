@@ -42,6 +42,15 @@ export const POST = marketAdminRoute<{ marketId: string }>(
     if (parsed instanceof Response) return parsed;
     const { body } = parsed;
 
+    const { data: last } = await supabase
+      .from("missions")
+      .select("sort_order")
+      .eq("market_id", params.marketId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextSortOrder = ((last?.sort_order as number | undefined) ?? 0) + 1;
+
     const { data, error } = await supabase
       .from("missions")
       .insert({
@@ -55,6 +64,7 @@ export const POST = marketAdminRoute<{ marketId: string }>(
         active_from: body.activeFrom,
         active_until: body.activeUntil,
         is_active: true,
+        sort_order: nextSortOrder,
       })
       .select()
       .single();

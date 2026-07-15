@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 const SNOOZE_KEY = "pwa-install-snooze-until";
 const INSTALLED_KEY = "pwa-installed";
-const SNOOZE_MS = 60 * 60 * 1000;
+const SNOOZE_MS = 24 * 60 * 60 * 1000;
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;

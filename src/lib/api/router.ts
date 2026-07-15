@@ -138,6 +138,7 @@ export const missionsRouter = defineRouter("/markets", {
         activeFrom: z.string().nullable().optional(),
         activeUntil: z.string().nullable().optional(),
         isActive: z.boolean().optional(),
+        sortOrder: z.number().int().optional(),
       }),
     },
     response: MissionSchema,

@@ -44,6 +44,7 @@ export const MissionSchema = z.object({
   activeFrom: z.string().nullable(),
   activeUntil: z.string().nullable(),
   isActive: z.boolean(),
+  sortOrder: z.number(),
   slots: z.array(MissionSlotSchema).optional(),
 });
 

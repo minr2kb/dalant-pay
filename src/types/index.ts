@@ -52,6 +52,7 @@ export interface Mission {
   activeFrom: string | null;
   activeUntil: string | null;
   isActive: boolean;
+  sortOrder: number;
   slots?: MissionSlotData[];
 }
 

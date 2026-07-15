@@ -11,6 +11,7 @@ export async function listMissions(
     .from("missions")
     .select("*")
     .eq("market_id", marketId)
+    .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true })
     .order("id", { ascending: true });
   if (error) throw new Error(error.message);

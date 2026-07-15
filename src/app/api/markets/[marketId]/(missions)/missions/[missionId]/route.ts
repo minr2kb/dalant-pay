@@ -43,6 +43,7 @@ export const PATCH = marketAdminRoute<{ marketId: string; missionId: string }>(
     if ("activeFrom" in body) update.active_from = body.activeFrom;
     if ("activeUntil" in body) update.active_until = body.activeUntil;
     if ("isActive" in body) update.is_active = body.isActive;
+    if ("sortOrder" in body) update.sort_order = body.sortOrder;
 
     const { data, error } = await supabase
       .from("missions")
