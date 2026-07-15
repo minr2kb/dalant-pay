@@ -31,7 +31,9 @@ export const PATCH = marketAdminRoute<{ marketId: string; userId: string }>(
 
     if (error) {
       if (error.message.includes("participant not found"))
-        return err("Not found", 404);
+        return err("참여자를 찾을 수 없어요", 404);
+      if (error.message.includes("insufficient_balance"))
+        return err("잔액이 부족해서 차감할 수 없어요", 422);
       return err(error.message);
     }
 

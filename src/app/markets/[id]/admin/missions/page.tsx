@@ -347,7 +347,13 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
                   <button
                     key={t}
                     type="button"
-                    onClick={() => setForm((f) => ({ ...f, type: t }))}
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        type: t,
+                        isGroup: t === "user_qr" ? false : f.isGroup,
+                      }))
+                    }
                     className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
                       form.type === t
                         ? "border-emerald-400 bg-emerald-500 text-white"
@@ -425,21 +431,25 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 px-4 py-3.5">
-              <div>
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                  단체 미션
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  QR 스캔 시 함께 줄 인원 선택 가능
-                </p>
+            {form.type !== "user_qr" && (
+              <div className="flex items-center justify-between rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 px-4 py-3.5">
+                <div>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    단체 미션
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    QR 스캔 시 함께 줄 인원 선택 가능
+                  </p>
+                </div>
+                <Switch
+                  checked={form.isGroup}
+                  onCheckedChange={(v) =>
+                    setForm((f) => ({ ...f, isGroup: v }))
+                  }
+                  className="data-[state=checked]:bg-emerald-500"
+                />
               </div>
-              <Switch
-                checked={form.isGroup}
-                onCheckedChange={(v) => setForm((f) => ({ ...f, isGroup: v }))}
-                className="data-[state=checked]:bg-emerald-500"
-              />
-            </div>
+            )}
 
             <Button
               onClick={submitForm}

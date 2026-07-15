@@ -51,7 +51,7 @@ export const POST = marketAdminRoute<{ marketId: string }>(
           .eq("market_id", params.marketId),
       ]);
 
-    if (e1 || !participant) return err("User not found", 404);
+    if (e1 || !participant) return err("참여자를 찾을 수 없어요", 404);
 
     const priceMap = new Map(
       (marketItems ?? []).map((i) => [i.name as string, i.price as number]),
@@ -59,11 +59,11 @@ export const POST = marketAdminRoute<{ marketId: string }>(
     for (const item of body.items) {
       const serverPrice = priceMap.get(item.name);
       if (serverPrice === undefined || serverPrice !== item.price)
-        return err("Invalid item", 400);
+        return err("상품 정보가 변경됐어요. 다시 시도해주세요", 400);
     }
 
     const total = body.items.reduce((sum, i) => sum + i.price * i.qty, 0);
-    if (participant.balance < total) return err("Insufficient balance", 422);
+    if (participant.balance < total) return err("잔액이 부족해요", 422);
 
     const { data: verifier } = await supabase
       .from("users")

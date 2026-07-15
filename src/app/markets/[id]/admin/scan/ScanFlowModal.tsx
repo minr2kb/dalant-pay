@@ -266,7 +266,10 @@ export function ScanFlowModal({
             onClick={() =>
               selectedMission.isGroup ? setStep("group") : confirmVerify()
             }
-            disabled={isPending}
+            disabled={
+              isPending ||
+              (selectedMission.type === "upload" && !pendingPhotoUrl)
+            }
             className="h-12 flex-1 rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
           >
             확인

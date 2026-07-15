@@ -4,6 +4,7 @@ import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { CheckCircle, CheckSquare, ChevronLeft, Square } from "lucide-react";
 import Link from "next/link";
 import { Suspense, use, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { participantsQuery } from "@/lib/query/queries";
@@ -44,19 +45,31 @@ function AdminPointsContent({ marketId }: { marketId: string }) {
   async function apply(sign: 1 | -1) {
     if (!n || selected.size === 0 || isApplying) return;
     setIsApplying(true);
-    await Promise.all(
-      Array.from(selected).map((uid) =>
-        adjustMutation.mutateAsync({
-          marketId,
-          userId: uid,
-          amount: n * sign,
-          memo: memo || undefined,
-        }),
-      ),
-    );
-    setIsApplying(false);
-    setDone(true);
-    setTimeout(() => setDone(false), 2000);
+    try {
+      const results = await Promise.allSettled(
+        Array.from(selected).map((uid) =>
+          adjustMutation.mutateAsync({
+            marketId,
+            userId: uid,
+            amount: n * sign,
+            memo: memo || undefined,
+          }),
+        ),
+      );
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length > 0) {
+        const reason = (failed[0] as PromiseRejectedResult).reason;
+        // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
+        const msg = (reason as any)?.body?.error ?? "지급/차감에 실패했어요";
+        toast.error(`${failed.length}명 처리 실패`, { description: msg });
+      }
+      if (failed.length < results.length) {
+        setDone(true);
+        setTimeout(() => setDone(false), 2000);
+      }
+    } finally {
+      setIsApplying(false);
+    }
   }
 
   return (

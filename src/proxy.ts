@@ -63,6 +63,24 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/markets", request.url));
   }
 
+  // /admin/* 페이지는 로그인만 확인되고 role은 안 걸러져서, 일반 유저도 URL을 직접
+  // 치면 화면 자체는 보였다(액션은 marketAdminRoute가 403으로 막지만) — 여기서 role도 같이 검증.
+  const adminMatch = pathname.match(/^\/markets\/([^/]+)\/admin(\/.*)?$/);
+  if (user && adminMatch) {
+    const marketId = adminMatch[1];
+    const { data: participant } = await supabase
+      .from("market_participants")
+      .select("role")
+      .eq("market_id", marketId)
+      .eq("user_id", user.sub)
+      .maybeSingle();
+    if (participant?.role !== "admin") {
+      return NextResponse.redirect(
+        new URL(`/markets/${marketId}/home`, request.url),
+      );
+    }
+  }
+
   return supabaseResponse;
 }
 

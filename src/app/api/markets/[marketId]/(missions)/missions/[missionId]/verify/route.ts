@@ -38,6 +38,12 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     ]);
 
     if (e1 || !mission) return err("미션을 찾을 수 없어요", 404);
+    if (!mission.is_active) return err("비활성화된 미션이에요", 403);
+    const now = new Date();
+    if (mission.active_from && new Date(mission.active_from as string) > now)
+      return err("아직 시작되지 않은 미션이에요", 403);
+    if (mission.active_until && new Date(mission.active_until as string) < now)
+      return err("종료된 미션이에요", 403);
 
     const verifierRole = (verifierParticipant as { role?: string } | null)
       ?.role;
