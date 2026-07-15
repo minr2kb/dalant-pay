@@ -247,6 +247,19 @@ export const itemsRouter = defineRouter("/markets", {
     },
     response: MarketItemSchema,
   }),
+  update: endpoint({
+    method: "PATCH",
+    path: "/:marketId/items/:itemId",
+    request: {
+      path: marketAndItem,
+      body: z.object({
+        name: z.string().optional(),
+        price: z.number().int().min(0).optional(),
+        sortOrder: z.number().int().optional(),
+      }),
+    },
+    response: MarketItemSchema,
+  }),
   delete: endpoint({
     method: "DELETE",
     path: "/:marketId/items/:itemId",

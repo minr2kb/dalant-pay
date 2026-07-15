@@ -6,7 +6,8 @@ export async function listItems(supabase: SupabaseClient, marketId: string) {
     .from("market_items")
     .select("*")
     .eq("market_id", marketId)
-    .order("name");
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapItem);
 }

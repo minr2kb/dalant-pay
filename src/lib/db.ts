@@ -139,6 +139,7 @@ export function mapItem(row: Record<string, unknown>): MarketItem {
     id: row.id as string,
     name: row.name as string,
     price: row.price as number,
+    sortOrder: row.sort_order as number,
   };
 }
 

@@ -31,12 +31,22 @@ export const POST = marketAdminRoute<{ marketId: string }>(
     if (parsed instanceof Response) return parsed;
     const { body } = parsed;
 
+    const { data: last } = await supabase
+      .from("market_items")
+      .select("sort_order")
+      .eq("market_id", params.marketId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextSortOrder = ((last?.sort_order as number | undefined) ?? 0) + 1;
+
     const { data, error } = await supabase
       .from("market_items")
       .insert({
         market_id: params.marketId,
         name: body.name,
         price: body.price,
+        sort_order: nextSortOrder,
       })
       .select()
       .single();

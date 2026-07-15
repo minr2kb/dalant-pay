@@ -105,6 +105,7 @@ export const MarketItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   price: z.number(),
+  sortOrder: z.number(),
 });
 
 export const TransferResponseSchema = z.object({

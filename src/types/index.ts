@@ -113,6 +113,7 @@ export interface MarketItem {
   id: string;
   name: string;
   price: number;
+  sortOrder: number;
 }
 
 export function getPointLogLabel(log: PointLog): string {
