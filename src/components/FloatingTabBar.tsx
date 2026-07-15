@@ -61,6 +61,7 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
             <Link
               key={tab.href}
               href={tab.href}
+              prefetch={false}
               onClick={() => setPendingHref(tab.href)}
               className={cn(
                 "flex min-w-[52px] flex-col items-center gap-0.5 rounded-full px-3 py-2 transition-colors",

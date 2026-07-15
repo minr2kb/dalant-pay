@@ -1,14 +1,16 @@
 "use client";
 
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useSessionUserId } from "@/components/AuthGate";
 import { MarketShareButton } from "@/components/MarketShareButton";
 import { Button } from "@/components/ui/button";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { MyPageSkeleton } from "./MyPageSkeleton";
 
 const THEME_OPTIONS = [
   { value: "system", label: "시스템", icon: Monitor },
@@ -18,25 +20,32 @@ const THEME_OPTIONS = [
 
 export function MyPageClient({
   marketId,
-  userId,
+  initialUserId,
 }: {
   marketId: string;
-  userId: string;
+  initialUserId: string | null;
 }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  // useSessionUserId()가 비동기로 채워지기 전엔 서버가 이미 검증한 initialUserId로 쿼리 키를
+  // 맞춰서 SSR prefetch 캐시를 첫 렌더부터 바로 쓴다 — UserHomeClient와 동일한 이유.
+  const userId = useSessionUserId() ?? initialUserId;
 
-  const [
-    { data: market },
-    {
-      data: { participant },
-    },
-  ] = useSuspenseQueries({
+  const [{ data: market }, { data: participants }] = useQueries({
     queries: [
-      marketsQuery.get({ marketId }),
-      participantsQuery.get({ marketId, userId }),
+      { ...marketsQuery.get({ marketId }), enabled: !!userId },
+      {
+        ...participantsQuery.get({ marketId, userId: userId ?? "" }),
+        enabled: !!userId,
+      },
     ],
   });
+
+  const participant = participants?.participant;
+
+  // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
+  // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
+  if (!market || !participant) return <MyPageSkeleton />;
 
   const user = participant.user;
 

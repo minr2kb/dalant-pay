@@ -1,13 +1,12 @@
-import { err, ok, route } from "@/lib/api/route-helpers";
-import { mapMarket } from "@/lib/db";
+import { authRoute, err, ok } from "@/lib/api/route-helpers";
+import { listMarkets } from "@/lib/data/markets";
 
 export const dynamic = "force-dynamic";
 
-export const GET = route(async (_req, { supabase }) => {
-  const { data, error } = await supabase
-    .from("markets")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) return err(error.message);
-  return ok((data ?? []).map(mapMarket));
+export const GET = authRoute(async (_req, { supabase, userId }) => {
+  try {
+    return ok(await listMarkets(supabase, userId));
+  } catch (e) {
+    return err(e instanceof Error ? e.message : "Error");
+  }
 });

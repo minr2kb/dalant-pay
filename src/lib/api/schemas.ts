@@ -19,6 +19,12 @@ export const MarketSchema = z.object({
   createdAt: z.string(),
 });
 
+export const MarketListItemSchema = z.object({
+  market: MarketSchema,
+  participantCount: z.number(),
+  isJoined: z.boolean(),
+});
+
 export const MissionSlotSchema = z.object({
   slot: z.number(),
   verifiedByName: z.string().nullable(),

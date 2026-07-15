@@ -30,6 +30,11 @@ export async function proxy(request: NextRequest) {
   const user = data?.claims;
 
   const { pathname } = request.nextUrl;
+  // (user) 라우트 그룹 경로 — 인증 낙관적 렌더링(AuthGate, src/components/AuthGate.tsx)이
+  // 클라이언트에서 세션을 확인하므로 미들웨어에서는 우회시킨다.
+  // 이 목록과 실제로 AuthGate가 감싸는 라우트 그룹((user)/layout.tsx)은 항상 같이 움직여야 한다.
+  const OPTIMISTIC_AUTH_ROUTES =
+    /^\/markets\/[^/]+\/(home|missions|history|mypage|ranking)(\/.*)?$/;
   const isPublic =
     pathname === "/login" ||
     pathname.startsWith("/auth") ||
@@ -41,7 +46,12 @@ export async function proxy(request: NextRequest) {
     // 그 외 하위 경로(/home 등)는 제외. og:image는 정적 파일이라 미들웨어 matcher에서 이미 제외됨.
     /^\/markets\/[^/]+$/.test(pathname) ||
     // 마켓별 PWA manifest도 브라우저가 로그인 세션 없이 직접 fetch하므로 공개.
-    /^\/markets\/[^/]+\/manifest\.webmanifest$/.test(pathname);
+    /^\/markets\/[^/]+\/manifest\.webmanifest$/.test(pathname) ||
+    OPTIMISTIC_AUTH_ROUTES.test(pathname) ||
+    // 마켓 목록 — 루트 PWA(start_url: "/")가 /login을 거쳐 결국 도착하는 화면이라
+    // AuthGate가 낙관적으로 처리하도록 우회. (user) 그룹과 달리 marketId가 없는
+    // 최상위 라우트라 별도 정확 매치로 둔다.
+    pathname === "/markets";
 
   if (!user && !isPublic) {
     const loginUrl = new URL("/login", request.url);

@@ -2,6 +2,7 @@ import { defineRouter, endpoint } from "@routar/core";
 import { z } from "zod";
 import {
   MarketItemSchema,
+  MarketListItemSchema,
   MarketParticipantSchema,
   MarketSchema,
   MissionSchema,
@@ -24,7 +25,7 @@ export const marketsRouter = defineRouter("/markets", {
   list: endpoint({
     method: "GET",
     path: "/",
-    response: z.array(MarketSchema),
+    response: z.array(MarketListItemSchema),
   }),
   get: endpoint({
     method: "GET",
