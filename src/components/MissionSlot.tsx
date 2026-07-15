@@ -1,5 +1,6 @@
 import { CheckCircle2, QrCode } from "lucide-react";
 import { openImageViewer } from "@/components/ImageViewer";
+import { formatKST } from "@/lib/format-date";
 import type { MissionSlotData } from "@/types";
 
 interface MissionSlotProps {
@@ -45,7 +46,7 @@ export function MissionSlot({ slot, slotNumber }: MissionSlotProps) {
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {new Date(slot.verifiedAt!).toLocaleString("ko-KR", {
+              {formatKST(slot.verifiedAt!, {
                 month: "short",
                 day: "numeric",
                 hour: "2-digit",

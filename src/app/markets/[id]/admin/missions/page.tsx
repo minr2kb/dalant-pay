@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useModalHistory } from "@/hooks/use-modal-history";
+import { formatKST } from "@/lib/format-date";
 import { missionsQuery } from "@/lib/query/queries";
 import type { Mission, MissionType } from "@/types";
 import Loading from "./loading";
@@ -39,10 +40,7 @@ const EMPTY_FORM = {
 
 function formatDate(d: string | null) {
   if (!d) return null;
-  return new Date(d).toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-  });
+  return formatKST(d, { month: "long", day: "numeric" });
 }
 
 function formatPeriod(from: string | null, until: string | null) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeftRight, Award, ShoppingBag, TrendingUp } from "lucide-react";
+import { formatKST } from "@/lib/format-date";
 import { getPointLogSub, type PointLog } from "@/types";
 
 interface PointLogItemProps {
@@ -61,7 +62,7 @@ export function PointLogItem({
             {sub}
           </p>
           <p className="text-xs text-gray-300 dark:text-gray-600">
-            {new Date(log.createdAt).toLocaleString("ko-KR", {
+            {formatKST(log.createdAt, {
               month: "short",
               day: "numeric",
               hour: "2-digit",

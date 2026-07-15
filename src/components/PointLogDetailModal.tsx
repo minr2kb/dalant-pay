@@ -3,6 +3,7 @@
 import { ShoppingBag, X } from "lucide-react";
 import { openImageViewer } from "@/components/ImageViewer";
 import { Modal } from "@/components/Modal";
+import { formatKST } from "@/lib/format-date";
 import { openModal } from "@/lib/overlay";
 import {
   getPointLogLabel,
@@ -13,7 +14,7 @@ import {
 } from "@/types";
 
 function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("ko-KR", {
+  return formatKST(iso, {
     month: "short",
     day: "numeric",
     hour: "2-digit",

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/lib/auth";
 import { mapMarket } from "@/lib/db";
+import { formatKST } from "@/lib/format-date";
 import { supabase } from "@/lib/supabase";
 import { JoinButton } from "./JoinButton";
 
@@ -67,14 +68,8 @@ export default async function MarketJoinPage(
   if (!marketRow) return null;
   const market = mapMarket(marketRow);
 
-  const startDate = new Date(market.startsAt).toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-  });
-  const endDate = new Date(market.endsAt).toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-  });
+  const startDate = formatKST(market.startsAt, { month: "long", day: "numeric" });
+  const endDate = formatKST(market.endsAt, { month: "long", day: "numeric" });
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center bg-white dark:bg-gray-900 px-6">

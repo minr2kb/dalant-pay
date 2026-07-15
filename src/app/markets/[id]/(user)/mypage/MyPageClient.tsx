@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MarketShareButton } from "@/components/MarketShareButton";
 import { Button } from "@/components/ui/button";
+import { formatKST } from "@/lib/format-date";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -51,11 +52,7 @@ export function MyPageClient({
 
   const genderLabel = user.gender === "male" ? "남성" : "여성";
   const birthLabel = user.birthDate
-    ? new Date(user.birthDate).toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? formatKST(user.birthDate, { year: "numeric", month: "long", day: "numeric" })
     : "-";
 
   async function handleLogout() {

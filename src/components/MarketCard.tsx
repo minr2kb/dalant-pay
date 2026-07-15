@@ -1,5 +1,6 @@
 import { Calendar, Users } from "lucide-react";
 import Link from "next/link";
+import { formatKST } from "@/lib/format-date";
 import type { Market } from "@/types";
 
 interface MarketCardProps {
@@ -13,14 +14,8 @@ export function MarketCard({
   participantCount,
   isJoined,
 }: MarketCardProps) {
-  const startDate = new Date(market.startsAt).toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-  });
-  const endDate = new Date(market.endsAt).toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-  });
+  const startDate = formatKST(market.startsAt, { month: "long", day: "numeric" });
+  const endDate = formatKST(market.endsAt, { month: "long", day: "numeric" });
 
   return (
     <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4">
