@@ -1,56 +1,94 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { GroupParticipantPicker } from "@/components/GroupParticipantPicker";
 import { openImageViewer } from "@/components/ImageViewer";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
+import { useMissionVerify } from "@/hooks/use-mission-verify";
 import { openModal } from "@/lib/overlay";
 import {
   missionsQuery,
   participantsQuery,
   pointLogsQuery,
 } from "@/lib/query/queries";
-import type { PendingMissionLog } from "@/types";
+import type { MarketParticipant, PendingMissionLog } from "@/types";
 
 function PendingMissionDetail({
   log,
   participantName,
   marketId,
+  participants,
   onClose,
 }: {
   log: PendingMissionLog;
   participantName: string;
   marketId: string;
+  participants: MarketParticipant[];
   onClose: () => void;
 }) {
-  const verifyMutation = useMutation(
-    missionsQuery.verify({
-      invalidates: [
-        missionsQuery.$key,
-        participantsQuery.$key,
-        pointLogsQuery.$key,
-      ],
-    }),
-  );
+  const [step, setStep] = useState<"detail" | "group">("detail");
+  const [groupUsers, setGroupUsers] = useState<string[]>([]);
+  const { verifyGroup, isPending } = useMissionVerify({
+    invalidates: [
+      missionsQuery.$key,
+      participantsQuery.$key,
+      pointLogsQuery.$key,
+    ],
+  });
 
-  async function handleVerify() {
-    try {
-      await verifyMutation.mutateAsync({
-        marketId,
-        missionId: log.missionId,
-        userId: log.userId,
-        slot: log.slot,
-      });
+  function toggleGroupUser(uid: string) {
+    setGroupUsers((prev) =>
+      prev.includes(uid) ? prev.filter((u) => u !== uid) : [...prev, uid],
+    );
+  }
+
+  async function confirmVerify(extraUserIds: string[] = []) {
+    const succeeded = await verifyGroup(
+      marketId,
+      log.missionId,
+      { userId: log.userId, slot: log.slot },
+      extraUserIds,
+    );
+    if (succeeded) {
       toast.success("인증 완료");
       onClose();
-    } catch (e) {
-      const msg =
-        (e as { body?: { error?: string } })?.body?.error ??
-        "인증에 실패했어요";
-      toast.error(msg);
     }
+  }
+
+  const otherParticipants = participants.filter(
+    (p) => p.user.id !== log.userId,
+  );
+
+  if (step === "group") {
+    return (
+      <Modal onClose={onClose}>
+        <div className="p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-emerald-500" />
+            <h3 className="font-bold text-gray-900 dark:text-white">
+              단체 미션: 함께한 참여자
+            </h3>
+          </div>
+          <GroupParticipantPicker
+            participants={otherParticipants}
+            selected={groupUsers}
+            onToggle={toggleGroupUser}
+          />
+          <Button
+            onClick={() => confirmVerify(groupUsers)}
+            disabled={isPending}
+            className="h-12 w-full rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
+          >
+            {groupUsers.length > 0
+              ? `${groupUsers.length + 1}명 적립`
+              : "본인만 적립"}
+          </Button>
+        </div>
+      </Modal>
+    );
   }
 
   return (
@@ -106,8 +144,8 @@ function PendingMissionDetail({
         )}
 
         <Button
-          onClick={handleVerify}
-          disabled={verifyMutation.isPending}
+          onClick={() => (log.isGroup ? setStep("group") : confirmVerify())}
+          disabled={isPending}
           className="h-12 w-full rounded-full bg-emerald-500 text-base font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
         >
           인증해주기
@@ -121,16 +159,19 @@ export function openPendingMissionDetail({
   log,
   participantName,
   marketId,
+  participants,
 }: {
   log: PendingMissionLog;
   participantName: string;
   marketId: string;
+  participants: MarketParticipant[];
 }) {
   openModal((close) => (
     <PendingMissionDetail
       log={log}
       participantName={participantName}
       marketId={marketId}
+      participants={participants}
       onClose={close}
     />
   ));

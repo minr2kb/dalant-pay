@@ -64,7 +64,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
       {ranked.length > 0 && (
         <div className="flex items-end justify-center gap-3 pb-1">
           {podiumOrder.map((p, i) => {
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            // biome-ignore lint/suspicious/noArrayIndexKey: podiumOrder is a fixed-length (3) array with a static position order (2nd/1st/3rd) that never reorders/inserts/deletes at runtime
             if (!p) return <div key={i} className="flex-1" />;
             const cfg = podiumConfig[i];
             const isMe = p.user.id === userId;

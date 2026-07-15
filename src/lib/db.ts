@@ -145,7 +145,7 @@ export function mapPendingMissionLog(
   row: Record<string, unknown>,
 ): PendingMissionLog {
   const mission = row.missions as
-    | { title: string; reward: number }
+    | { title: string; reward: number; is_group: boolean }
     | null
     | undefined;
   return {
@@ -156,5 +156,6 @@ export function mapPendingMissionLog(
     userId: row.user_id as string,
     slot: row.slot as number,
     photoUrl: (row.photo_url as string | null) ?? null,
+    isGroup: mission?.is_group ?? false,
   };
 }

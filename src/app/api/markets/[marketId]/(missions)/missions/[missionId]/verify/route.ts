@@ -42,6 +42,8 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     const verifierRole = (verifierParticipant as { role?: string } | null)
       ?.role;
 
+    if (!verifierParticipant) return err("이 마켓의 참여자가 아니에요", 403);
+
     if (
       (mission.type === "admin_qr" || mission.type === "upload") &&
       verifierRole !== "admin"
@@ -59,11 +61,11 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       targetUserId = parsed.userId;
     } else {
       if (verifierRole !== "admin") return err("권한이 없어요", 403);
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      // biome-ignore lint/style/noNonNullAssertion: schema types userId as optional, but the !body.token && !body.userId guard above already ensures it's present here since body.token is falsy in this branch
       targetUserId = body.userId!;
     }
 
-    if (targetUserId === verifiedBy)
+    if (targetUserId === verifiedBy && verifierRole !== "admin")
       return err("본인의 QR은 인증할 수 없어요", 403);
 
     const { data: participant, error: e2 } = await supabase
@@ -110,10 +112,11 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       p_verified_at: verifiedAt,
       p_reward: mission.reward,
       p_mission_title: mission.title,
+      p_allow_self: verifierRole === "admin",
     });
 
     if (e3) {
-      if (e3.message.includes("mission_logs_check"))
+      if (e3.message.includes("self verification not allowed"))
         return err("본인의 QR은 인증할 수 없어요", 403);
       if (
         e3.message.includes("already exists") ||

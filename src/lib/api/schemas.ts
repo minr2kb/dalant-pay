@@ -97,6 +97,7 @@ export const PendingMissionLogSchema = z.object({
   userId: z.string(),
   slot: z.number(),
   photoUrl: z.string().nullable(),
+  isGroup: z.boolean(),
 });
 
 export const MarketItemSchema = z.object({

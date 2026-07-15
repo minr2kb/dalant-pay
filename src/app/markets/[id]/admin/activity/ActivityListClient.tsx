@@ -155,6 +155,7 @@ export function ActivityListClient({
                       log,
                       participantName,
                       marketId,
+                      participants,
                     })
                   }
                 />

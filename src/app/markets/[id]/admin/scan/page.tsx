@@ -1,8 +1,8 @@
-import { ScanContent } from "./ScanContent";
+import { ScanPageClient } from "./ScanPageClient";
 
 export default async function ScanPage(
   props: PageProps<"/markets/[id]/admin/scan">,
 ) {
   const { id: marketId } = await props.params;
-  return <ScanContent marketId={marketId} />;
+  return <ScanPageClient marketId={marketId} />;
 }

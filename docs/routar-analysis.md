@@ -53,19 +53,16 @@ routar가 통일하는 건 데이터 흐름이 아니라 **타입**뿐이다.
 **(1) 가장 큰 문제 — 계약이 클라이언트에서 끝난다.**
 서버가 같은 router를 안 쓰니, routar가 약속하는 "스키마 우선"의 절반이 실현 안 된다. body 검증 로직이 router.ts와 route.ts에 **이중으로** 존재하고 드리프트가 가능하다. 지금은 routar가 주는 안전망이 "클라가 보내는 모양"까지고, "서버가 받는 모양"은 보장 못 한다. 이 프로젝트에서 routar가 "복잡도 대비 효용"이 애매해지는 핵심 이유.
 
-**(2) 이중 envelope 지옥.**
-`oneOf(MarketSchema)` = `{data: Market}`를 응답 스키마로 쓰는데, executor에 `unwrap`을 안 걸었다. 그래서:
-```ts
-const [{ data: marketData }] = useSuspenseQueries(...)  // react-query envelope
-const market = marketData.data                           // routar envelope ← .data.data
-```
-`marketData.data.data`가 되는 걸 매 컴포넌트가 손으로 벗긴다 (UserHomeClient.tsx:24, TransferModal.tsx:36 `marketData?.data.pointLabel`). `createExecutor({unwrap})` 또는 endpoint `adapter`로 한 줄이면 사라질 마찰을 전역에 방치 중. **이건 routar 잘못이 아니라 설정 누락이지만, "어느 .data가 누구 것인지" 헷갈리는 실질 footgun.**
+**(2) 이중 envelope 지옥. — ✅ RESOLVED.** 이 문서 작성 이후 `client.ts`의 `createFetchExecutor`에 `unwrap: (raw) => (raw as { data: unknown })?.data ?? raw`가 걸렸다. 지금은 컴포넌트에서 `.data.data`를 손으로 벗기는 코드가 없다. 아래 원래 분석은 히스토리로 남겨둔다:
+
+> `oneOf(MarketSchema)` = `{data: Market}`를 응답 스키마로 쓰는데, executor에 `unwrap`을 안 걸었다. 그래서 `marketData.data.data`가 되는 걸 매 컴포넌트가 손으로 벗긴다. `createExecutor({unwrap})` 또는 endpoint `adapter`로 한 줄이면 사라질 마찰을 전역에 방치 중이었다.
 
 **(3) `serverExecutor`는 함정이다.**
 서버 컴포넌트가 자기 Next API를 `http://localhost:3000/api`로 fetch하는 건 안티패턴(불필요한 네트워크 홉 + 직렬화 + cookie 수동 재조립). 그래서 실제로 home/page는 이걸 우회하고 supabase를 직접 부른다. 즉 `client.ts`의 cookie 포워딩 serverExecutor는 **존재하지만 회피되는** 코드 — 다음 사람이 "왜 있지?" 하고 밟을 지뢰.
 
-**(4) 뮤테이션 레이어를 절반만 채택.**
-`queries.ts`에 `transferQuery`가 아예 없다. transfer는 core `transferApi`를 직접 부르고 `useMutation`을 손으로 쓰며 `invalidateQueries({queryKey: participantsQuery.$key})`를 수동 호출한다(TransferModal.tsx:46-53). routar의 `invalidates` 선언형 sugar를 안 쓰니, "뮤테이션 표준화"라는 가치가 휘발됨. 일관성 없음 = 신규 개발자 혼란.
+**(4) 뮤테이션 레이어를 절반만 채택. — ✅ RESOLVED.** 지금 `queries.ts`에 `transferQuery`가 있고, `TransferModal.tsx`는 `useMutation(transferQuery.transfer({invalidates: [participantsQuery.$key]}))`로 다른 뮤테이션과 동일한 패턴을 쓴다. 다만 `TransferModal.tsx`에 이제 안 쓰는 `transferApi` import가 죽은 채로 남아있었다(정리 필요 — 별도 코드 정리 대상). 아래 원래 분석은 히스토리로 남겨둔다:
+
+> `queries.ts`에 `transferQuery`가 아예 없다. transfer는 core `transferApi`를 직접 부르고 `useMutation`을 손으로 쓰며 `invalidateQueries({queryKey: participantsQuery.$key})`를 수동 호출한다. routar의 `invalidates` 선언형 sugar를 안 쓰니, "뮤테이션 표준화"라는 가치가 휘발됨.
 
 **(5) 응답 zod를 클라에서 매번 재파싱.**
 `validate` 기본값 true라 모든 응답이 클라에서 zod 통과. 안전하지만, 이미 서버가 만든 신뢰 데이터에 대한 비용. 운영에선 `{request:true, response:'warn'}` 같은 드리프트-관측 모드가 더 맞다 (지금은 미설정).
@@ -98,8 +95,8 @@ routar는 **에이전트한테 양날**이다.
 
 1. **계약-구현 드리프트 무방비** (구조적). router.ts의 body 스키마와 route.ts의 수동 검증이 분리 → 언제든 어긋남. 가장 심각.
 2. **`serverExecutor` self-HTTP 안티패턴** (client.ts:18-25). 서버에서 호출되면 자기 API로 네트워크 왕복. 현재 회피되지만 제거 안 됨.
-3. **이중 envelope 미해소** (executor에 `unwrap` 누락). 전역 `.data.data` 보일러플레이트.
-4. **뮤테이션 비일관**: transfer는 액세서 우회, 다른 곳은 액세서 사용. `transferQuery` 부재.
+3. ~~이중 envelope 미해소~~ — ✅ RESOLVED (`client.ts`에 `unwrap` 설정됨, `.data.data` 코드 없음).
+4. ~~뮤테이션 비일관~~ — ✅ RESOLVED (`transferQuery` 존재, `TransferModal.tsx`가 다른 뮤테이션과 동일 패턴 사용).
 5. **응답 검증 비용** 운영 모드 미세팅 (`validate` 기본 strict).
 6. **DRY**: staleTime 중복.
 

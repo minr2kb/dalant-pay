@@ -88,7 +88,7 @@ function AdminCodeForm({
             <InputOTPGroup className="gap-3">
               {Array.from({ length: CODE_LENGTH }).map((_, i) => (
                 <InputOTPSlot
-                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                  // biome-ignore lint/suspicious/noArrayIndexKey: renders a fixed CODE_LENGTH number of OTP slots in a static order that never reorders/inserts/deletes
                   key={i}
                   index={i}
                   className={`h-14 w-14 rounded-xl border text-xl font-bold first:rounded-l-xl first:border-l last:rounded-r-xl ${

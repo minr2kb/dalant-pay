@@ -73,7 +73,16 @@
 
 **모든 모달은 뒤로가기로 닫혀야 한다.**
 
-`useModalHistory(open, close)` 훅(`src/hooks/use-modal-history.ts`)을 반드시 사용한다.
+**기본 패턴 — `openModal`** (`src/lib/overlay.tsx`). overlay-kit 위에 popstate 동기화 + 중첩 모달 스택 처리를 얹은 헬퍼. 실제로 대부분의 모달(TransferModal, QRModal, PointLogDetailModal, ImageViewer 등 10곳 이상)이 이 패턴을 쓴다.
+
+```tsx
+openModal((close) => <SomeModal onClose={close} />)
+```
+
+- `close`는 내부적으로 `window.history.back()`을 호출하도록 이미 연결되어 있음 — 직접 unmount하거나 state를 꺼서 닫지 않는다.
+- 모달 위에 모달(중첩)이 열려도 뒤로가기 1번에 최상단 모달만 닫힌다 (`overlayStack`으로 관리).
+
+**보조 패턴 — `useModalHistory(open, close)`** (`src/hooks/use-modal-history.ts`). overlay-kit 없이 로컬 `useState`로 여닫는 단순 폼에 한해 사용 (현재 `admin/missions/page.tsx` 1곳).
 
 ```tsx
 const [open, setOpen] = useState(false)
@@ -83,7 +92,7 @@ useModalHistory(open, close)      // 열릴 때 pushState, popstate로 close 연
 
 - X 버튼 / 배경 클릭 닫기: `setOpen(false)` ❌ → `window.history.back()` ✅
 - 모달 내부에서 직접 `setOpen(false)`를 호출하면 history 스택이 남아 다음 뒤로가기가 어긋남
-- 새 모달을 만들 때도 동일하게 적용할 것
+- 새 모달은 특별한 이유가 없으면 `openModal`을 우선 사용할 것
 
 ## 버튼·입력 높이 규칙
 
