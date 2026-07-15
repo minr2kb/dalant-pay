@@ -17,6 +17,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     document.cookie = `${CLIENT_CACHE_COOKIE}=1; path=/; max-age=${60 * 60 * 24}`;
   }, []);
 
+  // 오프라인 새로고침 지원: 앱 셸(문서/정적 자산)만 캐싱하는 서비스워커.
+  // /api/*는 건드리지 않는다 — 그건 이미 react-query persister(IndexedDB)와
+  // offlineGuardPlugin이 각각 읽기/쓰기 경로에서 처리하고 있다.
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") return;
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  }, []);
+
   // idb-keyval 등 영속화 관련 무게(~29KB)를 초기 크리티컬 번들에서 빼기 위해
   // 마운트 후에만 동적 import한다 — 그동안은 인메모리 QueryClient로 정상 동작하고,
   // 복원이 끝나면 캐시된 데이터로 갈아끼워진다.
