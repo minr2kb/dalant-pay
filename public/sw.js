@@ -29,10 +29,16 @@ async function networkFirst(request) {
     const response = await fetch(request);
     if (response.ok) cache.put(request, response.clone());
     return response;
-  } catch (err) {
+  } catch {
     const cached = await cache.match(request);
     if (cached) return cached;
-    throw err;
+    // 온라인에서 한 번도 열어보지 않은 페이지 — 캐시가 없으니 이대로 반환.
+    // 여기서 throw하면 respondWith의 프로미스가 reject되어 콘솔에
+    // "FetchEvent.respondWith received an error"가 뜬다.
+    return new Response(
+      "오프라인 상태입니다. 온라인에서 한 번 열어둔 페이지만 새로고침할 수 있어요.",
+      { status: 503, statusText: "Offline" },
+    );
   }
 }
 
@@ -40,9 +46,13 @@ async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request);
   if (cached) return cached;
-  const response = await fetch(request);
-  if (response.ok) cache.put(request, response.clone());
-  return response;
+  try {
+    const response = await fetch(request);
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  } catch {
+    return new Response(null, { status: 503, statusText: "Offline" });
+  }
 }
 
 self.addEventListener("fetch", (event) => {
