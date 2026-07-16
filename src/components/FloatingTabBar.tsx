@@ -73,10 +73,8 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
               <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 1.8} />
               <span
                 className={cn(
-                  "text-[10px] font-medium leading-tight transition-all",
-                  isActive
-                    ? "max-h-4 opacity-100"
-                    : "max-h-0 overflow-hidden opacity-0",
+                  "text-[10px] font-medium leading-tight transition-opacity",
+                  isActive ? "opacity-100" : "opacity-0",
                 )}
               >
                 {tab.label}
