@@ -55,6 +55,23 @@ async function cacheFirst(request) {
   }
 }
 
+// SPA 클라이언트 네비게이션(Link 클릭)은 mode:'navigate' fetch를 발생시키지 않아
+// 위 fetch 핸들러를 안 타므로, 방문한 라우트를 앱이 직접 알려주면 여기서 대신 캐싱한다.
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "cache-shell") return;
+  const url = event.data.url;
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      try {
+        const response = await fetch(url);
+        if (response.ok) await cache.put(url, response);
+      } catch {
+        // 오프라인이면 조용히 스킵 — 다음 온라인 방문 때 다시 시도된다.
+      }
+    }),
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
