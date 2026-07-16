@@ -64,7 +64,7 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
               prefetch={false}
               onClick={() => setPendingHref(tab.href)}
               className={cn(
-                "flex min-w-[52px] flex-col items-center gap-0.5 rounded-full px-3 py-2 transition-colors",
+                "flex flex-1 flex-col items-center gap-0.5 rounded-full px-3 py-2 transition-colors",
                 isActive
                   ? "text-emerald-500"
                   : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300",
