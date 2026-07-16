@@ -30,12 +30,26 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   // 클라이언트 사이드 라우팅(Link 클릭)은 mode:'navigate' fetch가 없어 서비스워커의
   // 캐싱 로직을 안 타므로, 라우트가 바뀔 때마다 직접 알려서 캐싱시킨다.
+  // 최초 진입 페이지는 방금 등록한 서비스워커가 아직 이 페이지를 control하지
+  // 않아(clients.claim() 전) controller가 null이라 메시지가 씹힌다 — controller가
+  // 잡히는 순간(controllerchange)에도 현재 경로를 다시 한번 보내 커버한다.
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") return;
-    navigator.serviceWorker?.controller?.postMessage({
-      type: "cache-shell",
-      url: `${window.location.origin}${pathname}`,
-    });
+    if (!("serviceWorker" in navigator)) return;
+
+    const warmShell = () => {
+      navigator.serviceWorker.controller?.postMessage({
+        type: "cache-shell",
+        url: `${window.location.origin}${pathname}`,
+      });
+    };
+    warmShell();
+    navigator.serviceWorker.addEventListener("controllerchange", warmShell);
+    return () =>
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        warmShell,
+      );
   }, [pathname]);
 
   // idb-keyval 등 영속화 관련 무게(~29KB)를 초기 크리티컬 번들에서 빼기 위해
