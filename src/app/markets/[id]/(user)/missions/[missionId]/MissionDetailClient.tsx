@@ -4,6 +4,7 @@ import { useMutation, useSuspenseQueries } from "@tanstack/react-query";
 import { Camera, CheckCircle2, ChevronLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { MissionSlot } from "@/components/MissionSlot";
 import { QRModal } from "@/components/QRModal";
 import { marketsQuery, missionsQuery } from "@/lib/query/queries";
@@ -67,17 +68,30 @@ export function MissionDetailClient({
     e.target.value = "";
     setUploading(true);
     setUploadError(false);
+    let photoUrl: string;
     try {
-      const photoUrl = await uploadMissionPhoto(
+      photoUrl = await uploadMissionPhoto(
         file,
         marketId,
         missionId,
         userId,
         predictedSlot,
       );
-      await uploadPhotoMutation.mutateAsync({ marketId, missionId, photoUrl });
     } catch {
       setUploadError(true);
+      toast.error("사진 업로드에 실패했어요", {
+        description: "네트워크 상태를 확인하고 다시 시도해주세요",
+      });
+      setUploading(false);
+      return;
+    }
+    try {
+      await uploadPhotoMutation.mutateAsync({ marketId, missionId, photoUrl });
+    } catch (e) {
+      setUploadError(true);
+      // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
+      const msg = (e as any)?.body?.error ?? "다시 시도해주세요";
+      toast.error("미션 등록에 실패했어요", { description: msg });
     } finally {
       setUploading(false);
     }
