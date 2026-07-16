@@ -145,19 +145,19 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
         ))}
       </div>
 
-      {recentLogs.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              최근 활동
-            </h2>
-            <Link
-              href={`/markets/${marketId}/admin/activity`}
-              className="flex items-center gap-1 text-xs text-emerald-500"
-            >
-              전체 보기 <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            최근 활동
+          </h2>
+          <Link
+            href={`/markets/${marketId}/admin/activity`}
+            className="flex items-center gap-1 text-xs text-emerald-500"
+          >
+            전체 보기 <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+        {recentLogs.length > 0 ? (
           <div className="space-y-2">
             {recentLogs.map((log) => {
               const participantName =
@@ -179,8 +179,12 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
               );
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="py-4 text-center text-sm text-gray-400">
+            아직 내역이 없어요
+          </p>
+        )}
+      </div>
     </div>
   );
 }
