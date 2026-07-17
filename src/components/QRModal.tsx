@@ -2,8 +2,8 @@
 
 import { QrCode, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import QRCode from "react-qr-code";
 import { Modal } from "@/components/Modal";
+import { QRCodeImage } from "@/components/QRCodeImage";
 import { Button } from "@/components/ui/button";
 import { useInterval } from "@/hooks/use-interval";
 import { openModal } from "@/lib/overlay";
@@ -81,18 +81,13 @@ function QRContent({
         </div>
 
         <div
-          className="mx-auto flex h-52 w-52 items-center justify-center rounded-2xl p-2"
-          style={{ backgroundColor: "#0f172a", colorScheme: "dark only" }}
+          className="mx-auto flex h-52 w-52 items-center justify-center rounded-2xl bg-white p-2"
+          style={{ colorScheme: "light only" }}
         >
           {qrValue ? (
-            <QRCode
-              value={qrValue}
-              size={192}
-              bgColor="#0f172a"
-              fgColor="#94a3b8"
-            />
+            <QRCodeImage value={qrValue} size={192} />
           ) : (
-            <div className="h-48 w-48 animate-pulse rounded-xl bg-gray-800" />
+            <div className="h-48 w-48 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
           )}
         </div>
 

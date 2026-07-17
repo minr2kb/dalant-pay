@@ -1,8 +1,8 @@
 "use client";
 
 import { QrCode, Wallet, X } from "lucide-react";
-import QRCode from "react-qr-code";
 import { Modal } from "@/components/Modal";
+import { QRCodeImage } from "@/components/QRCodeImage";
 import { openModal } from "@/lib/overlay";
 import { encodePayQR } from "@/lib/qr";
 
@@ -40,15 +40,10 @@ export function PayQRButton({
           </div>
 
           <div
-            className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl p-2"
-            style={{ backgroundColor: "#0f172a", colorScheme: "dark only" }}
+            className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl bg-white p-2"
+            style={{ colorScheme: "light only" }}
           >
-            <QRCode
-              value={qrValue}
-              size={208}
-              bgColor="#0f172a"
-              fgColor="#94a3b8"
-            />
+            <QRCodeImage value={qrValue} size={208} />
           </div>
 
           <p className="text-center text-xs text-gray-400">
