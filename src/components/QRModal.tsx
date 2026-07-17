@@ -65,7 +65,7 @@ function QRContent({
       : null;
 
   return (
-    <Modal onClose={onClose} className="dark">
+    <Modal onClose={onClose}>
       <div className="p-6 space-y-5">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-gray-900 dark:text-white">

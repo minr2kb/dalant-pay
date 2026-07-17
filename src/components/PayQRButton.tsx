@@ -23,19 +23,17 @@ export function PayQRButton({
 
   const handleOpen = () =>
     openModal((close) => (
-      <Modal onClose={close} className="dark">
+      <Modal onClose={close}>
         <div className="p-6 space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-gray-400">결제용 QR</p>
-              <h3 className="font-bold text-gray-900 dark:text-white">
-                {userName}
-              </h3>
+              <h3 className="font-bold text-gray-900">{userName}</h3>
             </div>
             <button
               type="button"
               onClick={close}
-              className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100"
             >
               <X className="h-5 w-5" />
             </button>
