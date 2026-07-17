@@ -37,14 +37,25 @@ export function QRCodeImage({ value, size }: { value: string; size: number }) {
 
   return (
     <>
-      <QRCode
-        // biome-ignore lint/suspicious/noExplicitAny: react-qr-code ships a stale class-component ref type even though it's actually a forwardRef function component forwarding to the underlying <svg>
-        ref={svgRef as any}
-        value={value}
-        size={size}
-        style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+      {/* 숨김 스타일은 이 래퍼에만 건다 — QRCode(svg) 자체에 주면 그 style
+          속성이 XMLSerializer로 그대로 복사되어, 래스터화용 원본 SVG가
+          width:0/height:0로 저장돼 캔버스에 아무것도 안 그려진다. */}
+      <div
         aria-hidden
-      />
+        style={{
+          position: "absolute",
+          width: 0,
+          height: 0,
+          overflow: "hidden",
+        }}
+      >
+        <QRCode
+          // biome-ignore lint/suspicious/noExplicitAny: react-qr-code ships a stale class-component ref type even though it's actually a forwardRef function component forwarding to the underlying <svg>
+          ref={svgRef as any}
+          value={value}
+          size={size}
+        />
+      </div>
       {pngUrl ? (
         // biome-ignore lint/performance/noImgElement: rasterized data URI, not a build-time asset next/image can optimize
         <img src={pngUrl} width={size} height={size} alt="" />
