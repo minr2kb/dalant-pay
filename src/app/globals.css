@@ -142,30 +142,6 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* 테마는 next-themes가 .dark 클래스로 전환한다. 이 미디어쿼리 자체는 스타일을
-   바꾸지 않지만, 실제 prefers-color-scheme 쿼리가 CSS에 있어야 안드로이드
-   WebView 계열(삼성 인터넷 포함)이 "다크모드 지원 페이지"로 인식해 자체 강제
-   다크 보정(algorithmic darkening)을 끈다 — 없으면 .dark 클래스를 제대로
-   적용해도 브라우저가 그 위에 또 색을 뒤집어버린다. */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark only;
-  }
-}
-
-/* react-qr-code는 fill을 SVG presentation attribute로만 찍어서(CSS 프로퍼티가
-   아님) 우선순위가 낮아, 브라우저가 강제 다크 보정을 하면 color-scheme만으론
-   안 막힐 때 이 attribute가 가장 먼저 밀려난다. 실제 흑백 색을 CSS로 다시
-   못박아 QR 스캔 가능성을 지킨다. */
-.qr-code-guard svg path:first-of-type {
-  /* biome-ignore lint/complexity/noImportantStyles: must outrank the browser's forced-dark repaint, not just author-stylesheet specificity */
-  fill: #fff !important;
-}
-.qr-code-guard svg path:last-of-type {
-  /* biome-ignore lint/complexity/noImportantStyles: must outrank the browser's forced-dark repaint, not just author-stylesheet specificity */
-  fill: #000 !important;
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
