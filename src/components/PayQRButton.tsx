@@ -40,14 +40,14 @@ export function PayQRButton({
           </div>
 
           <div
-            className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl bg-black p-2"
-            style={{ colorScheme: "dark only" }}
+            className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl p-2"
+            style={{ backgroundColor: "#0f172a", colorScheme: "dark only" }}
           >
             <QRCode
               value={qrValue}
               size={208}
-              bgColor="#000000"
-              fgColor="#ffffff"
+              bgColor="#0f172a"
+              fgColor="#94a3b8"
             />
           </div>
 
