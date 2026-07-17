@@ -4,6 +4,27 @@ import jsQR from "jsqr";
 import { ChevronLeft, QrCode } from "lucide-react";
 import { Children, type ReactNode, useEffect, useRef, useState } from "react";
 
+// 삼성 인터넷 강제 다크모드 등으로 촬영본의 흑백 대비가 좁은 회색 대역으로
+// 눌린 경우, 관측된 밝기 범위를 0~255로 다시 늘려 펴준다 — 대비가 거의 없는
+// 프레임(진짜 빈 화면 등)은 range가 작아 나눗셈이 튀므로 그대로 둔다.
+function stretchContrast(imageData: ImageData) {
+  const { data } = imageData;
+  let min = 255;
+  let max = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const lum = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    if (lum < min) min = lum;
+    if (lum > max) max = lum;
+  }
+  const range = max - min;
+  if (range < 10) return;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = ((data[i] - min) / range) * 255;
+    data[i + 1] = ((data[i + 1] - min) / range) * 255;
+    data[i + 2] = ((data[i + 2] - min) / range) * 255;
+  }
+}
+
 interface QRScannerProps {
   open: boolean;
   title: string;
@@ -64,7 +85,11 @@ export function QRScanner({
         if (ctx) {
           ctx.drawImage(video, 0, 0);
           const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(img.data, img.width, img.height);
+          let code = jsQR(img.data, img.width, img.height);
+          if (!code?.data) {
+            stretchContrast(img);
+            code = jsQR(img.data, img.width, img.height);
+          }
           if (code?.data) {
             onScanRef.current(code.data);
             // If onScan led to an overlay/close, this effect's cleanup runs

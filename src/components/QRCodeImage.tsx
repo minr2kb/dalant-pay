@@ -54,6 +54,9 @@ export function QRCodeImage({ value, size }: { value: string; size: number }) {
           ref={svgRef as any}
           value={value}
           size={size}
+          // 다크모드로 뭉개진 저대비 촬영본에서도 스캔이 되도록 최고 오류
+          // 정정 레벨(~30% 복구)로 여유를 둔다. 페이로드가 짧아 밀도는 낮음.
+          level="H"
         />
       </div>
       {pngUrl ? (
