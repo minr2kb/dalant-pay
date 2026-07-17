@@ -72,7 +72,7 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light only;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -108,7 +108,7 @@
 }
 
 .dark {
-  color-scheme: dark;
+  color-scheme: dark only;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -149,8 +149,21 @@
    적용해도 브라우저가 그 위에 또 색을 뒤집어버린다. */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    color-scheme: dark;
+    color-scheme: dark only;
   }
+}
+
+/* react-qr-code는 fill을 SVG presentation attribute로만 찍어서(CSS 프로퍼티가
+   아님) 우선순위가 낮아, 브라우저가 강제 다크 보정을 하면 color-scheme만으론
+   안 막힐 때 이 attribute가 가장 먼저 밀려난다. 실제 흑백 색을 CSS로 다시
+   못박아 QR 스캔 가능성을 지킨다. */
+.qr-code-guard svg path:first-of-type {
+  /* biome-ignore lint/complexity/noImportantStyles: must outrank the browser's forced-dark repaint, not just author-stylesheet specificity */
+  fill: #fff !important;
+}
+.qr-code-guard svg path:last-of-type {
+  /* biome-ignore lint/complexity/noImportantStyles: must outrank the browser's forced-dark repaint, not just author-stylesheet specificity */
+  fill: #000 !important;
 }
 
 @layer base {
