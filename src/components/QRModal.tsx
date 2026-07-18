@@ -82,16 +82,21 @@ function QRContent({
           </button>
         </div>
 
-        <div
-          className="mx-auto flex h-72 w-72 items-center justify-center rounded-2xl bg-white p-2"
-          style={{ colorScheme: "light only" }}
-        >
+        <div className="mx-auto flex h-72 w-72 items-center justify-center rounded-2xl bg-white p-2">
           {qrValue ? (
             <QRCodeImage value={qrValue} size={272} />
           ) : (
             <div className="h-full w-full animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
           )}
         </div>
+
+        {isSamsungInternet && (
+          <div className="rounded-xl bg-red-50 px-4 py-3 text-center">
+            <p className="text-xs font-medium text-red-600">
+              QR이 흐리게 보이면 삼성 인터넷 설정에서 다크 모드를 꺼주세요
+            </p>
+          </div>
+        )}
 
         <div className="rounded-xl bg-amber-50 px-4 py-3 text-center">
           <p className="text-sm font-medium text-amber-700">
@@ -105,11 +110,6 @@ function QRContent({
             </p>
           )}
           {hint && <p className="text-xs text-amber-600 mt-0.5">{hint}</p>}
-          {isSamsungInternet && (
-            <p className="text-xs text-red-500 mt-0.5">
-              QR이 흐리게 보이면 삼성 인터넷 설정에서 다크 모드를 꺼주세요
-            </p>
-          )}
         </div>
       </div>
     </Modal>

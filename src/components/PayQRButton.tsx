@@ -42,21 +42,21 @@ function PayQRContent({
           </button>
         </div>
 
-        <div
-          className="mx-auto flex h-72 w-72 items-center justify-center rounded-2xl bg-white p-2"
-          style={{ colorScheme: "light only" }}
-        >
+        <div className="mx-auto flex h-72 w-72 items-center justify-center rounded-2xl bg-white p-2">
           <QRCodeImage value={qrValue} size={272} />
         </div>
+
+        {isSamsungInternet && (
+          <div className="rounded-xl bg-red-50 px-4 py-3 text-center">
+            <p className="text-xs font-medium text-red-600">
+              QR이 흐리게 보이면 삼성 인터넷 설정에서 다크 모드를 꺼주세요
+            </p>
+          </div>
+        )}
 
         <p className="text-center text-xs text-gray-400">
           이 QR을 마켓 관리자에게 보여주세요
         </p>
-        {isSamsungInternet && (
-          <p className="text-center text-xs text-red-500">
-            QR이 흐리게 보이면 삼성 인터넷 설정에서 다크 모드를 꺼주세요
-          </p>
-        )}
       </div>
     </Modal>
   );
