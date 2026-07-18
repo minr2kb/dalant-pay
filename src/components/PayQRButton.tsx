@@ -43,10 +43,14 @@ function PayQRContent({
         </div>
 
         <div
-          className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl bg-white p-2"
-          style={{ colorScheme: "light only" }}
+          className="mx-auto flex h-72 w-72 items-center justify-center rounded-2xl bg-white p-2"
+          style={{
+            colorScheme: "light only",
+            transform: "translateZ(0)",
+            willChange: "transform",
+          }}
         >
-          <QRCodeImage value={qrValue} size={208} />
+          <QRCodeImage value={qrValue} size={272} />
         </div>
 
         <p className="text-center text-xs text-gray-400">

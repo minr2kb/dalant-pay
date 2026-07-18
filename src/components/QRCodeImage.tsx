@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 
+// QR 스펙 권장 최소 여백(quiet zone) — 모듈 4개 폭.
+const QUIET_ZONE_MODULES = 4;
+
 // 삼성 인터넷의 강제 다크모드는 SVG/CSS 색상엔 HSL lightness를 반전시키는
 // 공격적인 보정을 걸지만, 비트맵 이미지에는 밝기를 30%가량 균일하게 낮추는
 // 것만 적용한다 (참고: https://www.ctrl.blog/entry/samsung-internet-night-mode.html).
@@ -17,6 +20,14 @@ export function QRCodeImage({ value, size }: { value: string; size: number }) {
     if (!svg) return;
     let cancelled = false;
     const scale = 2;
+    // moduleCount는 react-qr-code가 viewBox="0 0 N N"으로 그대로 노출한다 —
+    // 페이로드 길이에 따라 QR 버전이 달라져도 여백 비율이 항상 스펙에 맞게
+    // 자동으로 맞춰지도록, 고정 픽셀이 아니라 이 값으로 여백을 계산한다.
+    const moduleCount = svg.viewBox.baseVal.width || 1;
+    const moduleSize = size / (moduleCount + QUIET_ZONE_MODULES * 2);
+    const quietZonePx = moduleSize * QUIET_ZONE_MODULES;
+    const qrPixelSize = size - quietZonePx * 2;
+
     const svgData = new XMLSerializer().serializeToString(svg);
     const img = new Image();
     img.onload = () => {
@@ -26,7 +37,15 @@ export function QRCodeImage({ value, size }: { value: string; size: number }) {
       canvas.height = size * scale;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(
+        img,
+        quietZonePx * scale,
+        quietZonePx * scale,
+        qrPixelSize * scale,
+        qrPixelSize * scale,
+      );
       setPngUrl(canvas.toDataURL("image/png"));
     };
     img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgData)}`;
@@ -60,8 +79,21 @@ export function QRCodeImage({ value, size }: { value: string; size: number }) {
         />
       </div>
       {pngUrl ? (
-        // biome-ignore lint/performance/noImgElement: rasterized data URI, not a build-time asset next/image can optimize
-        <img src={pngUrl} width={size} height={size} alt="" />
+        <div
+          role="img"
+          aria-label="QR 코드"
+          style={{
+            width: size,
+            height: size,
+            backgroundImage: `url(${pngUrl})`,
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            // ponytail: 삼성 강제 다크모드가 합성 레이어 단위로 후처리를
+            // 건너뛸 가능성을 노린 실험 — 효과 검증 안 됨, 안 통하면 지운다.
+            transform: "translateZ(0)",
+            willChange: "transform",
+          }}
+        />
       ) : (
         <div
           className="animate-pulse rounded-xl bg-gray-100"

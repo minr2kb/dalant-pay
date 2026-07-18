@@ -83,13 +83,17 @@ function QRContent({
         </div>
 
         <div
-          className="mx-auto flex h-52 w-52 items-center justify-center rounded-2xl bg-white p-2"
-          style={{ colorScheme: "light only" }}
+          className="mx-auto flex h-72 w-72 items-center justify-center rounded-2xl bg-white p-2"
+          style={{
+            colorScheme: "light only",
+            transform: "translateZ(0)",
+            willChange: "transform",
+          }}
         >
           {qrValue ? (
-            <QRCodeImage value={qrValue} size={192} />
+            <QRCodeImage value={qrValue} size={272} />
           ) : (
-            <div className="h-48 w-48 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+            <div className="h-full w-full animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
           )}
         </div>
 
