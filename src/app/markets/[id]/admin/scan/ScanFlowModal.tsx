@@ -142,7 +142,7 @@ export function ScanFlowModal({
               누구의 QR인가요?
             </p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {selectedMission.title} · +{selectedMission.reward} {pointLabel}
+              {selectedMission.title} +{selectedMission.reward} {pointLabel}
             </p>
           </div>
           <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -211,7 +211,7 @@ export function ScanFlowModal({
               적립 완료!
             </p>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {selectedMission.title} · +{selectedMission.reward} {pointLabel}
+              {selectedMission.title} +{selectedMission.reward} {pointLabel}
             </p>
           </div>
           <Button
@@ -235,8 +235,7 @@ export function ScanFlowModal({
             {selectedMission.title}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedUser.user.realName} · +{selectedMission.reward}{" "}
-            {pointLabel}
+            {selectedUser.user.realName} +{selectedMission.reward} {pointLabel}
           </p>
         </div>
         {selectedMission.type === "upload" &&

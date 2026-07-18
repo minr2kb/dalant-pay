@@ -336,7 +336,7 @@ function PosInner({ marketId }: { marketId: string }) {
             <div>
               <p className="text-xl font-bold text-white">결제 완료!</p>
               <p className="mt-1 text-sm text-white/60">
-                {updatedUser.user.realName} · -{total} {pointLabel}
+                {updatedUser.user.realName} -{total} {pointLabel}
               </p>
             </div>
             <Button

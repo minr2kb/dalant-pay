@@ -226,9 +226,7 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
                       <span className="text-xs text-gray-400 dark:text-gray-500">
                         {TYPE_LABEL[mission.type]}
                       </span>
-                      <span className="text-xs text-gray-300 dark:text-gray-600">
-                        ·
-                      </span>
+
                       <span className="text-xs text-gray-400 dark:text-gray-500">
                         +{mission.reward}
                       </span>
