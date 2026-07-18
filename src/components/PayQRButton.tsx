@@ -3,6 +3,7 @@
 import { QrCode, Wallet, X } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { QRCodeImage } from "@/components/QRCodeImage";
+import { useSamsungInternet } from "@/hooks/use-samsung-internet";
 import { openModal } from "@/lib/overlay";
 import { encodePayQR } from "@/lib/qr";
 
@@ -11,6 +12,54 @@ interface PayQRButtonProps {
   userId: string;
   userName: string;
   compact?: boolean;
+}
+
+function PayQRContent({
+  qrValue,
+  userName,
+  onClose,
+}: {
+  qrValue: string;
+  userName: string;
+  onClose: () => void;
+}) {
+  const isSamsungInternet = useSamsungInternet();
+
+  return (
+    <Modal onClose={onClose}>
+      <div className="p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-gray-400">결제용 QR</p>
+            <h3 className="font-bold text-gray-900">{userName}</h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div
+          className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl bg-white p-2"
+          style={{ colorScheme: "light only" }}
+        >
+          <QRCodeImage value={qrValue} size={208} />
+        </div>
+
+        <p className="text-center text-xs text-gray-400">
+          이 QR을 마켓 관리자에게 보여주세요
+        </p>
+        {isSamsungInternet && (
+          <p className="text-center text-xs text-red-500">
+            QR이 흐리게 보이면 삼성 인터넷 설정에서 다크 모드를 꺼주세요
+          </p>
+        )}
+      </div>
+    </Modal>
+  );
 }
 
 export function PayQRButton({
@@ -23,34 +72,7 @@ export function PayQRButton({
 
   const handleOpen = () =>
     openModal((close) => (
-      <Modal onClose={close}>
-        <div className="p-6 space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-400">결제용 QR</p>
-              <h3 className="font-bold text-gray-900">{userName}</h3>
-            </div>
-            <button
-              type="button"
-              onClick={close}
-              className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <div
-            className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl bg-white p-2"
-            style={{ colorScheme: "light only" }}
-          >
-            <QRCodeImage value={qrValue} size={208} />
-          </div>
-
-          <p className="text-center text-xs text-gray-400">
-            이 QR을 마켓 관리자에게 보여주세요
-          </p>
-        </div>
-      </Modal>
+      <PayQRContent qrValue={qrValue} userName={userName} onClose={close} />
     ));
 
   return compact ? (

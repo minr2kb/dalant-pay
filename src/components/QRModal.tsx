@@ -6,6 +6,7 @@ import { Modal } from "@/components/Modal";
 import { QRCodeImage } from "@/components/QRCodeImage";
 import { Button } from "@/components/ui/button";
 import { useInterval } from "@/hooks/use-interval";
+import { useSamsungInternet } from "@/hooks/use-samsung-internet";
 import { openModal } from "@/lib/overlay";
 
 interface QRModalProps {
@@ -30,6 +31,7 @@ function QRContent({
   const [qrValue, setQrValue] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const isSamsungInternet = useSamsungInternet();
 
   useEffect(() => {
     setQrValue(null);
@@ -103,6 +105,11 @@ function QRContent({
             </p>
           )}
           {hint && <p className="text-xs text-amber-600 mt-0.5">{hint}</p>}
+          {isSamsungInternet && (
+            <p className="text-xs text-red-500 mt-0.5">
+              QR이 흐리게 보이면 삼성 인터넷 설정에서 다크 모드를 꺼주세요
+            </p>
+          )}
         </div>
       </div>
     </Modal>
