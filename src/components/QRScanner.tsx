@@ -25,6 +25,52 @@ function stretchContrast(imageData: ImageData) {
   }
 }
 
+// 대비 스트레칭으로도 안 되면 마지막 단계로 완전 이진화한다. 오츠 알고리즘은
+// 명암 히스토그램에서 흑/백 두 무리를 가장 잘 가르는 기준값을 자동으로 찾아서
+// 단순 선형 스트레칭보다 좁게 눌린 대비에도 더 공격적으로 대응한다.
+function otsuBinarize(imageData: ImageData) {
+  const { data } = imageData;
+  const histogram = new Array(256).fill(0);
+  const pixelCount = data.length / 4;
+  for (let i = 0; i < data.length; i += 4) {
+    const lum = Math.round((data[i] + data[i + 1] + data[i + 2]) / 3);
+    histogram[lum]++;
+  }
+
+  let sumAll = 0;
+  for (let t = 0; t < 256; t++) sumAll += t * histogram[t];
+
+  let sumBackground = 0;
+  let weightBackground = 0;
+  let maxVariance = 0;
+  let threshold = 128;
+  for (let t = 0; t < 256; t++) {
+    weightBackground += histogram[t];
+    if (weightBackground === 0) continue;
+    const weightForeground = pixelCount - weightBackground;
+    if (weightForeground === 0) break;
+    sumBackground += t * histogram[t];
+    const meanBackground = sumBackground / weightBackground;
+    const meanForeground = (sumAll - sumBackground) / weightForeground;
+    const variance =
+      weightBackground *
+      weightForeground *
+      (meanBackground - meanForeground) ** 2;
+    if (variance > maxVariance) {
+      maxVariance = variance;
+      threshold = t;
+    }
+  }
+
+  for (let i = 0; i < data.length; i += 4) {
+    const lum = (data[i] + data[i + 1] + data[i + 2]) / 3;
+    const v = lum > threshold ? 255 : 0;
+    data[i] = v;
+    data[i + 1] = v;
+    data[i + 2] = v;
+  }
+}
+
 interface QRScannerProps {
   open: boolean;
   title: string;
@@ -88,6 +134,10 @@ export function QRScanner({
           let code = jsQR(img.data, img.width, img.height);
           if (!code?.data) {
             stretchContrast(img);
+            code = jsQR(img.data, img.width, img.height);
+          }
+          if (!code?.data) {
+            otsuBinarize(img);
             code = jsQR(img.data, img.width, img.height);
           }
           if (code?.data) {
