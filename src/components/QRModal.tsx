@@ -84,11 +84,7 @@ function QRContent({
 
         <div
           className="mx-auto flex h-72 w-72 items-center justify-center rounded-2xl bg-white p-2"
-          style={{
-            colorScheme: "light only",
-            transform: "translateZ(0)",
-            willChange: "transform",
-          }}
+          style={{ colorScheme: "light only" }}
         >
           {qrValue ? (
             <QRCodeImage value={qrValue} size={272} />
