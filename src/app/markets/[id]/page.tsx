@@ -1,5 +1,6 @@
 import { Calendar, Users } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/lib/auth";
 import { mapMarket } from "@/lib/db";
@@ -75,8 +76,13 @@ export default async function MarketJoinPage(
     <div className="flex min-h-svh flex-col items-center justify-center bg-white dark:bg-gray-900 px-6">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500">
-            <span className="text-2xl font-bold text-white">D</span>
+          <div className="relative mx-auto h-16 w-16 rounded-2xl bg-emerald-500 p-3">
+            <Image
+              src="/logo_w.svg"
+              alt="달란트페이"
+              fill
+              className="object-contain"
+            />
           </div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             {market.title}
