@@ -1,6 +1,10 @@
 "use client";
 
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import {
   ArrowDown,
   ArrowUp,
@@ -61,6 +65,7 @@ function formatPeriod(from: string | null, until: string | null) {
 
 function AdminMissionsContent({ marketId }: { marketId: string }) {
   const { data: missions } = useSuspenseQuery(missionsQuery.list({ marketId }));
+  const queryClient = useQueryClient();
 
   const createMutation = useMutation(
     missionsQuery.create({ invalidates: [missionsQuery.$key] }),
@@ -108,11 +113,21 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
   }
 
   async function toggleActive(missionId: string, current: boolean) {
-    await updateMutation.mutateAsync({
-      marketId,
-      missionId,
-      isActive: !current,
-    });
+    const { queryKey } = missionsQuery.list({ marketId });
+    const previous = queryClient.getQueryData<Mission[]>(queryKey);
+    queryClient.setQueryData<Mission[]>(queryKey, (old) =>
+      old?.map((m) => (m.id === missionId ? { ...m, isActive: !current } : m)),
+    );
+    try {
+      await updateMutation.mutateAsync({
+        marketId,
+        missionId,
+        isActive: !current,
+      });
+    } catch (e) {
+      queryClient.setQueryData(queryKey, previous);
+      throw e;
+    }
   }
 
   async function moveMission(index: number, direction: -1 | 1) {
@@ -251,6 +266,11 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
                         </>
                       )}
                     </div>
+                    {(mission.activeFrom || mission.activeUntil) && (
+                      <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                        {formatPeriod(mission.activeFrom, mission.activeUntil)}
+                      </p>
+                    )}
                   </div>
                   {expandedId === mission.id ? (
                     <ChevronUp className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" />
