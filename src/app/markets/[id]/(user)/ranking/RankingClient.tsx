@@ -23,6 +23,25 @@ export function RankingClient({ marketId }: { marketId: string }) {
     [participants],
   );
 
+  // 동점자는 같은 순위를 받고 다음 순위는 그만큼 건너뛴다 (표준 경쟁 순위, 1-2-2-4)
+  const ranks = useMemo(() => {
+    const map = new Map<string, number>();
+    ranked.forEach((p, i) => {
+      const rank =
+        i > 0 && p.balance === ranked[i - 1].balance
+          ? (map.get(ranked[i - 1].id) as number)
+          : i + 1;
+      map.set(p.id, rank);
+    });
+    return map;
+  }, [ranked]);
+
+  const tiedRanks = useMemo(() => {
+    const counts = new Map<number, number>();
+    ranks.forEach((r) => counts.set(r, (counts.get(r) ?? 0) + 1));
+    return new Set([...counts].filter(([, c]) => c > 1).map(([r]) => r));
+  }, [ranks]);
+
   // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
   // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
   if (!market || !participants) return <RankingSkeleton />;
@@ -30,8 +49,9 @@ export function RankingClient({ marketId }: { marketId: string }) {
   const pct = (balance: number) =>
     maxBalance > 0 ? Math.round((balance / maxBalance) * 100) : 0;
 
-  const top3 = ranked.slice(0, 3);
-  const rest = ranked.slice(3);
+  // 전원 0점이면 포듐(1/2/3등 시상대)이 의미가 없으니 순위 리스트로만 보여준다
+  const top3 = maxBalance > 0 ? ranked.slice(0, 3) : [];
+  const rest = maxBalance > 0 ? ranked.slice(3) : ranked;
 
   // Podium order: 2nd(left), 1st(center), 3rd(right)
   const podiumOrder = [top3[1], top3[0], top3[2]];
@@ -61,7 +81,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
       <h1 className="text-xl font-bold text-gray-900 dark:text-white">랭킹</h1>
 
       {/* Podium */}
-      {ranked.length > 0 && (
+      {top3.length > 0 && (
         <div className="flex items-end justify-center gap-3 pb-1">
           {podiumOrder.map((p, i) => {
             // biome-ignore lint/suspicious/noArrayIndexKey: podiumOrder is a fixed-length (3) array with a static position order (2nd/1st/3rd) that never reorders/inserts/deletes at runtime
@@ -83,6 +103,11 @@ export function RankingClient({ marketId }: { marketId: string }) {
                   {isMe && (
                     <span className="ml-1 text-[10px] font-normal text-emerald-500">
                       나
+                    </span>
+                  )}
+                  {tiedRanks.has(ranks.get(p.id) as number) && (
+                    <span className="block text-[10px] font-normal text-gray-400 dark:text-gray-500">
+                      공동 {ranks.get(p.id)}위
                     </span>
                   )}
                 </p>
@@ -109,7 +134,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
       {rest.length > 0 && (
         <div className="space-y-2">
           {rest.map((p, i) => {
-            const rank = i + 4;
+            const rank = ranks.get(p.id) as number;
             const isMe = p.user.id === userId;
             const barPct = pct(p.balance);
             return (
