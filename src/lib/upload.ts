@@ -20,6 +20,10 @@ export async function uploadMissionPhoto(
   });
 
   const supabase = createClient();
+  // getSession()은 만료된(또는 곧 만료될) 세션이면 자동으로 refresh까지 해준다 —
+  // 백그라운드에 오래 있던 모바일 브라우저에서 만료된 토큰으로 업로드하면 storage RLS의
+  // authenticated 조건에 걸려 400이 나기 때문에, 업로드 직전에 세션을 확실히 살려둔다
+  await supabase.auth.getSession();
   // slot 단위 고정 경로 — 인증 전 재업로드는 같은 파일을 덮어써 고아 파일을 남기지 않는다
   const path = `${marketId}/${missionId}/${userId}-${slot}.jpg`;
 
