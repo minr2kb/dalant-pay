@@ -10,16 +10,18 @@ export async function uploadMissionPhoto(
   userId: string,
   slot: number,
 ): Promise<string> {
+  // fileType을 고정해 원본이 png/heic 등이어도 항상 jpg로 나온다 — 확장자가 바뀌면
+  // 아래 경로도 바뀌어서 upsert가 옛 파일을 못 덮어쓰고 고아로 남기기 때문
   const compressed = await imageCompression(file, {
     maxSizeMB: 0.5,
     maxWidthOrHeight: 1200,
     useWebWorker: true,
+    fileType: "image/jpeg",
   });
 
   const supabase = createClient();
-  const ext = file.type.includes("png") ? "png" : "jpg";
   // slot 단위 고정 경로 — 인증 전 재업로드는 같은 파일을 덮어써 고아 파일을 남기지 않는다
-  const path = `${marketId}/${missionId}/${userId}-${slot}.${ext}`;
+  const path = `${marketId}/${missionId}/${userId}-${slot}.jpg`;
 
   const { error } = await supabase.storage
     .from(BUCKET)

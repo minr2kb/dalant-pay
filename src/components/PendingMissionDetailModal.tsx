@@ -128,19 +128,18 @@ function PendingMissionDetail({
         </div>
 
         {log.photoUrl && (
-          <div className="grid grid-cols-3 gap-2">
-            {log.photoUrl.split(",").map((url) => (
-              <button
-                key={url}
-                type="button"
-                onClick={() => openImageViewer(url)}
-                className="aspect-square w-full overflow-hidden rounded-xl"
-              >
-                {/** biome-ignore lint/performance/noImgElement: thumbnail only */}
-                <img src={url} alt="" className="h-full w-full object-cover" />
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => openImageViewer(log.photoUrl as string)}
+            className="mx-auto aspect-square w-32 overflow-hidden rounded-xl"
+          >
+            {/** biome-ignore lint/performance/noImgElement: thumbnail only */}
+            <img
+              src={log.photoUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </button>
         )}
 
         <Button

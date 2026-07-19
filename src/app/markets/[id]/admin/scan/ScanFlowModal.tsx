@@ -1,7 +1,8 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, UserPlus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GroupParticipantPicker } from "@/components/GroupParticipantPicker";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
@@ -40,32 +41,26 @@ export function ScanFlowModal({
     initialUser ?? null,
   );
   const [groupUsers, setGroupUsers] = useState<string[]>([]);
-  const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
   const { verifyGroup, isPending } = useMissionVerify({
     invalidates: [missionsQuery.$key, participantsQuery.$key],
   });
 
-  useEffect(() => {
-    if (step !== "confirm" || !selectedMission || !selectedUser) return;
-    if (selectedMission.type !== "upload") return;
-    setPendingPhotoUrl(null);
-    fetch(
-      `/api/markets/${marketId}/missions/${selectedMission.id}?userId=${selectedUser.user.id}`,
-    )
-      .then((res) => res.json())
-      .then(
-        ({
-          data,
-        }: {
-          data: {
-            slots?: { verifiedAt: string | null; photoUrl: string | null }[];
-          };
-        }) => {
-          const pendingSlot = data.slots?.find((s) => s.verifiedAt === null);
-          setPendingPhotoUrl(pendingSlot?.photoUrl ?? null);
-        },
-      );
-  }, [step, selectedMission, selectedUser, marketId]);
+  // react-query를 타야 참여자가 confirm 화면이 떠 있는 동안 재업로드해도
+  // uploadPhoto mutation의 invalidates(missionsQuery.$key)로 최신 사진을 다시 받아온다 —
+  // 이전 raw fetch는 이 캐시 시스템 밖에 있어 재업로드를 감지하지 못했다.
+  const { data: pendingMission } = useQuery({
+    ...missionsQuery.get({
+      marketId,
+      missionId: selectedMission?.id ?? "",
+      userId: selectedUser?.user.id ?? "",
+    }),
+    enabled:
+      step === "confirm" &&
+      selectedMission?.type === "upload" &&
+      !!selectedUser,
+  });
+  const pendingPhotoUrl =
+    pendingMission?.slots?.find((s) => s.verifiedAt === null)?.photoUrl ?? null;
 
   function selectMission(mission: Mission) {
     setSelectedMission(mission);
