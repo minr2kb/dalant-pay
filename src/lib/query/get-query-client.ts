@@ -1,11 +1,6 @@
 import { HttpError, TimeoutError, ValidationError } from "@routar/core";
-import { routarQueryClient } from "@routar/react-query";
-import {
-  isServer,
-  MutationCache,
-  type QueryClient,
-  type QueryKey,
-} from "@tanstack/react-query";
+import { routarMutationCache, routarQueryClient } from "@routar/react-query";
+import { isServer, type QueryClient } from "@tanstack/react-query";
 import { cache } from "react";
 import { toast } from "sonner";
 import { OfflineError } from "@/lib/api/client";
@@ -46,21 +41,14 @@ function notifyMutationNetworkError(error: unknown) {
 }
 
 export function makeQueryClient() {
-  // routarQueryClient() would wire routarMutationCache() itself, but only if we
-  // don't pass our own mutationCache — since we need onError for the network
-  // toast above, we replicate its onSuccess invalidation here in the same cache.
+  // routarMutationCache's overrides merge in onError while keeping its own
+  // onSuccess invalidation logic, so this both wires up the toast and marks
+  // the cache as "wired" (silencing @routar/react-query's unwired-invalidates warning).
   let queryClient: QueryClient;
   queryClient = routarQueryClient({
     defaultOptions: { queries: { staleTime: 60_000 } },
-    mutationCache: new MutationCache({
+    mutationCache: routarMutationCache(() => queryClient, {
       onError: notifyMutationNetworkError,
-      onSuccess: (_data, _vars, _context, mutation) => {
-        const invalidates = mutation.meta?.invalidates as QueryKey[] | undefined;
-        if (!invalidates?.length) return;
-        for (const queryKey of invalidates) {
-          queryClient.invalidateQueries({ queryKey });
-        }
-      },
     }),
   });
   return queryClient;

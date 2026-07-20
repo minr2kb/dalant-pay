@@ -12,11 +12,11 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@routar/core':
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: ^1.10.0
+        version: 1.10.0
       '@routar/react-query':
-        specifier: ^1.9.0
-        version: 1.9.0(@tanstack/react-query@5.101.2(react@19.2.4))
+        specifier: ^1.10.0
+        version: 1.10.0(@tanstack/react-query@5.101.2(react@19.2.4))
       '@supabase/ssr':
         specifier: ^0.12.0
         version: 0.12.0(@supabase/supabase-js@2.108.2)
@@ -768,11 +768,11 @@ packages:
       '@types/react':
         optional: true
 
-  '@routar/core@1.9.0':
-    resolution: {integrity: sha512-MfUVmwPsCDXDB4ub6Giiafulanyd+UE4NJoQFttvWRo6ahvxQz4Sumhxh3zHhBSfNnSp4FPmhpq0qf9Gg+D+vQ==}
+  '@routar/core@1.10.0':
+    resolution: {integrity: sha512-CKl4Lz0vKhZN3PU7vfolqC7qpfGyfSrn6g8Vfm9Y36TTMyPaWPYMnHwV7q1sVdl0NZnqzW549qtmuW1gME5GjA==}
 
-  '@routar/react-query@1.9.0':
-    resolution: {integrity: sha512-CrBFP/A3HJL54hPZ4mBTkNiUxpPs92hYZFi85wCDCKY32TrUUgDYu/EpvnMCgYKjIVd92Z6CWWrJRgPzW55fYA==}
+  '@routar/react-query@1.10.0':
+    resolution: {integrity: sha512-5EP8vHFWFRl4+4ysIqivXqBEYH97U3Zxv5K44ulwKC7qB2pwkje26gaNwJiBQ79jOzceiyurgLKNAjuzwryHPw==}
     peerDependencies:
       '@tanstack/react-query': '>=5.0.0'
 
@@ -2970,11 +2970,11 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
 
-  '@routar/core@1.9.0': {}
+  '@routar/core@1.10.0': {}
 
-  '@routar/react-query@1.9.0(@tanstack/react-query@5.101.2(react@19.2.4))':
+  '@routar/react-query@1.10.0(@tanstack/react-query@5.101.2(react@19.2.4))':
     dependencies:
-      '@routar/core': 1.9.0
+      '@routar/core': 1.10.0
       '@tanstack/react-query': 5.101.2(react@19.2.4)
 
   '@sec-ant/readable-stream@0.4.1': {}

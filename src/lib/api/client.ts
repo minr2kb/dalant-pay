@@ -28,7 +28,10 @@ export class OfflineError extends Error {
 
 const offlineGuardPlugin = definePlugin({
   onRequest: (opts) => {
-    if (typeof navigator !== "undefined" && !navigator.onLine) {
+    // Node 22+ defines a partial global `navigator` (just userAgent) with no
+    // `.onLine`, so this must also confirm we're in a browser before trusting
+    // it — otherwise every SSR request reads `!undefined` as offline.
+    if (typeof window !== "undefined" && !navigator.onLine) {
       throw new OfflineError();
     }
     return opts;
