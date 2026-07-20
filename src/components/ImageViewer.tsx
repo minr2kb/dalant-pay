@@ -11,6 +11,7 @@ function ImageViewerContent({
   onClose: () => void;
 }) {
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: backdrop click-to-close is a mouse convenience; every modal (see openModal/history.back) also closes via the browser back gesture, which is the keyboard/AT-accessible path
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-150"
       onClick={onClose}
@@ -26,6 +27,7 @@ function ImageViewerContent({
         <X className="h-6 w-6" />
       </button>
       {/** biome-ignore lint/performance/noImgElement: full-size viewer, not a thumbnail */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: stops the backdrop's onClose from firing when tapping the image itself, not an interactive action of its own */}
       <img
         src={url}
         alt=""

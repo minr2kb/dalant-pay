@@ -110,7 +110,9 @@ export function QRScanner({
   useEffect(() => {
     if (!shouldScan) {
       cancelAnimationFrame(rafRef.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((t) => {
+        t.stop();
+      });
       streamRef.current = null;
       setCameraReady(false);
       setCameraError(false);
@@ -165,7 +167,9 @@ export function QRScanner({
           },
         });
         if (!active) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream.getTracks().forEach((t) => {
+            t.stop();
+          });
           return;
         }
         streamRef.current = stream;
@@ -187,7 +191,9 @@ export function QRScanner({
       active = false;
       clearTimeout(resumeTimer);
       cancelAnimationFrame(rafRef.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((t) => {
+        t.stop();
+      });
       streamRef.current = null;
       setCameraReady(false);
     };

@@ -69,7 +69,10 @@ export default async function MarketJoinPage(
   if (!marketRow) return null;
   const market = mapMarket(marketRow);
 
-  const startDate = formatKST(market.startsAt, { month: "long", day: "numeric" });
+  const startDate = formatKST(market.startsAt, {
+    month: "long",
+    day: "numeric",
+  });
   const endDate = formatKST(market.endsAt, { month: "long", day: "numeric" });
 
   return (

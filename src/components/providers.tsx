@@ -14,6 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [isRestoring, setIsRestoring] = useState(true);
 
   useEffect(() => {
+    // biome-ignore lint/suspicious/noDocumentCookie: CookieStore API isn't supported on iOS Safari, which this PWA targets
     document.cookie = `${CLIENT_CACHE_COOKIE}=1; path=/; max-age=${60 * 60 * 24}`;
   }, []);
 

@@ -33,6 +33,7 @@ function QRContent({
   const [refreshTick, setRefreshTick] = useState(0);
   const isSamsungInternet = useSamsungInternet();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshTick isn't read in the body, it's a tick counter that intentionally re-triggers this fetch every 5 minutes
   useEffect(() => {
     setQrValue(null);
     let cancelled = false;

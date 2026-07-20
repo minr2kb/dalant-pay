@@ -11,17 +11,20 @@ export async function GET(req: Request) {
     return new NextResponse("Not Found", { status: 404 });
   }
 
-  const { data: link, error: linkError } = await supabase.auth.admin.generateLink({
-    type: "magiclink",
-    email: DEV_EMAIL,
-  });
+  const { data: link, error: linkError } =
+    await supabase.auth.admin.generateLink({
+      type: "magiclink",
+      email: DEV_EMAIL,
+    });
   if (linkError) return new NextResponse(linkError.message, { status: 500 });
 
   const ssrClient = await createClient();
-  const { data: verified, error: verifyError } = await ssrClient.auth.verifyOtp({
-    token_hash: link.properties.hashed_token,
-    type: "email",
-  });
+  const { data: verified, error: verifyError } = await ssrClient.auth.verifyOtp(
+    {
+      token_hash: link.properties.hashed_token,
+      type: "email",
+    },
+  );
   if (verifyError || !verified.user)
     return new NextResponse(verifyError?.message ?? "verify failed", {
       status: 500,

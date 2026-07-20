@@ -37,7 +37,7 @@ export function MissionSlot({ slot, slotNumber }: MissionSlotProps) {
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
           {slotNumber}회차
         </p>
-        {isVerified ? (
+        {isVerified && slot.verifiedAt ? (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -46,7 +46,7 @@ export function MissionSlot({ slot, slotNumber }: MissionSlotProps) {
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {formatKST(slot.verifiedAt!, {
+              {formatKST(slot.verifiedAt, {
                 month: "short",
                 day: "numeric",
                 hour: "2-digit",

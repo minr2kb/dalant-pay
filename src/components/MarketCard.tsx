@@ -14,7 +14,10 @@ export function MarketCard({
   participantCount,
   isJoined,
 }: MarketCardProps) {
-  const startDate = formatKST(market.startsAt, { month: "long", day: "numeric" });
+  const startDate = formatKST(market.startsAt, {
+    month: "long",
+    day: "numeric",
+  });
   const endDate = formatKST(market.endsAt, { month: "long", day: "numeric" });
 
   return (

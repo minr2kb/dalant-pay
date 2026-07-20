@@ -63,9 +63,7 @@ export async function proxy(request: NextRequest) {
     const next = request.nextUrl.searchParams.get("next");
     // "/"로 시작하고 "//"(프로토콜-상대 URL)는 아닌 내부 경로만 허용 — 오픈 리다이렉트 방지.
     const target =
-      next && next.startsWith("/") && !next.startsWith("//")
-        ? next
-        : "/markets";
+      next?.startsWith("/") && !next.startsWith("//") ? next : "/markets";
     return NextResponse.redirect(new URL(target, request.url));
   }
 

@@ -13,17 +13,17 @@ export function NumberTicker({
   const prev = useRef(0);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    if (!ref.current) return;
     const from = prev.current;
     prev.current = value;
     const duration = 800;
     const start = performance.now();
 
     function tick(now: number) {
+      if (!ref.current) return;
       const t = Math.min((now - start) / duration, 1);
       const eased = 1 - (1 - t) ** 3;
-      el!.textContent = Math.round(
+      ref.current.textContent = Math.round(
         from + (value - from) * eased,
       ).toLocaleString();
       if (t < 1) requestAnimationFrame(tick);
