@@ -30,14 +30,17 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
 
     const { data: existingLogs } = await supabase
       .from("mission_logs")
-      .select("slot, verified_at")
+      .select("slot, verified_at, voided_at")
       .eq("mission_id", missionId)
       .eq("user_id", userId);
 
-    const logs = (existingLogs ?? []).map((l) => ({
-      slot: l.slot as number,
-      verifiedAt: l.verified_at as string | null,
-    }));
+    // 철회된 인증은 슬롯/횟수 집계에서 제외 — 아래 upsert가 voided 슬롯을 재사용한다
+    const logs = (existingLogs ?? [])
+      .filter((l) => l.voided_at === null)
+      .map((l) => ({
+        slot: l.slot as number,
+        verifiedAt: l.verified_at as string | null,
+      }));
     const pendingLog = logs.find((l) => l.verifiedAt === null);
 
     if (pendingLog) {
@@ -56,14 +59,20 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       return err("이미 완료한 미션이에요", 422);
 
     const slot = resolveNextSlot(logs, mission.limit_count);
-    const { error } = await supabase.from("mission_logs").insert({
-      mission_id: missionId,
-      user_id: userId,
-      slot,
-      photo_url: photoUrl,
-      verified_by: null,
-      verified_at: null,
-    });
+    // upsert — voided 슬롯은 물리적으로 이미 존재하는 row라 plain insert면 unique 제약 충돌
+    const { error } = await supabase.from("mission_logs").upsert(
+      {
+        mission_id: missionId,
+        user_id: userId,
+        slot,
+        photo_url: photoUrl,
+        verified_by: null,
+        verified_by_name: null,
+        verified_at: null,
+        voided_at: null,
+      },
+      { onConflict: "mission_id,user_id,slot" },
+    );
     if (error) return err("업로드에 실패했어요", 500);
     return ok({ slot, photoUrl });
   },
