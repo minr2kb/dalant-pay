@@ -17,6 +17,23 @@ export function Providers({ children }: { children: React.ReactNode }) {
     document.cookie = `${CLIENT_CACHE_COOKIE}=1; path=/; max-age=${60 * 60 * 24}`;
   }, []);
 
+  // 서비스워커 캐싱을 되돌린 뒤(4c94546)에도, 예전에 그걸 설치했던 브라우저는
+  // 등록이 남아있어 계속 이제는 없는 /sw.js를 폴링한다 — 남은 등록/캐시를 정리한다.
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        for (const reg of regs) reg.unregister();
+      });
+    }
+    if ("caches" in window) {
+      caches.keys().then((keys) => {
+        for (const key of keys) {
+          if (key.startsWith("dalant-pay-shell-")) caches.delete(key);
+        }
+      });
+    }
+  }, []);
+
   // idb-keyval 등 영속화 관련 무게(~29KB)를 초기 크리티컬 번들에서 빼기 위해
   // 마운트 후에만 동적 import한다 — 그동안은 인메모리 QueryClient로 정상 동작하고,
   // 복원이 끝나면 캐시된 데이터로 갈아끼워진다.
