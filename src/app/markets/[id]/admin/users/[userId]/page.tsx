@@ -26,7 +26,7 @@ export default async function AdminUserDetailPage(
   qc.setQueryData(missionsQuery.list({ marketId }).queryKey, missions);
   return (
     <div>
-      <div className="flex items-center gap-3 px-4 pb-4 max-w-lg mx-auto">
+      <div className="sticky-header flex items-center gap-3 px-4 pt-4 pb-4 max-w-lg mx-auto">
         <Link
           href={`/markets/${marketId}/admin/users`}
           className="text-gray-400"

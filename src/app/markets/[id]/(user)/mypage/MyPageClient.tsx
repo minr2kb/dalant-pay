@@ -52,7 +52,11 @@ export function MyPageClient({
 
   const genderLabel = user.gender === "male" ? "남성" : "여성";
   const birthLabel = user.birthDate
-    ? formatKST(user.birthDate, { year: "numeric", month: "long", day: "numeric" })
+    ? formatKST(user.birthDate, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
     : "-";
 
   async function handleLogout() {
@@ -63,7 +67,7 @@ export function MyPageClient({
 
   return (
     <div className="px-4 space-y-6 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+      <h1 className="sticky-header -mx-4 px-4 pt-4 pb-3 text-xl font-bold text-gray-900 dark:text-white">
         마이페이지
       </h1>
 

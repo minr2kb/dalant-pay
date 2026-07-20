@@ -68,7 +68,7 @@ export function ActivityListClient({
 
   return (
     <div className="px-4 max-w-lg mx-auto space-y-4">
-      <div className="flex items-center gap-3">
+      <div className="sticky-header -mx-4 flex items-center gap-3 px-4 pt-4 pb-3">
         <Link
           href={`/markets/${marketId}/admin/home`}
           className="text-gray-400 dark:text-gray-500"

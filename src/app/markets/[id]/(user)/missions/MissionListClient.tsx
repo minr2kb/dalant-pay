@@ -28,7 +28,9 @@ export function MissionListClient({
 
   return (
     <div className="px-4 pb-4 max-w-lg mx-auto space-y-5">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">미션</h1>
+      <h1 className="sticky-header -mx-4 px-4 pt-4 pb-3 text-xl font-bold text-gray-900 dark:text-white">
+        미션
+      </h1>
       <MissionList
         missions={missions.filter((m) => m.isActive)}
         marketId={marketId}

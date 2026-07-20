@@ -38,7 +38,9 @@ export function RankingClient({ marketId }: { marketId: string }) {
 
   const tiedRanks = useMemo(() => {
     const counts = new Map<number, number>();
-    ranks.forEach((r) => counts.set(r, (counts.get(r) ?? 0) + 1));
+    ranks.forEach((r) => {
+      counts.set(r, (counts.get(r) ?? 0) + 1);
+    });
     return new Set([...counts].filter(([, c]) => c > 1).map(([r]) => r));
   }, [ranks]);
 
@@ -78,7 +80,9 @@ export function RankingClient({ marketId }: { marketId: string }) {
 
   return (
     <div className="px-4 space-y-6 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">랭킹</h1>
+      <h1 className="sticky-header -mx-4 px-4 pt-4 pb-3 text-xl font-bold text-gray-900 dark:text-white">
+        랭킹
+      </h1>
 
       {/* Podium */}
       {top3.length > 0 && (

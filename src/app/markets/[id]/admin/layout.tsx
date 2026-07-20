@@ -32,7 +32,7 @@ export default async function AdminLayout(props: LayoutProps<"/markets/[id]">) {
 
   return (
     <div className="min-h-svh bg-gray-50 dark:bg-gray-950">
-      <main className="min-h-svh pb-28 pt-4">{props.children}</main>
+      <main className="min-h-svh pb-28">{props.children}</main>
       <FloatingTabBar tabs={tabs} />
     </div>
   );

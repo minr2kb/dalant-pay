@@ -56,7 +56,7 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
 
   return (
     <div className="px-4 max-w-lg mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="sticky-header -mx-4 flex items-center justify-between px-4 pt-4 pb-3">
         <div>
           <p className="text-xs text-gray-400 dark:text-gray-500">
             {market.title}

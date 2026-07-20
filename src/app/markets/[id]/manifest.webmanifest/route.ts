@@ -20,8 +20,8 @@ export async function GET(
     description: "오프라인 모임을 위한 미션 인증 기반 달란트 결제 서비스",
     start_url: `/markets/${id}`,
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#10b981",
+    background_color: "#f9fafb",
+    theme_color: "#f9fafb",
     icons: [
       {
         src: "/android-chrome-192x192.png",

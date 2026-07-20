@@ -26,6 +26,10 @@
   }
 }
 
+.sticky-header {
+  @apply sticky top-0 z-10 bg-gray-50/70 backdrop-blur-md dark:bg-gray-950/70;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

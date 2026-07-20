@@ -34,7 +34,7 @@ export function HistoryClient({ marketId }: { marketId: string }) {
 
   return (
     <div className="px-4 max-w-lg mx-auto space-y-5">
-      <div className="flex items-baseline justify-between">
+      <div className="sticky-header -mx-4 flex items-baseline justify-between px-4 pt-4 pb-3">
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">
           {market.pointLabel} 내역
         </h1>

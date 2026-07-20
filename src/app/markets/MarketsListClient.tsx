@@ -24,7 +24,7 @@ export function MarketsListClient() {
   return (
     <div className="min-h-svh bg-gray-50 dark:bg-gray-950 px-4 pt-4 pb-8">
       <div className="max-w-lg mx-auto space-y-6">
-        <div className="space-y-1">
+        <div className="sticky-header space-y-1 pt-2 pb-3">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             마켓
           </h1>
