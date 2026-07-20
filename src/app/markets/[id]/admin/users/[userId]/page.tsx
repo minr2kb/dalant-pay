@@ -34,7 +34,7 @@ export default async function AdminUserDetailPage(
           <ChevronLeft className="h-6 w-6" />
         </Link>
         <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-          유저 상세
+          {participant.participant.displayName}
         </h1>
       </div>
       <HydrationBoundary state={dehydrate(qc)}>
