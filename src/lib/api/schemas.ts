@@ -88,6 +88,7 @@ export const PointLogSchema = z.object({
   slot: z.number().optional(),
   verifiedByUserId: z.string().optional(),
   createdAt: z.string(),
+  voidedAt: z.string().optional(),
 });
 
 export const PendingMissionLogSchema = z.object({

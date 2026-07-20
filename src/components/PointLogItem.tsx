@@ -39,13 +39,18 @@ export function PointLogItem({
           ? ArrowLeftRight
           : TrendingUp;
 
-  const amountColor = isPositive ? "text-emerald-500" : "text-rose-500";
+  const isVoided = !!log.voidedAt;
+  const amountColor = isVoided
+    ? "text-gray-400 dark:text-gray-600"
+    : isPositive
+      ? "text-emerald-500"
+      : "text-rose-500";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center justify-between overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-4 text-left"
+      className={`flex w-full items-center justify-between overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-4 text-left ${isVoided ? "opacity-50" : ""}`}
     >
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
@@ -54,6 +59,11 @@ export function PointLogItem({
         <div>
           <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
             {label}
+            {isVoided && (
+              <span className="ml-1.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:bg-gray-800 dark:text-gray-500">
+                철회됨
+              </span>
+            )}
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500">
             {participantName && (
@@ -72,7 +82,9 @@ export function PointLogItem({
         </div>
       </div>
 
-      <span className={`text-sm font-bold tabular-nums ${amountColor}`}>
+      <span
+        className={`text-sm font-bold tabular-nums ${amountColor} ${isVoided ? "line-through" : ""}`}
+      >
         {isPositive ? "+" : ""}
         {log.amount}
       </span>

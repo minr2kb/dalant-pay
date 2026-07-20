@@ -80,6 +80,7 @@ export interface PointLog {
   slot?: number;
   verifiedByUserId?: string;
   createdAt: string;
+  voidedAt?: string;
 }
 
 export interface PendingMissionLog {

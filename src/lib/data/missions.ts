@@ -25,7 +25,8 @@ export async function listMissions(
         "mission_id",
         missions.map((m) => m.id),
       )
-      .eq("user_id", opts.userId);
+      .eq("user_id", opts.userId)
+      .is("voided_at", null);
     logs = (data ?? []) as Record<string, unknown>[];
   }
 
@@ -50,6 +51,7 @@ export async function getMission(
           .select("*")
           .eq("mission_id", missionId)
           .eq("user_id", opts.userId)
+          .is("voided_at", null)
       : Promise.resolve({ data: null }),
   ]);
   if (error || !mission) throw new Error("Not found");

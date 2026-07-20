@@ -83,14 +83,17 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
 
     const { data: existingLogs } = await supabase
       .from("mission_logs")
-      .select("slot, verified_at")
+      .select("slot, verified_at, voided_at")
       .eq("mission_id", missionId)
       .eq("user_id", targetUserId);
 
-    const logs = (existingLogs ?? []).map((l) => ({
-      slot: l.slot as number,
-      verifiedAt: l.verified_at as string | null,
-    }));
+    // 철회된 인증은 슬롯/횟수 집계에서 제외 — award_mission이 voided 슬롯을 재사용한다
+    const logs = (existingLogs ?? [])
+      .filter((l) => l.voided_at === null)
+      .map((l) => ({
+        slot: l.slot as number,
+        verifiedAt: l.verified_at as string | null,
+      }));
     const verifiedCount = logs.filter((l) => l.verifiedAt !== null).length;
     if (mission.limit_count !== null && verifiedCount >= mission.limit_count)
       return err("이미 완료한 미션이에요", 422);

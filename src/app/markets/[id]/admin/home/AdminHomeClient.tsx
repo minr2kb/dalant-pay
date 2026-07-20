@@ -173,6 +173,8 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
                       log,
                       participantName,
                       pointLabel: market.pointLabel,
+                      marketId,
+                      isAdmin: true,
                     })
                   }
                 />

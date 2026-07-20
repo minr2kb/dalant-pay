@@ -186,6 +186,8 @@ export const missionsRouter = defineRouter("/markets", {
   }),
 });
 
+const marketAndLog = z.object({ marketId: z.string(), logId: z.string() });
+
 export const pointLogsRouter = defineRouter("/markets", {
   list: endpoint({
     method: "GET",
@@ -195,6 +197,12 @@ export const pointLogsRouter = defineRouter("/markets", {
       query: z.object({ userId: z.string().optional() }).optional(),
     },
     response: z.array(PointLogSchema),
+  }),
+  revoke: endpoint({
+    method: "POST",
+    path: "/:marketId/point-logs/:logId/revoke",
+    request: { path: marketAndLog },
+    response: z.object({ id: z.string(), newBalance: z.number() }),
   }),
 });
 

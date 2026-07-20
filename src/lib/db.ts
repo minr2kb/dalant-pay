@@ -113,12 +113,23 @@ export function mapPointLog(row: Record<string, unknown>): PointLog {
     ...(row.item_name ? { itemName: row.item_name as string } : {}),
     ...(row.order_id ? { orderId: row.order_id as string } : {}),
     ...(row.memo ? { memo: row.memo as string } : {}),
-    ...(missionLog?.photo_url ? { photoUrl: missionLog.photo_url } : {}),
+    ...(((row.photo_url as string | null) ?? missionLog?.photo_url)
+      ? {
+          photoUrl:
+            (row.photo_url as string | null) ??
+            (missionLog?.photo_url as string),
+        }
+      : {}),
     ...(missionLog?.slot != null ? { slot: missionLog.slot } : {}),
-    ...(missionLog?.verified_by
-      ? { verifiedByUserId: missionLog.verified_by }
+    ...(((row.verified_by as string | null) ?? missionLog?.verified_by)
+      ? {
+          verifiedByUserId:
+            (row.verified_by as string | null) ??
+            (missionLog?.verified_by as string),
+        }
       : {}),
     createdAt: row.created_at as string,
+    ...(row.voided_at ? { voidedAt: row.voided_at as string } : {}),
   };
 }
 
