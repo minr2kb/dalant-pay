@@ -35,12 +35,9 @@ export async function listMarkets(supabase: SupabaseClient, userId: string) {
 
   return (markets ?? [])
     .filter((m) => m.id !== DEV_ONLY_MARKET_ID || userId === DEV_USER_ID)
-    .map((m) => {
-      const counts = m.market_participants as unknown as { count: number }[];
-      return {
-        market: mapMarket(m as Record<string, unknown>),
-        participantCount: counts?.[0]?.count ?? 0,
-        isJoined: joinedIds.has(m.id as string),
-      };
-    });
+    .map((m) => ({
+      market: mapMarket(m as Record<string, unknown>),
+      participantCount: m.market_participants?.[0]?.count ?? 0,
+      isJoined: joinedIds.has(m.id as string),
+    }));
 }

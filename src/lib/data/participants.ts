@@ -14,9 +14,10 @@ export async function joinMarket(
     .maybeSingle();
 
   if (existing) {
-    const realName =
-      (existing as unknown as { user?: { real_name?: string } }).user
-        ?.real_name ?? "";
+    // supabase-js infers `user:users!user_id(...)` as a to-many array (it can't see the
+    // FK's one-to-one cardinality without generated Database types) — it's actually a
+    // single row at runtime, so index [0] instead of casting past the inferred type.
+    const realName = existing.user?.[0]?.real_name ?? "";
     return {
       isNew: false,
       hasConflict: false,
@@ -42,9 +43,7 @@ export async function joinMarket(
     (others ?? [])
       .map((p) => {
         const dn = p.display_name as string | null;
-        const rn =
-          (p as unknown as { user?: { real_name?: string } }).user?.real_name ??
-          null;
+        const rn = p.user?.[0]?.real_name ?? null;
         return dn ?? rn ?? "";
       })
       .filter(Boolean),
