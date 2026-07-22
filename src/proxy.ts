@@ -42,6 +42,8 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname === "/robots.txt" ||
     pathname === "/manifest.webmanifest" ||
+    // 서비스워커 스크립트는 브라우저가 세션 쿠키 없이도 등록/폴링하므로 공개.
+    pathname === "/sw.js" ||
     // 마켓 QR 랜딩(공유 페이지)은 미가입자·링크 미리보기 봇도 봐야 하므로 공개.
     // 그 외 하위 경로(/home 등)는 제외. og:image는 정적 파일이라 미들웨어 matcher에서 이미 제외됨.
     /^\/markets\/[^/]+$/.test(pathname) ||
