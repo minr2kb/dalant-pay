@@ -69,7 +69,12 @@ export function QRCodeImage({ value, size }: { value: string; size: number }) {
         }}
       >
         <QRCode
-          // biome-ignore lint/suspicious/noExplicitAny: react-qr-code ships a stale class-component ref type even though it's actually a forwardRef function component forwarding to the underlying <svg>
+          // Verified this can't be narrowed further: QRCodeProps extends React.SVGProps<SVGSVGElement>
+          // (which carries its own ref: Ref<SVGSVGElement>) while QRCode is *also* declared as
+          // `class QRCode extends React.Component<QRCodeProps, any>` (ref: Ref<QRCode>) — JSX
+          // intersects both, so no ref type satisfies the declared prop short of `any`. At runtime
+          // this is actually a forwardRef straight to the <svg>, matching svgRef's real type.
+          // biome-ignore lint/suspicious/noExplicitAny: see above — the lib's own .d.ts makes any other ref type unsatisfiable here
           ref={svgRef as any}
           value={value}
           size={size}

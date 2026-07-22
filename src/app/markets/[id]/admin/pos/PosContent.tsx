@@ -6,6 +6,7 @@ import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { QRScanner } from "@/components/QRScanner";
 import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { parseQR } from "@/lib/qr";
 import {
   itemsQuery,
@@ -105,8 +106,7 @@ function PosInner({ marketId }: { marketId: string }) {
       });
       setScanState("done");
     } catch (e: unknown) {
-      // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
-      const msg = (e as any)?.body?.error ?? "결제에 실패했습니다.";
+      const msg = getApiErrorMessage(e, "결제에 실패했습니다.");
       toast.error("결제 실패", { description: msg });
     }
   }

@@ -1,4 +1,9 @@
-import { createApi, createFetchExecutor, definePlugin } from "@routar/core";
+import {
+  createApi,
+  createFetchExecutor,
+  definePlugin,
+  HttpError,
+} from "@routar/core";
 import {
   adminRouter,
   itemsRouter,
@@ -43,6 +48,23 @@ const executor = createFetchExecutor(`${BASE_URL}/api`, {
   plugins: [offlineGuardPlugin],
   timeout: 10_000,
 });
+
+// 서버는 실패 시 항상 { error: string } 봉투로 응답한다(src/lib/api/route-helpers.ts의
+// err() 참고) — HttpError.body는 라이브러리에서 unknown으로 열려있으니, 호출부마다
+// `as any`로 뚫는 대신 여기서 한 번만 좁혀서 재사용한다.
+function hasErrorField(body: unknown): body is { error: string } {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "error" in body &&
+    typeof (body as Record<string, unknown>).error === "string"
+  );
+}
+
+export function getApiErrorMessage(e: unknown, fallback: string): string {
+  if (e instanceof HttpError && hasErrorField(e.body)) return e.body.error;
+  return fallback;
+}
 
 export const marketsApi = createApi(executor, marketsRouter);
 export const participantsApi = createApi(executor, participantsRouter);

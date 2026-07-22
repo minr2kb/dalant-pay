@@ -8,6 +8,7 @@ import { useSessionUserId } from "@/components/AuthGate";
 import { Modal } from "@/components/Modal";
 import { QRScanner } from "@/components/QRScanner";
 import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { openModal } from "@/lib/overlay";
 import { parseQR } from "@/lib/qr";
 import { missionsQuery, participantsQuery } from "@/lib/query/queries";
@@ -50,8 +51,7 @@ function ConfirmModal({
       });
       setDone(true);
     } catch (e) {
-      // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
-      setVerifyError((e as any)?.body?.error ?? "인증에 실패했어요");
+      setVerifyError(getApiErrorMessage(e, "인증에 실패했어요"));
     }
   }
 

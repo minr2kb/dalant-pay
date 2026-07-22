@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { MissionSlot } from "@/components/MissionSlot";
 import { QRModal } from "@/components/QRModal";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { marketsQuery, missionsQuery } from "@/lib/query/queries";
 import { uploadMissionPhoto } from "@/lib/upload";
 import { getMissionStatus } from "@/types";
@@ -89,8 +90,7 @@ export function MissionDetailClient({
       await uploadPhotoMutation.mutateAsync({ marketId, missionId, photoUrl });
     } catch (e) {
       setUploadError(true);
-      // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
-      const msg = (e as any)?.body?.error ?? "다시 시도해주세요";
+      const msg = getApiErrorMessage(e, "다시 시도해주세요");
       toast.error("미션 등록에 실패했어요", { description: msg });
     } finally {
       setUploading(false);

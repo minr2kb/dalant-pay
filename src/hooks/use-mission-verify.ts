@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { missionsQuery } from "@/lib/query/queries";
 
 type VerifyPrimary = { token: string } | { userId: string; slot?: number };
@@ -34,8 +35,7 @@ export function useMissionVerify(
       const failed = results.filter((r) => r.status === "rejected");
       if (failed.length > 0) {
         const reason = (failed[0] as PromiseRejectedResult).reason;
-        // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
-        const msg = (reason as any)?.body?.error ?? "인증에 실패했어요";
+        const msg = getApiErrorMessage(reason, "인증에 실패했어요");
         toast.error(`${failed.length}명 적립 실패`, { description: msg });
       }
       return results.some((r) => r.status === "fulfilled");

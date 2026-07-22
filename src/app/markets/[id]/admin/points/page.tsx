@@ -7,6 +7,7 @@ import { Suspense, use, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { participantsQuery } from "@/lib/query/queries";
 
 function AdminPointsContent({ marketId }: { marketId: string }) {
@@ -59,8 +60,7 @@ function AdminPointsContent({ marketId }: { marketId: string }) {
       const failed = results.filter((r) => r.status === "rejected");
       if (failed.length > 0) {
         const reason = (failed[0] as PromiseRejectedResult).reason;
-        // biome-ignore lint/suspicious/noExplicitAny: routar's HttpError.body is typed `unknown`, so reaching the API's { error } envelope needs an any cast
-        const msg = (reason as any)?.body?.error ?? "지급/차감에 실패했어요";
+        const msg = getApiErrorMessage(reason, "지급/차감에 실패했어요");
         toast.error(`${failed.length}명 처리 실패`, { description: msg });
       }
       if (failed.length < results.length) {
