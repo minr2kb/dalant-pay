@@ -56,6 +56,10 @@ export default function OnboardingPage() {
       (user.user_metadata?.name as string | undefined) ??
       (user.user_metadata?.full_name as string | undefined) ??
       name;
+    const providerAvatarUrl =
+      (user.user_metadata?.avatar_url as string | undefined) ??
+      (user.user_metadata?.picture as string | undefined) ??
+      null;
 
     const { error } = await supabase.from("users").insert({
       id: user.id,
@@ -63,6 +67,7 @@ export default function OnboardingPage() {
       real_name: name,
       birth_date: birthDate,
       gender,
+      avatar_url: providerAvatarUrl,
     });
 
     setSaving(false);

@@ -14,6 +14,7 @@ import { PayQRButton } from "@/components/PayQRButton";
 import { openPointLogDetail } from "@/components/PointLogDetailModal";
 import { PointLogItem } from "@/components/PointLogItem";
 import { TransferModal } from "@/components/TransferModal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { openModal } from "@/lib/overlay";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
@@ -70,13 +71,19 @@ export function UserHomeClient({
       <InstallPwaBanner />
 
       <div className="sticky-header -mx-4 flex items-center justify-between px-4 pt-4 pb-3">
-        <div>
-          <p className="text-xs text-gray-400 dark:text-gray-500">
-            {market.title}
-          </p>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            {user.displayName}
-          </h1>
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarImage src={user.user.avatarUrl ?? undefined} alt="" />
+            <AvatarFallback>{user.user.realName.slice(0, 1)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {market.title}
+            </p>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              {user.displayName}
+            </h1>
+          </div>
         </div>
         <AdminAccessButton marketId={marketId} compact />
       </div>

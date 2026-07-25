@@ -17,6 +17,7 @@ export function mapUser(row: Record<string, unknown>): User {
     realName: row.real_name as string,
     birthDate: row.birth_date as string,
     gender: row.gender as "male" | "female",
+    avatarUrl: (row.avatar_url as string | null) ?? null,
     createdAt: row.created_at as string,
   };
 }

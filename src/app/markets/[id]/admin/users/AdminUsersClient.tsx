@@ -5,6 +5,7 @@ import { orderBy } from "es-toolkit";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { participantsQuery } from "@/lib/query/queries";
 
@@ -52,9 +53,10 @@ export function AdminUsersClient({ marketId }: { marketId: string }) {
               className="flex items-center justify-between rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-bold text-gray-600 dark:text-gray-300">
-                  {p.user.realName.slice(0, 1)}
-                </div>
+                <Avatar size="lg">
+                  <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{p.user.realName.slice(0, 1)}</AvatarFallback>
+                </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">

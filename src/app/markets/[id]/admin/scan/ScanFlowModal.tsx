@@ -5,6 +5,7 @@ import { CheckCircle2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { GroupParticipantPicker } from "@/components/GroupParticipantPicker";
 import { Modal } from "@/components/Modal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useMissionVerify } from "@/hooks/use-mission-verify";
 import { missionsQuery, participantsQuery } from "@/lib/query/queries";
@@ -148,9 +149,10 @@ export function ScanFlowModal({
                 onClick={() => selectUser(p)}
                 className="flex h-14 w-full items-center gap-3 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 text-left hover:bg-emerald-50 hover:border-emerald-200 dark:hover:bg-emerald-900/20 transition-colors"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-bold text-gray-600 dark:text-gray-300">
-                  {p.user.realName[0]}
-                </div>
+                <Avatar>
+                  <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{p.user.realName[0]}</AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                     {p.user.realName}

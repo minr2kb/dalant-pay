@@ -9,6 +9,7 @@ export interface User {
   realName: string;
   birthDate: string;
   gender: Gender;
+  avatarUrl: string | null;
   createdAt: string;
 }
 

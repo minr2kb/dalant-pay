@@ -2,6 +2,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { listMissions } from "@/lib/data/missions";
 import { getParticipant } from "@/lib/data/participants";
 import { getQueryClient } from "@/lib/query/get-query-client";
@@ -33,6 +34,15 @@ export default async function AdminUserDetailPage(
         >
           <ChevronLeft className="h-6 w-6" />
         </Link>
+        <Avatar>
+          <AvatarImage
+            src={participant.participant.user.avatarUrl ?? undefined}
+            alt=""
+          />
+          <AvatarFallback>
+            {participant.participant.user.realName.slice(0, 1)}
+          </AvatarFallback>
+        </Avatar>
         <h1 className="text-lg font-bold text-gray-900 dark:text-white">
           {participant.participant.displayName}
         </h1>

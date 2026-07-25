@@ -40,3 +40,33 @@ export async function uploadMissionPhoto(
   // 경로가 고정이라 재업로드해도 URL이 그대로라 캐시된 옛 이미지가 보일 수 있음 → 쿼리로 무효화
   return `${publicUrl}?t=${Date.now()}`;
 }
+
+const AVATAR_BUCKET = "avatars";
+
+export async function uploadAvatar(
+  file: File,
+  userId: string,
+): Promise<string> {
+  const compressed = await imageCompression(file, {
+    maxSizeMB: 0.5,
+    maxWidthOrHeight: 1200,
+    useWebWorker: true,
+    fileType: "image/jpeg",
+  });
+
+  const supabase = createClient();
+  await supabase.auth.getSession();
+  const path = `${userId}.jpg`;
+
+  const { error } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, compressed, {
+      contentType: compressed.type || "image/jpeg",
+      upsert: true,
+    });
+  if (error) throw error;
+
+  const publicUrl = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path)
+    .data.publicUrl;
+  return `${publicUrl}?t=${Date.now()}`;
+}

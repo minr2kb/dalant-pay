@@ -5,6 +5,7 @@ import { keyBy, orderBy } from "es-toolkit";
 import { useMemo, useRef } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
 import { openPointLogDetail } from "@/components/PointLogDetailModal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAutoScroll } from "@/hooks/use-auto-scroll";
 import { formatRelative } from "@/lib/format-date";
 import {
@@ -195,6 +196,10 @@ export function RankingClient({ marketId }: { marketId: string }) {
                 key={p.id}
                 className="flex flex-1 flex-col items-center gap-1"
               >
+                <Avatar size="sm">
+                  <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{p.user.realName.slice(0, 1)}</AvatarFallback>
+                </Avatar>
                 <p
                   className={cn(
                     "w-full truncate text-center text-sm font-bold",
@@ -253,6 +258,10 @@ export function RankingClient({ marketId }: { marketId: string }) {
                 <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400 dark:text-gray-500">
                   {rank}
                 </span>
+                <Avatar size="sm">
+                  <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{p.user.realName.slice(0, 1)}</AvatarFallback>
+                </Avatar>
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <p
                     className={cn(

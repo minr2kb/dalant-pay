@@ -6,6 +6,7 @@ export const UserSchema = z.object({
   realName: z.string(),
   birthDate: z.string(),
   gender: z.enum(["male", "female"]),
+  avatarUrl: z.string().nullable(),
   createdAt: z.string(),
 });
 

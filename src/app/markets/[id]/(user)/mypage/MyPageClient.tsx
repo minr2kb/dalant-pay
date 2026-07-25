@@ -1,15 +1,18 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
-import { LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
+import { Camera, LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useRef } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MarketShareButton } from "@/components/MarketShareButton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { formatKST } from "@/lib/format-date";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
+import { uploadAvatar } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 import { MyPageSkeleton } from "./MyPageSkeleton";
 
@@ -28,9 +31,27 @@ export function MyPageClient({
 }) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // useSessionUserId()가 비동기로 채워지기 전엔 서버가 이미 검증한 initialUserId로 쿼리 키를
   // 맞춰서 SSR prefetch 캐시를 첫 렌더부터 바로 쓴다 — UserHomeClient와 동일한 이유.
   const userId = useSessionUserId() ?? initialUserId;
+
+  const { mutate: changeAvatar, isPending: isUploadingAvatar } = useMutation({
+    mutationFn: async (file: File) => {
+      if (!userId) throw new Error("로그인이 필요해요");
+      const avatarUrl = await uploadAvatar(file, userId);
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("users")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: participantsQuery.$key });
+    },
+  });
 
   const [{ data: market }, { data: participants }] = useQueries({
     queries: [
@@ -71,9 +92,49 @@ export function MyPageClient({
         마이페이지
       </h1>
 
+      <div className="flex flex-col items-center gap-3 pt-2 pb-1">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploadingAvatar}
+          className="relative active:scale-95 transition-transform"
+        >
+          <Avatar className="size-28">
+            <AvatarImage src={user.avatarUrl ?? undefined} alt="" />
+            <AvatarFallback className="text-4xl">
+              {user.realName.slice(0, 1)}
+            </AvatarFallback>
+          </Avatar>
+          <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white ring-4 ring-white dark:ring-gray-950">
+            {isUploadingAvatar ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <Camera className="h-4 w-4" />
+            )}
+          </span>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) changeAvatar(file);
+            e.target.value = "";
+          }}
+        />
+        <div className="text-center">
+          <p className="text-lg font-bold text-gray-900 dark:text-white">
+            {participant.displayName}
+          </p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">
+            {user.realName}
+          </p>
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800">
-        <InfoRow label="활동명" value={participant.displayName} />
-        <InfoRow label="본명" value={user.realName} />
         <InfoRow label="생년월일" value={birthLabel} />
         <InfoRow label="성별" value={genderLabel} />
       </div>
