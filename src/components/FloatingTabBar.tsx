@@ -49,13 +49,27 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
     setPendingHref(null);
   }, [pathname]);
 
+  const activeStates = tabs.map((tab) =>
+    pendingHref ? pendingHref === tab.href : pathname.includes(tab.segment),
+  );
+  const activeIndex = activeStates.indexOf(true);
+
   return (
     <nav className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg">
-      <div className="flex items-center justify-around rounded-full bg-white/60 dark:bg-gray-900/70 backdrop-blur-sm px-2 py-2 shadow-[0_3px_10px_0_rgba(0,0,0,0.1)]">
-        {tabs.map((tab) => {
-          const isActive = pendingHref
-            ? pendingHref === tab.href
-            : pathname.includes(tab.segment);
+      <div className="relative flex items-center rounded-full bg-white/60 dark:bg-gray-900/70 backdrop-blur-sm px-2 py-2 shadow-[0_3px_10px_0_rgba(0,0,0,0.1)] dark:shadow-[0_3px_10px_0_rgba(0,0,0,0.6)] dark:ring-1 dark:ring-white/10">
+        {activeIndex >= 0 && (
+          <div
+            aria-hidden
+            className="absolute inset-y-2 rounded-full bg-gradient-to-b from-white/20 to-white/5 dark:from-white/[0.06] dark:to-white/[0.015] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/25 dark:ring-white/[0.06] shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.35),inset_0_-1px_2px_0_rgba(0,0,0,0.04),0_1px_3px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.06),inset_0_-1px_2px_0_rgba(0,0,0,0.15),0_1px_3px_0_rgba(0,0,0,0.25)] transition-transform duration-300 ease-out"
+            style={{
+              left: "0.5rem",
+              width: `calc((100% - 1rem) / ${tabs.length})`,
+              transform: `translateX(${activeIndex * 100}%)`,
+            }}
+          />
+        )}
+        {tabs.map((tab, index) => {
+          const isActive = activeStates[index];
           const Icon = ICON_MAP[tab.icon] ?? Home;
           return (
             <Link
@@ -64,19 +78,17 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
               prefetch={false}
               onClick={() => setPendingHref(tab.href)}
               className={cn(
-                "flex min-w-[52px] flex-col items-center gap-0.5 rounded-full px-3 py-2 transition-colors",
+                "relative flex flex-1 flex-col items-center gap-0.5 rounded-full py-2 transition-colors duration-300",
                 isActive
-                  ? "text-emerald-500"
+                  ? "text-emerald-500 dark:text-emerald-400"
                   : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300",
               )}
             >
               <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 1.8} />
               <span
                 className={cn(
-                  "text-[10px] font-medium leading-tight transition-all",
-                  isActive
-                    ? "max-h-4 opacity-100"
-                    : "max-h-0 overflow-hidden opacity-0",
+                  "text-[10px] leading-tight",
+                  isActive ? "font-semibold" : "font-medium",
                 )}
               >
                 {tab.label}
