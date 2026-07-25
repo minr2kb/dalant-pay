@@ -4,6 +4,7 @@ import { useSuspenseQueries } from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { openPendingMissionDetail } from "@/components/PendingMissionDetailModal";
 import { PendingMissionLogItem } from "@/components/PendingMissionLogItem";
@@ -41,7 +42,10 @@ export function ActivityListClient({
   marketId: string;
   currentUserId: string | null;
 }) {
-  const [scope, setScope] = useState<ScopeFilter>("all");
+  const searchParams = useSearchParams();
+  const [scope, setScope] = useState<ScopeFilter>(
+    searchParams.get("scope") === "pending" ? "pending" : "all",
+  );
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [
     { data: market },

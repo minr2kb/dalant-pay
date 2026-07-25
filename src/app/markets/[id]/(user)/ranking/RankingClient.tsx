@@ -1,27 +1,47 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
-import { orderBy } from "es-toolkit";
-import { useMemo } from "react";
+import { keyBy, orderBy } from "es-toolkit";
+import { useMemo, useRef } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
-import { marketsQuery, participantsQuery } from "@/lib/query/queries";
+import { openPointLogDetail } from "@/components/PointLogDetailModal";
+import { useAutoScroll } from "@/hooks/use-auto-scroll";
+import { formatRelative } from "@/lib/format-date";
+import {
+  marketsQuery,
+  participantsQuery,
+  pointLogsQuery,
+} from "@/lib/query/queries";
 import { cn } from "@/lib/utils";
 import { RankingSkeleton } from "./RankingSkeleton";
 
 export function RankingClient({ marketId }: { marketId: string }) {
   const userId = useSessionUserId();
 
-  const [{ data: market }, { data: participants }] = useQueries({
-    queries: [
-      { ...marketsQuery.get({ marketId }), enabled: !!userId },
-      { ...participantsQuery.list({ marketId }), enabled: !!userId },
-    ],
-  });
+  const [{ data: market }, { data: participants }, { data: recentMissions }] =
+    useQueries({
+      queries: [
+        { ...marketsQuery.get({ marketId }), enabled: !!userId },
+        { ...participantsQuery.list({ marketId }), enabled: !!userId },
+        { ...pointLogsQuery.recentMissions({ marketId }), enabled: !!userId },
+      ],
+    });
 
   const ranked = useMemo(
     () => orderBy(participants ?? [], [(p) => p.balance], ["desc"]),
     [participants],
   );
+
+  const participantMap = useMemo(
+    () => keyBy(participants ?? [], (p) => p.user.id),
+    [participants],
+  );
+
+  // 카드가 적으면(3개 미만) 무한 루프 특유의 "복제된 카드가 또 나온다" 느낌만 주고
+  // 자동 스크롤할 만큼 콘텐츠가 없으니, 그럴 땐 그냥 정적으로 둔다.
+  const shouldAutoScroll = !!recentMissions && recentMissions.length >= 3;
+  const recentMissionsScrollRef = useRef<HTMLDivElement>(null);
+  useAutoScroll(recentMissionsScrollRef, { enabled: shouldAutoScroll });
 
   // 동점자는 같은 순위를 받고 다음 순위는 그만큼 건너뛴다 (표준 경쟁 순위, 1-2-2-4)
   const ranks = useMemo(() => {
@@ -83,6 +103,84 @@ export function RankingClient({ marketId }: { marketId: string }) {
       <h1 className="sticky-header -mx-4 px-4 pt-4 pb-3 text-xl font-bold text-gray-900 dark:text-white">
         랭킹
       </h1>
+
+      {/* 최근 미션 인증 — 참가자가 많으면 아래 순위 리스트가 길어 스크롤에 묻히므로 최상단에 배치.
+          가로 스크롤 칩으로: 세로 카드 스택은 랭킹 페이지를 과하게 길어 보이게 했다 */}
+      {recentMissions === undefined ? (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            최근 미션 인증
+          </h2>
+          <div className="flex gap-2 overflow-hidden -mx-4 px-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-[72px] w-40 shrink-0 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        recentMissions.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              최근 미션 인증
+            </h2>
+            <div
+              ref={recentMissionsScrollRef}
+              className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden"
+            >
+              {(shouldAutoScroll
+                ? [...recentMissions, ...recentMissions]
+                : recentMissions
+              ).map((log, i) => {
+                const thumbUrl = log.photoUrl?.split(",")[0];
+                const participantName =
+                  participantMap[log.userId]?.user.realName ?? "알 수 없음";
+                return (
+                  <button
+                    key={`${log.id}-${i}`}
+                    type="button"
+                    onClick={() =>
+                      openPointLogDetail({
+                        log,
+                        participantName,
+                        pointLabel: market.pointLabel,
+                      })
+                    }
+                    className="flex w-40 shrink-0 items-center gap-2 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-3 text-left active:scale-95 transition-transform"
+                  >
+                    {thumbUrl && (
+                      // biome-ignore lint/performance/noImgElement: small thumbnail only
+                      <img
+                        src={thumbUrl}
+                        alt=""
+                        className="h-10 w-10 shrink-0 rounded-md object-cover"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate text-xs font-bold text-gray-800 dark:text-gray-200">
+                        {participantName}
+                      </p>
+                      <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                        {log.missionTitle ?? "미션"}
+                      </p>
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="text-xs font-bold tabular-nums text-emerald-500">
+                          +{log.amount}
+                        </p>
+                        <p className="truncate text-[10px] text-gray-400 dark:text-gray-500">
+                          {formatRelative(log.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )
+      )}
 
       {/* Podium */}
       {top3.length > 0 && (

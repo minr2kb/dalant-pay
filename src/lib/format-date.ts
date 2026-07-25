@@ -10,3 +10,19 @@ export function formatKST(
     ...options,
   });
 }
+
+const relativeTimeFormatter = new Intl.RelativeTimeFormat("ko", {
+  numeric: "always",
+});
+
+// 상대 시각(초/분/시간/일 전) — 절대 시각과 달리 두 시점의 차이라 timezone 영향이 없다.
+export function formatRelative(date: Date | string) {
+  const diffSec = Math.round((new Date(date).getTime() - Date.now()) / 1000);
+  const abs = Math.abs(diffSec);
+  if (abs < 60) return "방금 전";
+  if (abs < 3600)
+    return relativeTimeFormatter.format(Math.round(diffSec / 60), "minute");
+  if (abs < 86400)
+    return relativeTimeFormatter.format(Math.round(diffSec / 3600), "hour");
+  return relativeTimeFormatter.format(Math.round(diffSec / 86400), "day");
+}

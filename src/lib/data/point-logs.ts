@@ -16,3 +16,19 @@ export async function listPointLogs(
   if (error) throw new Error(error.message);
   return (data ?? []).map((r) => mapPointLog(r as Record<string, unknown>));
 }
+
+export async function listRecentMissionLogs(
+  supabase: SupabaseClient,
+  marketId: string,
+  limit = 10,
+) {
+  const { data, error } = await supabase
+    .from("point_logs")
+    .select("*, mission_logs(photo_url, slot, verified_by)")
+    .eq("market_id", marketId)
+    .eq("reason_type", "mission")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => mapPointLog(r as Record<string, unknown>));
+}

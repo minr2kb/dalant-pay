@@ -4,6 +4,7 @@ import { useSuspenseQueries } from "@tanstack/react-query";
 import { keyBy, orderBy } from "es-toolkit";
 import {
   ArrowRight,
+  BellRing,
   Coins,
   CreditCard,
   ScanLine,
@@ -28,12 +29,14 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
     { data: participants },
     { data: missions },
     { data: logs },
+    { data: pendingLogs },
   ] = useSuspenseQueries({
     queries: [
       marketsQuery.get({ marketId }),
       participantsQuery.list({ marketId }),
       missionsQuery.list({ marketId }),
       pointLogsQuery.list({ marketId }),
+      missionsQuery.pendingLogs({ marketId }),
     ],
   });
 
@@ -144,6 +147,22 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
           </Link>
         ))}
       </div>
+
+      {pendingLogs.length > 0 && (
+        <Link
+          href={`/markets/${marketId}/admin/activity?scope=pending`}
+          className="flex items-center gap-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/40 px-4 py-3.5 active:scale-95 transition-all"
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
+            <BellRing className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          </div>
+          <p className="flex-1 text-sm text-amber-800 dark:text-amber-300">
+            인증 대기 중인 미션이{" "}
+            <span className="font-semibold">{pendingLogs.length}건</span> 있어요
+          </p>
+          <ArrowRight className="h-4 w-4 text-amber-500" />
+        </Link>
+      )}
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">

@@ -198,6 +198,17 @@ export const pointLogsRouter = defineRouter("/markets", {
     },
     response: z.array(PointLogSchema),
   }),
+  recentMissions: endpoint({
+    method: "GET",
+    path: "/:marketId/point-logs/recent-missions",
+    request: {
+      path: marketId,
+      query: z
+        .object({ limit: z.coerce.number().int().min(1).optional() })
+        .optional(),
+    },
+    response: z.array(PointLogSchema),
+  }),
   revoke: endpoint({
     method: "POST",
     path: "/:marketId/point-logs/:logId/revoke",
