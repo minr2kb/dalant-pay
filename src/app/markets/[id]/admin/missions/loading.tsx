@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
     <div className="px-4 max-w-lg mx-auto space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-4 pb-3">
         <div className="h-7 w-28 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
         <div className="h-9 w-24 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800" />
       </div>

@@ -1,7 +1,7 @@
 export function HomeSkeleton() {
   return (
     <div className="px-4 space-y-6 max-w-lg mx-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-4 pb-3">
         <div className="space-y-1.5">
           <div className="h-3.5 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
           <div className="h-7 w-32 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />

@@ -1,7 +1,7 @@
 export function RankingSkeleton() {
   return (
     <div className="px-4 space-y-4 max-w-lg mx-auto">
-      <div className="h-7 w-20 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+      <div className="h-7 w-20 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800 mt-4 mb-3" />
       <div className="flex gap-2 overflow-hidden -mx-4 px-4">
         {[1, 2, 3].map((i) => (
           <div
