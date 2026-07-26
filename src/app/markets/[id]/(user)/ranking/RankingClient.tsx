@@ -2,11 +2,10 @@
 
 import { useQueries } from "@tanstack/react-query";
 import { keyBy, orderBy } from "es-toolkit";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
 import { openPointLogDetail } from "@/components/PointLogDetailModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAutoScroll } from "@/hooks/use-auto-scroll";
 import { formatRelative } from "@/lib/format-date";
 import {
   marketsQuery,
@@ -37,12 +36,6 @@ export function RankingClient({ marketId }: { marketId: string }) {
     () => keyBy(participants ?? [], (p) => p.user.id),
     [participants],
   );
-
-  // 카드가 적으면(3개 미만) 무한 루프 특유의 "복제된 카드가 또 나온다" 느낌만 주고
-  // 자동 스크롤할 만큼 콘텐츠가 없으니, 그럴 땐 그냥 정적으로 둔다.
-  const shouldAutoScroll = !!recentMissions && recentMissions.length >= 3;
-  const recentMissionsScrollRef = useRef<HTMLDivElement>(null);
-  useAutoScroll(recentMissionsScrollRef, { enabled: shouldAutoScroll });
 
   // 동점자는 같은 순위를 받고 다음 순위는 그만큼 건너뛴다 (표준 경쟁 순위, 1-2-2-4)
   const ranks = useMemo(() => {
@@ -127,20 +120,15 @@ export function RankingClient({ marketId }: { marketId: string }) {
             <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               최근 미션 인증
             </h2>
-            <div
-              ref={recentMissionsScrollRef}
-              className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden"
-            >
-              {(shouldAutoScroll
-                ? [...recentMissions, ...recentMissions]
-                : recentMissions
-              ).map((log, i) => {
+            <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
+              {recentMissions.map((log) => {
                 const thumbUrl = log.photoUrl?.split(",")[0];
+                const participant = participantMap[log.userId];
                 const participantName =
-                  participantMap[log.userId]?.user.realName ?? "알 수 없음";
+                  participant?.user.realName ?? "알 수 없음";
                 return (
                   <button
-                    key={`${log.id}-${i}`}
+                    key={log.id}
                     type="button"
                     onClick={() =>
                       openPointLogDetail({
@@ -156,7 +144,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
                       <img
                         src={thumbUrl}
                         alt=""
-                        className="h-10 w-10 shrink-0 rounded-md object-cover"
+                        className="h-10 w-10 shrink-0 rounded-sm object-cover"
                       />
                     )}
                     <div className="min-w-0 flex-1 space-y-1">
