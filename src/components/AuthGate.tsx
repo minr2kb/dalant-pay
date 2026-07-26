@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, type ReactNode, useContext } from "react";
-import { MarketRealtimeProvider } from "@/components/MarketRealtimeProvider";
+import { MarketRealtimeProvider } from "@/components/market/MarketRealtimeProvider";
 import { useOptimisticSession } from "@/hooks/use-optimistic-session";
 
 const SessionUserIdContext = createContext<string | null>(null);

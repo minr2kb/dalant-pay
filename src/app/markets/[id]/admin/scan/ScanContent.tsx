@@ -4,7 +4,7 @@ import { useSuspenseQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
-import { QRScanner } from "@/components/QRScanner";
+import { QRScanner } from "@/components/qr/QRScanner";
 import { openModal } from "@/lib/overlay";
 import { parseQR } from "@/lib/qr";
 import {

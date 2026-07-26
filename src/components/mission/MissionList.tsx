@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MissionCard } from "@/components/MissionCard";
+import { MissionCard } from "@/components/mission/MissionCard";
 import { getMissionStatus, type Mission } from "@/types";
 
 type Tab = "active" | "completed" | "past";

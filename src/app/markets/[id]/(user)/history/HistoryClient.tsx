@@ -4,8 +4,8 @@ import { useIsRestoring, useQueries } from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { useMemo } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
-import { openPointLogDetail } from "@/components/PointLogDetailModal";
-import { PointLogItem } from "@/components/PointLogItem";
+import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
+import { PointLogItem } from "@/components/points/PointLogItem";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { HistorySkeleton } from "./HistorySkeleton";
 

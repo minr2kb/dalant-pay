@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
-import { openPointLogDetail } from "@/components/PointLogDetailModal";
-import { PointLogItem } from "@/components/PointLogItem";
+import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
+import { PointLogItem } from "@/components/points/PointLogItem";
 import {
   marketsQuery,
   missionsQuery,

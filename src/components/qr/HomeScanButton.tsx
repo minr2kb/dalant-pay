@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useSessionUserId } from "@/components/AuthGate";
 import { Modal } from "@/components/Modal";
-import { QRScanner } from "@/components/QRScanner";
+import { QRScanner } from "@/components/qr/QRScanner";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { openModal } from "@/lib/overlay";

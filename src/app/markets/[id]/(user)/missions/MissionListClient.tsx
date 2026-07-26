@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSessionUserId } from "@/components/AuthGate";
-import { MissionList } from "@/components/MissionList";
+import { MissionList } from "@/components/mission/MissionList";
 import { missionsQuery } from "@/lib/query/queries";
 import { MissionsSkeleton } from "./MissionsSkeleton";
 

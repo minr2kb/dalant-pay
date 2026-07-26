@@ -3,7 +3,7 @@
 import { QrCode, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
-import { QRCodeImage } from "@/components/QRCodeImage";
+import { QRCodeImage } from "@/components/qr/QRCodeImage";
 import { Button } from "@/components/ui/button";
 import { useInterval } from "@/hooks/use-interval";
 import { useSamsungInternet } from "@/hooks/use-samsung-internet";

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSessionUserId } from "@/components/AuthGate";
-import { MarketCard } from "@/components/MarketCard";
+import { MarketCard } from "@/components/market/MarketCard";
 import { marketsQuery } from "@/lib/query/queries";
 import { MarketsSkeleton } from "./MarketsSkeleton";
 

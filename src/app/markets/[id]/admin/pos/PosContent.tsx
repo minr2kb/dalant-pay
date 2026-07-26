@@ -4,7 +4,7 @@ import { useMutation, useSuspenseQueries } from "@tanstack/react-query";
 import { CheckCircle2, Minus, Plus, ShoppingCart } from "lucide-react";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
-import { QRScanner } from "@/components/QRScanner";
+import { QRScanner } from "@/components/qr/QRScanner";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { parseQR } from "@/lib/qr";

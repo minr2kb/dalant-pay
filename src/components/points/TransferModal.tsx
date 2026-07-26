@@ -5,7 +5,7 @@ import { ArrowLeft, QrCode, Search, UserRound, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Modal } from "@/components/Modal";
-import { QRScanner } from "@/components/QRScanner";
+import { QRScanner } from "@/components/qr/QRScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { parseQR } from "@/lib/qr";

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useRef } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
-import { MarketShareButton } from "@/components/MarketShareButton";
+import { MarketShareButton } from "@/components/market/MarketShareButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { formatKST } from "@/lib/format-date";
