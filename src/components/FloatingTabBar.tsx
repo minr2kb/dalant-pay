@@ -56,11 +56,11 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
 
   return (
     <nav className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg">
-      <div className="relative flex items-center rounded-full bg-white/60 dark:bg-gray-900/70 backdrop-blur-sm px-2 py-2 shadow-[0_3px_10px_0_rgba(0,0,0,0.1)] dark:shadow-[0_3px_10px_0_rgba(0,0,0,0.6)] dark:ring-1 dark:ring-white/10">
+      <div className="relative flex items-center rounded-full bg-white/10 dark:bg-gray-900/70 backdrop-blur-sm px-2 py-2 shadow-[0_3px_10px_0_rgba(0,0,0,0.1)] dark:shadow-[0_3px_10px_0_rgba(0,0,0,0.6)] dark:ring-1 dark:ring-white/10">
         {activeIndex >= 0 && (
           <div
             aria-hidden
-            className="absolute inset-y-2 rounded-full bg-gradient-to-b from-white/20 to-white/5 dark:from-white/[0.06] dark:to-white/[0.015] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/25 dark:ring-white/[0.06] shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.35),inset_0_-1px_2px_0_rgba(0,0,0,0.04),0_1px_3px_0_rgba(0,0,0,0.08)] dark:shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.06),inset_0_-1px_2px_0_rgba(0,0,0,0.15),0_1px_3px_0_rgba(0,0,0,0.25)] transition-transform duration-300 ease-out"
+            className="absolute inset-y-2 rounded-full bg-black/3 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 transition-transform duration-300 ease-out"
             style={{
               left: "0.5rem",
               width: `calc((100% - 1rem) / ${tabs.length})`,
@@ -84,7 +84,7 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
                   : "text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300",
               )}
             >
-              <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 1.8} />
+              <Icon className="h-5 w-5" strokeWidth={isActive ? 2.2 : 1.8} />
               <span
                 className={cn(
                   "text-[10px] leading-tight",
