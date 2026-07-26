@@ -92,6 +92,11 @@ export const PointLogSchema = z.object({
   voidedAt: z.string().optional(),
 });
 
+export const EarnedTotalSchema = z.object({
+  userId: z.string(),
+  earned: z.number(),
+});
+
 export const PendingMissionLogSchema = z.object({
   id: z.string(),
   missionId: z.string(),

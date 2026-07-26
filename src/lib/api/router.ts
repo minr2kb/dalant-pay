@@ -1,6 +1,7 @@
 import { defineRouter, endpoint } from "@routar/core";
 import { z } from "zod";
 import {
+  EarnedTotalSchema,
   MarketItemSchema,
   MarketListItemSchema,
   MarketParticipantSchema,
@@ -208,6 +209,12 @@ export const pointLogsRouter = defineRouter("/markets", {
         .optional(),
     },
     response: z.array(PointLogSchema),
+  }),
+  earnedTotals: endpoint({
+    method: "GET",
+    path: "/:marketId/point-logs/earned-totals",
+    request: { path: marketId },
+    response: z.array(EarnedTotalSchema),
   }),
   revoke: endpoint({
     method: "POST",

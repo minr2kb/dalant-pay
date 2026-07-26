@@ -2,9 +2,10 @@
 
 import { useQueries } from "@tanstack/react-query";
 import { keyBy, orderBy } from "es-toolkit";
+import { HelpCircle } from "lucide-react";
 import { useMemo } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
-import { openPointLogDetail } from "@/components/PointLogDetailModal";
+import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatRelative } from "@/lib/format-date";
 import {
@@ -13,23 +14,44 @@ import {
   pointLogsQuery,
 } from "@/lib/query/queries";
 import { cn } from "@/lib/utils";
+import { openRankingHelp } from "./RankingHelpModal";
 import { RankingSkeleton } from "./RankingSkeleton";
 
 export function RankingClient({ marketId }: { marketId: string }) {
   const userId = useSessionUserId();
 
-  const [{ data: market }, { data: participants }, { data: recentMissions }] =
-    useQueries({
-      queries: [
-        { ...marketsQuery.get({ marketId }), enabled: !!userId },
-        { ...participantsQuery.list({ marketId }), enabled: !!userId },
-        { ...pointLogsQuery.recentMissions({ marketId }), enabled: !!userId },
-      ],
-    });
+  const [
+    { data: market },
+    { data: participants },
+    { data: recentMissions },
+    { data: earnedTotals },
+  ] = useQueries({
+    queries: [
+      { ...marketsQuery.get({ marketId }), enabled: !!userId },
+      { ...participantsQuery.list({ marketId }), enabled: !!userId },
+      { ...pointLogsQuery.recentMissions({ marketId }), enabled: !!userId },
+      { ...pointLogsQuery.earnedTotals({ marketId }), enabled: !!userId },
+    ],
+  });
+
+  // 랭킹은 잔액(구매하면 줄어듦)이 아니라 누적 획득량 기준 — 참여자마다
+  // earned-totals에 없을 수 있어(미션 이력 없음) 0으로 채운다.
+  const earnedMap = useMemo(
+    () => keyBy(earnedTotals ?? [], (e) => e.userId),
+    [earnedTotals],
+  );
+  const withEarned = useMemo(
+    () =>
+      (participants ?? []).map((p) => ({
+        ...p,
+        earned: earnedMap[p.user.id]?.earned ?? 0,
+      })),
+    [participants, earnedMap],
+  );
 
   const ranked = useMemo(
-    () => orderBy(participants ?? [], [(p) => p.balance], ["desc"]),
-    [participants],
+    () => orderBy(withEarned, [(p) => p.earned], ["desc"]),
+    [withEarned],
   );
 
   const participantMap = useMemo(
@@ -42,7 +64,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
     const map = new Map<string, number>();
     ranked.forEach((p, i) => {
       const rank =
-        i > 0 && p.balance === ranked[i - 1].balance
+        i > 0 && p.earned === ranked[i - 1].earned
           ? (map.get(ranked[i - 1].id) as number)
           : i + 1;
       map.set(p.id, rank);
@@ -60,14 +82,14 @@ export function RankingClient({ marketId }: { marketId: string }) {
 
   // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
   // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
-  if (!market || !participants) return <RankingSkeleton />;
-  const maxBalance = ranked[0]?.balance ?? 0;
-  const pct = (balance: number) =>
-    maxBalance > 0 ? Math.round((balance / maxBalance) * 100) : 0;
+  if (!market || !participants || !earnedTotals) return <RankingSkeleton />;
+  const maxEarned = ranked[0]?.earned ?? 0;
+  const pct = (earned: number) =>
+    maxEarned > 0 ? Math.round((earned / maxEarned) * 100) : 0;
 
   // 전원 0점이면 포듐(1/2/3등 시상대)이 의미가 없으니 순위 리스트로만 보여준다
-  const top3 = maxBalance > 0 ? ranked.slice(0, 3) : [];
-  const rest = maxBalance > 0 ? ranked.slice(3) : ranked;
+  const top3 = maxEarned > 0 ? ranked.slice(0, 3) : [];
+  const rest = maxEarned > 0 ? ranked.slice(3) : ranked;
 
   // Podium order: 2nd(left), 1st(center), 3rd(right)
   const podiumOrder = [top3[1], top3[0], top3[2]];
@@ -94,9 +116,19 @@ export function RankingClient({ marketId }: { marketId: string }) {
 
   return (
     <div className="px-4 space-y-6 max-w-lg mx-auto">
-      <h1 className="sticky-header -mx-4 px-4 pt-4 pb-3 text-xl font-bold text-gray-900 dark:text-white">
-        랭킹
-      </h1>
+      <div className="sticky-header -mx-4 flex items-center justify-between px-4 pt-4 pb-3">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          랭킹
+        </h1>
+        <button
+          type="button"
+          onClick={() => openRankingHelp({ pointLabel: market.pointLabel })}
+          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          aria-label="랭킹 계산 방식 안내"
+        >
+          <HelpCircle className="h-5 w-5" />
+        </button>
+      </div>
 
       {/* 최근 미션 인증 — 참가자가 많으면 아래 순위 리스트가 길어 스크롤에 묻히므로 최상단에 배치.
           가로 스크롤 칩으로: 세로 카드 스택은 랭킹 페이지를 과하게 길어 보이게 했다 */}
@@ -207,7 +239,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
                   )}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
-                  {p.balance} {market.pointLabel}
+                  {p.earned} {market.pointLabel}
                 </p>
                 <div
                   className={cn(
@@ -231,7 +263,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
           {rest.map((p, i) => {
             const rank = ranks.get(p.id) as number;
             const isMe = p.user.id === userId;
-            const barPct = pct(p.balance);
+            const barPct = pct(p.earned);
             return (
               <div
                 key={p.id}
@@ -284,7 +316,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
                       : "text-gray-700 dark:text-gray-300",
                   )}
                 >
-                  {p.balance} {market.pointLabel}
+                  {p.earned} {market.pointLabel}
                 </span>
               </div>
             );
