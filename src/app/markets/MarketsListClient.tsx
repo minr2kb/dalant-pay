@@ -1,18 +1,28 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MarketCard } from "@/components/market/MarketCard";
 import { marketsQuery } from "@/lib/query/queries";
+import { createClient } from "@/lib/supabase/client";
 import { MarketsSkeleton } from "./MarketsSkeleton";
 
 export function MarketsListClient() {
   const userId = useSessionUserId();
+  const router = useRouter();
 
   const { data: items } = useQuery({
     ...marketsQuery.list(),
     enabled: !!userId,
   });
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
   // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
@@ -24,13 +34,23 @@ export function MarketsListClient() {
   return (
     <div className="min-h-svh bg-gray-50 dark:bg-gray-950 px-4 pt-4 pb-8">
       <div className="max-w-lg mx-auto space-y-6">
-        <div className="sticky-header space-y-1 pt-2 pb-3">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            마켓
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            참여 가능한 행사를 선택하세요
-          </p>
+        <div className="sticky-header flex items-start justify-between pt-2 pb-3">
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              마켓
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              참여 가능한 행사를 선택하세요
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="로그아웃"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
 
         {joined.length > 0 && (
