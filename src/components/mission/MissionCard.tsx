@@ -1,4 +1,9 @@
-import { CheckCircle2, Circle, Clock } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  Clock,
+  Infinity as InfinityIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { formatReward, type Mission } from "@/types";
@@ -59,8 +64,31 @@ export function MissionCard({ mission, marketId }: MissionCardProps) {
           </div>
         </div>
 
-        {mission.limitCount != null &&
-          mission.limitCount > 1 &&
+        {mission.limitCount === null ? (
+          <div className="flex items-center gap-2">
+            <div className="flex flex-1 gap-1">
+              {mission.slots && mission.slots.length > 0 ? (
+                mission.slots.map((slot) => (
+                  <div
+                    key={slot.slot}
+                    className={cn(
+                      "h-1 flex-1 rounded-full",
+                      slot.verifiedAt
+                        ? "bg-emerald-400"
+                        : "bg-gray-100 dark:bg-gray-700",
+                    )}
+                  />
+                ))
+              ) : (
+                <div className="h-1 flex-1 rounded-full bg-gray-100 dark:bg-gray-700" />
+              )}
+            </div>
+            <span className="flex items-center text-[11px] tabular-nums text-gray-400 dark:text-gray-500">
+              {completedCount}/
+              <InfinityIcon className="h-3 w-3" />
+            </span>
+          </div>
+        ) : (
           mission.slots && (
             <div className="flex items-center gap-2">
               <div className="flex flex-1 gap-1">
@@ -80,14 +108,7 @@ export function MissionCard({ mission, marketId }: MissionCardProps) {
                 {completedCount}/{mission.limitCount}
               </span>
             </div>
-          )}
-
-        {mission.limitCount === null && completedCount > 0 && (
-          <div className="flex items-center justify-end">
-            <span className="text-[11px] tabular-nums text-gray-400 dark:text-gray-500">
-              {completedCount}회 인증
-            </span>
-          </div>
+          )
         )}
       </div>
     </Link>
