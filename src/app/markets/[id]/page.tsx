@@ -79,9 +79,9 @@ export default async function MarketJoinPage(
     <div className="flex min-h-svh flex-col items-center justify-center bg-white dark:bg-gray-900 px-6">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-2">
-          <div className="relative mx-auto h-16 w-16 rounded-2xl bg-emerald-500 p-3">
+          <div className="relative mx-auto h-16 w-16 p-3">
             <Image
-              src="/logo_w.svg"
+              src="/logo.svg"
               alt="달란트페이"
               fill
               className="object-contain"
