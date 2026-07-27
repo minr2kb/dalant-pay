@@ -17,6 +17,9 @@ const EMPTY_FORM = {
   title: "",
   description: "",
   reward: "",
+  isRanged: false,
+  rewardMin: "",
+  rewardMax: "",
   limitCount: "",
   type: "user_qr" as MissionType,
   isGroup: false,
@@ -29,6 +32,9 @@ function toForm(mission: Mission) {
     title: mission.title,
     description: mission.description ?? "",
     reward: String(mission.reward),
+    isRanged: mission.rewardMin !== null && mission.rewardMax !== null,
+    rewardMin: mission.rewardMin !== null ? String(mission.rewardMin) : "",
+    rewardMax: mission.rewardMax !== null ? String(mission.rewardMax) : "",
     limitCount: mission.limitCount !== null ? String(mission.limitCount) : "",
     type: mission.type,
     isGroup: mission.isGroup,
@@ -58,12 +64,21 @@ export function MissionFormModal({
   );
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  const rangeValid =
+    !form.isRanged ||
+    (form.rewardMin.trim() !== "" &&
+      form.rewardMax.trim() !== "" &&
+      Number(form.rewardMax) >= Number(form.rewardMin));
+  const canSubmit = form.title.trim() !== "" && rangeValid && !isPending;
+
   async function submitForm() {
-    if (!form.title.trim()) return;
+    if (!canSubmit) return;
     const body = {
       title: form.title,
       description: form.description.trim() || undefined,
-      reward: Number(form.reward) || 0,
+      reward: form.isRanged ? Number(form.rewardMin) : Number(form.reward) || 0,
+      rewardMin: form.isRanged ? Number(form.rewardMin) : null,
+      rewardMax: form.isRanged ? Number(form.rewardMax) : null,
       limitCount: form.limitCount.trim() ? Number(form.limitCount) : null,
       type: form.type,
       isGroup: form.isGroup,
@@ -173,11 +188,44 @@ export function MissionFormModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
                 달란트 수량
               </p>
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                차등지급
+                <Switch
+                  checked={form.isRanged}
+                  onCheckedChange={(v) =>
+                    setForm((f) => ({ ...f, isRanged: v }))
+                  }
+                  className="data-[state=checked]:bg-emerald-500 scale-90"
+                />
+              </div>
+            </div>
+            {form.isRanged ? (
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  placeholder="최소"
+                  type="number"
+                  value={form.rewardMin}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, rewardMin: e.target.value }))
+                  }
+                  className="rounded-xl"
+                />
+                <Input
+                  placeholder="최대"
+                  type="number"
+                  value={form.rewardMax}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, rewardMax: e.target.value }))
+                  }
+                  className="rounded-xl"
+                />
+              </div>
+            ) : (
               <Input
                 placeholder="0"
                 type="number"
@@ -187,21 +235,22 @@ export function MissionFormModal({
                 }
                 className="rounded-xl"
               />
-            </div>
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                최대 횟수 (비우면 무제한)
-              </p>
-              <Input
-                placeholder="무제한"
-                type="number"
-                value={form.limitCount}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, limitCount: e.target.value }))
-                }
-                className="rounded-xl"
-              />
-            </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              최대 횟수 (비우면 무제한)
+            </p>
+            <Input
+              placeholder="무제한"
+              type="number"
+              value={form.limitCount}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, limitCount: e.target.value }))
+              }
+              className="rounded-xl"
+            />
           </div>
 
           <div className="space-y-3">
@@ -253,7 +302,7 @@ export function MissionFormModal({
 
           <Button
             onClick={submitForm}
-            disabled={!form.title.trim() || isPending}
+            disabled={!canSubmit}
             className="h-12 w-full rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
           >
             {mission ? "저장하기" : "미션 추가"}

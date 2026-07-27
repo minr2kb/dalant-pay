@@ -7,6 +7,7 @@ import { GroupParticipantPicker } from "@/components/GroupParticipantPicker";
 import { openImageViewer } from "@/components/ImageViewer";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useMissionVerify } from "@/hooks/use-mission-verify";
 import { openModal } from "@/lib/overlay";
 import {
@@ -14,7 +15,11 @@ import {
   participantsQuery,
   pointLogsQuery,
 } from "@/lib/query/queries";
-import type { MarketParticipant, PendingMissionLog } from "@/types";
+import {
+  hasRewardRange,
+  type MarketParticipant,
+  type PendingMissionLog,
+} from "@/types";
 
 function PendingMissionDetail({
   log,
@@ -31,6 +36,9 @@ function PendingMissionDetail({
 }) {
   const [step, setStep] = useState<"detail" | "group">("detail");
   const [groupUsers, setGroupUsers] = useState<string[]>([]);
+  const [amount, setAmount] = useState(
+    log.rewardMin !== null ? String(log.rewardMin) : "",
+  );
   const { verifyGroup, isPending } = useMissionVerify({
     invalidates: [
       missionsQuery.$key,
@@ -39,6 +47,13 @@ function PendingMissionDetail({
     ],
   });
 
+  const isRanged = hasRewardRange(log);
+  const amountValid =
+    !isRanged ||
+    (amount.trim() !== "" &&
+      Number(amount) >= (log.rewardMin ?? 0) &&
+      Number(amount) <= (log.rewardMax ?? 0));
+
   function toggleGroupUser(uid: string) {
     setGroupUsers((prev) =>
       prev.includes(uid) ? prev.filter((u) => u !== uid) : [...prev, uid],
@@ -46,11 +61,13 @@ function PendingMissionDetail({
   }
 
   async function confirmVerify(extraUserIds: string[] = []) {
+    if (!amountValid) return;
     const succeeded = await verifyGroup(
       marketId,
       log.missionId,
       { userId: log.userId, slot: log.slot },
       extraUserIds,
+      isRanged ? Number(amount) : undefined,
     );
     if (succeeded) {
       toast.success("인증 완료");
@@ -79,7 +96,7 @@ function PendingMissionDetail({
           />
           <Button
             onClick={() => confirmVerify(groupUsers)}
-            disabled={isPending}
+            disabled={isPending || !amountValid}
             className="h-12 w-full rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
           >
             {groupUsers.length > 0
@@ -121,9 +138,24 @@ function PendingMissionDetail({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-500 dark:text-gray-400">보상</span>
-            <span className="font-bold tabular-nums text-emerald-500">
-              +{log.reward}
-            </span>
+            {isRanged ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  placeholder={`${log.rewardMin}~${log.rewardMax}`}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="h-9 w-24 rounded-lg text-right"
+                />
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  ({log.rewardMin}~{log.rewardMax})
+                </span>
+              </div>
+            ) : (
+              <span className="font-bold tabular-nums text-emerald-500">
+                +{log.reward}
+              </span>
+            )}
           </div>
         </div>
 
@@ -144,7 +176,7 @@ function PendingMissionDetail({
 
         <Button
           onClick={() => (log.isGroup ? setStep("group") : confirmVerify())}
-          disabled={isPending}
+          disabled={isPending || !amountValid}
           className="h-12 w-full rounded-full bg-emerald-500 text-base font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
         >
           인증해주기

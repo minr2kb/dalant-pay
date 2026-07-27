@@ -8,6 +8,7 @@ import { useSessionUserId } from "@/components/AuthGate";
 import { Modal } from "@/components/Modal";
 import { QRScanner } from "@/components/qr/QRScanner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { openModal } from "@/lib/overlay";
 import { parseQR } from "@/lib/qr";
@@ -20,6 +21,8 @@ type ScanTarget = {
   token: string;
   missionTitle: string;
   reward: number;
+  rewardMin: number | null;
+  rewardMax: number | null;
 };
 
 function ConfirmModal({
@@ -37,18 +40,33 @@ function ConfirmModal({
 }) {
   const [done, setDone] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [amount, setAmount] = useState(
+    scanTarget.rewardMin !== null ? String(scanTarget.rewardMin) : "",
+  );
+  const [awardedReward, setAwardedReward] = useState(0);
   const verifyMutation = useMutation(
     missionsQuery.verify({ invalidates: [missionsQuery.$key] }),
   );
 
+  const isRanged =
+    scanTarget.rewardMin !== null && scanTarget.rewardMax !== null;
+  const amountValid =
+    !isRanged ||
+    (amount.trim() !== "" &&
+      Number(amount) >= (scanTarget.rewardMin ?? 0) &&
+      Number(amount) <= (scanTarget.rewardMax ?? 0));
+
   async function handleVerify() {
+    if (!amountValid) return;
     setVerifyError(null);
     try {
-      await verifyMutation.mutateAsync({
+      const result = await verifyMutation.mutateAsync({
         marketId,
         missionId: scanTarget.missionId,
         token: scanTarget.token,
+        reward: isRanged ? Number(amount) : undefined,
       });
+      setAwardedReward(result.reward);
       setDone(true);
     } catch (e) {
       setVerifyError(getApiErrorMessage(e, "인증에 실패했어요"));
@@ -76,9 +94,25 @@ function ConfirmModal({
               <p className="font-bold text-gray-900 dark:text-white">
                 {scanTarget.missionTitle}
               </p>
-              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
-                +{scanTarget.reward} {pointLabel}
-              </p>
+              {isRanged ? (
+                <div className="mt-1 flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder={`${scanTarget.rewardMin}~${scanTarget.rewardMax}`}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="h-10 w-24 rounded-lg"
+                  />
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    {pointLabel} ({scanTarget.rewardMin}~{scanTarget.rewardMax}{" "}
+                    범위)
+                  </span>
+                </div>
+              ) : (
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+                  +{scanTarget.reward} {pointLabel}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-sm font-bold text-emerald-600 dark:text-emerald-400">
@@ -103,7 +137,7 @@ function ConfirmModal({
               </Button>
               <Button
                 onClick={handleVerify}
-                disabled={verifyMutation.isPending}
+                disabled={verifyMutation.isPending || !amountValid}
                 className="h-12 flex-1 rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600"
               >
                 인증하기
@@ -118,7 +152,8 @@ function ConfirmModal({
                 인증 완료!
               </p>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {scanTarget.participant.displayName}님 {pointLabel} 적립됨
+                {scanTarget.participant.displayName}님 +{awardedReward}{" "}
+                {pointLabel} 적립됨
               </p>
             </div>
             <Button
@@ -187,6 +222,8 @@ export function HomeScanButton({
           token: qr.token,
           missionTitle: mission.title,
           reward: mission.reward,
+          rewardMin: mission.rewardMin,
+          rewardMax: mission.rewardMax,
         }}
         marketId={marketId}
         pointLabel={pointLabel}

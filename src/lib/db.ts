@@ -83,6 +83,8 @@ export function mapMission(
     type: row.type as Mission["type"],
     isGroup: row.is_group as boolean,
     reward: row.reward as number,
+    rewardMin: (row.reward_min as number | null) ?? null,
+    rewardMax: (row.reward_max as number | null) ?? null,
     limitCount,
     activeFrom: (row.active_from as string | null) ?? null,
     activeUntil: (row.active_until as string | null) ?? null,
@@ -159,7 +161,13 @@ export function mapPendingMissionLog(
   row: Record<string, unknown>,
 ): PendingMissionLog {
   const mission = row.missions as
-    | { title: string; reward: number; is_group: boolean }
+    | {
+        title: string;
+        reward: number;
+        reward_min: number | null;
+        reward_max: number | null;
+        is_group: boolean;
+      }
     | null
     | undefined;
   return {
@@ -167,6 +175,8 @@ export function mapPendingMissionLog(
     missionId: row.mission_id as string,
     missionTitle: mission?.title ?? "미션",
     reward: mission?.reward ?? 0,
+    rewardMin: mission?.reward_min ?? null,
+    rewardMax: mission?.reward_max ?? null,
     userId: row.user_id as string,
     slot: row.slot as number,
     photoUrl: (row.photo_url as string | null) ?? null,

@@ -51,6 +51,13 @@ export const POST = marketAdminRoute<{ marketId: string }>(
       .maybeSingle();
     const nextSortOrder = ((last?.sort_order as number | undefined) ?? 0) + 1;
 
+    const rewardMin = body.rewardMin ?? null;
+    const rewardMax = body.rewardMax ?? null;
+    if ((rewardMin === null) !== (rewardMax === null))
+      return err("차등지급은 최소/최대 금액을 모두 입력해야 해요", 400);
+    if (rewardMin !== null && rewardMax !== null && rewardMax < rewardMin)
+      return err("최대 금액이 최소 금액보다 작아요", 400);
+
     const { data, error } = await supabase
       .from("missions")
       .insert({
@@ -59,7 +66,9 @@ export const POST = marketAdminRoute<{ marketId: string }>(
         description: body.description ?? null,
         type: body.type,
         is_group: body.isGroup,
-        reward: body.reward,
+        reward: rewardMin ?? body.reward,
+        reward_min: rewardMin,
+        reward_max: rewardMax,
         limit_count: body.limitCount,
         active_from: body.activeFrom,
         active_until: body.activeUntil,

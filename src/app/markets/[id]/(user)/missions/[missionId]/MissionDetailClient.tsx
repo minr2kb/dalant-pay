@@ -17,7 +17,7 @@ import { getApiErrorMessage } from "@/lib/api/client";
 import { formatKST } from "@/lib/format-date";
 import { marketsQuery, missionsQuery } from "@/lib/query/queries";
 import { uploadMissionPhoto } from "@/lib/upload";
-import { getMissionStatus } from "@/types";
+import { formatReward, getMissionStatus } from "@/types";
 
 const TYPE_LABEL: Record<string, string> = {
   user_qr: "유저 간 인증",
@@ -127,7 +127,7 @@ export function MissionDetailClient({
               {TYPE_LABEL[mission.type]}
             </span>
             <span className="text-lg font-bold text-emerald-500">
-              +{mission.reward} {market.pointLabel}
+              +{formatReward(mission)} {market.pointLabel}
             </span>
           </div>
           {mission.description && (

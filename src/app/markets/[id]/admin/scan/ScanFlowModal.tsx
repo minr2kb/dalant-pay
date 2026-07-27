@@ -7,9 +7,15 @@ import { GroupParticipantPicker } from "@/components/GroupParticipantPicker";
 import { Modal } from "@/components/Modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useMissionVerify } from "@/hooks/use-mission-verify";
 import { missionsQuery, participantsQuery } from "@/lib/query/queries";
-import type { MarketParticipant, Mission } from "@/types";
+import {
+  formatReward,
+  hasRewardRange,
+  type MarketParticipant,
+  type Mission,
+} from "@/types";
 
 type Step = "picking_mission" | "picking_user" | "confirm" | "group" | "done";
 
@@ -42,6 +48,10 @@ export function ScanFlowModal({
     initialUser ?? null,
   );
   const [groupUsers, setGroupUsers] = useState<string[]>([]);
+  const [amount, setAmount] = useState(
+    initialMission?.rewardMin != null ? String(initialMission.rewardMin) : "",
+  );
+  const [awardedReward, setAwardedReward] = useState(0);
   const { verifyGroup, isPending } = useMissionVerify({
     invalidates: [missionsQuery.$key, participantsQuery.$key],
   });
@@ -65,6 +75,7 @@ export function ScanFlowModal({
 
   function selectMission(mission: Mission) {
     setSelectedMission(mission);
+    setAmount(mission.rewardMin != null ? String(mission.rewardMin) : "");
     setStep(selectedUser ? "confirm" : "picking_user");
   }
 
@@ -79,15 +90,27 @@ export function ScanFlowModal({
     );
   }
 
+  const isRanged = !!selectedMission && hasRewardRange(selectedMission);
+  const amountValid =
+    !isRanged ||
+    (amount.trim() !== "" &&
+      Number(amount) >= (selectedMission?.rewardMin ?? 0) &&
+      Number(amount) <= (selectedMission?.rewardMax ?? 0));
+
   async function confirmVerify(extraUserIds: string[] = []) {
-    if (!selectedMission || !selectedUser) return;
+    if (!selectedMission || !selectedUser || !amountValid) return;
+    const reward = isRanged ? Number(amount) : undefined;
     const succeeded = await verifyGroup(
       marketId,
       selectedMission.id,
       initialToken ? { token: initialToken } : { userId: selectedUser.user.id },
       extraUserIds,
+      reward,
     );
-    if (succeeded) setStep("done");
+    if (succeeded) {
+      setAwardedReward(reward ?? selectedMission.reward);
+      setStep("done");
+    }
   }
 
   const otherParticipants = participants.filter(
@@ -118,7 +141,7 @@ export function ScanFlowModal({
                     {m.title}
                   </span>
                   <span className="text-sm font-bold text-emerald-500">
-                    +{m.reward}
+                    +{formatReward(m)}
                   </span>
                 </button>
               ))
@@ -138,7 +161,8 @@ export function ScanFlowModal({
               누구의 QR인가요?
             </p>
             <p className="text-xs text-gray-400 mt-0.5">
-              {selectedMission.title} +{selectedMission.reward} {pointLabel}
+              {selectedMission.title} +{formatReward(selectedMission)}{" "}
+              {pointLabel}
             </p>
           </div>
           <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -186,7 +210,7 @@ export function ScanFlowModal({
           />
           <Button
             onClick={() => confirmVerify(groupUsers)}
-            disabled={isPending}
+            disabled={isPending || !amountValid}
             className="h-12 w-full rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
           >
             {groupUsers.length > 0
@@ -208,7 +232,7 @@ export function ScanFlowModal({
               적립 완료!
             </p>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {selectedMission.title} +{selectedMission.reward} {pointLabel}
+              {selectedMission.title} +{awardedReward} {pointLabel}
             </p>
           </div>
           <Button
@@ -231,9 +255,26 @@ export function ScanFlowModal({
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">
             {selectedMission.title}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedUser.user.realName} +{selectedMission.reward} {pointLabel}
-          </p>
+          {isRanged ? (
+            <div className="flex items-center gap-2 pt-1">
+              <Input
+                type="number"
+                placeholder={`${selectedMission.rewardMin}~${selectedMission.rewardMax}`}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="h-11 w-28 rounded-xl"
+              />
+              <span className="text-sm text-gray-400 dark:text-gray-500">
+                {pointLabel} ({selectedMission.rewardMin}~
+                {selectedMission.rewardMax} 범위)
+              </span>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {selectedUser.user.realName} +{selectedMission.reward}{" "}
+              {pointLabel}
+            </p>
+          )}
         </div>
         {selectedMission.type === "upload" &&
           (pendingPhotoUrl ? (
@@ -264,6 +305,7 @@ export function ScanFlowModal({
             }
             disabled={
               isPending ||
+              !amountValid ||
               (selectedMission.type === "upload" && !pendingPhotoUrl)
             }
             className="h-12 flex-1 rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"

@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { formatKST } from "@/lib/format-date";
 import { openModal } from "@/lib/overlay";
 import { missionsQuery } from "@/lib/query/queries";
-import type { Mission } from "@/types";
+import { formatReward, type Mission } from "@/types";
 import { TYPE_LABEL } from "./constants";
 import Loading from "./loading";
 import { MissionFormModal } from "./MissionFormModal";
@@ -177,7 +177,7 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
                     </span>
 
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      +{mission.reward}
+                      +{formatReward(mission)}
                     </span>
                     {mission.limitCount !== null && (
                       <>
@@ -236,7 +236,7 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
                   <div>
                     <p className="text-gray-400 dark:text-gray-500">보상</p>
                     <p className="font-medium text-gray-700 dark:text-gray-300">
-                      +{mission.reward}
+                      +{formatReward(mission)}
                     </p>
                   </div>
                   <div>

@@ -109,6 +109,17 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     const verifierName =
       (verifier as { real_name?: string } | null)?.real_name ?? verifiedBy;
 
+    const rewardMin = mission.reward_min as number | null;
+    const rewardMax = mission.reward_max as number | null;
+    let reward = mission.reward as number;
+    if (rewardMin !== null && rewardMax !== null) {
+      if (body.reward === undefined)
+        return err("지급할 달란트 금액을 입력해주세요", 400);
+      if (body.reward < rewardMin || body.reward > rewardMax)
+        return err(`보상은 ${rewardMin}~${rewardMax} 사이로 입력해주세요`, 400);
+      reward = body.reward;
+    }
+
     const { error: e3 } = await supabase.rpc("award_mission", {
       p_market_id: marketId,
       p_mission_id: missionId,
@@ -117,7 +128,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       p_slot: slotNum,
       p_verified_by_name: verifierName,
       p_verified_at: verifiedAt,
-      p_reward: mission.reward,
+      p_reward: reward,
       p_mission_title: mission.title,
       p_allow_self: verifierRole === "admin",
     });
@@ -138,7 +149,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       userId: targetUserId,
       verifiedBy,
       slot: slotNum,
-      reward: mission.reward,
+      reward,
       verifiedAt,
     });
   },

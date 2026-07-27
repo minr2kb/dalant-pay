@@ -49,12 +49,28 @@ export interface Mission {
   type: MissionType;
   isGroup: boolean;
   reward: number;
+  rewardMin: number | null;
+  rewardMax: number | null;
   limitCount: number | null;
   activeFrom: string | null;
   activeUntil: string | null;
   isActive: boolean;
   sortOrder: number;
   slots?: MissionSlotData[];
+}
+
+interface RewardRange {
+  reward: number;
+  rewardMin: number | null;
+  rewardMax: number | null;
+}
+
+export function hasRewardRange(m: RewardRange): boolean {
+  return m.rewardMin !== null && m.rewardMax !== null;
+}
+
+export function formatReward(m: RewardRange): string {
+  return hasRewardRange(m) ? `${m.rewardMin}~${m.rewardMax}` : `${m.reward}`;
 }
 
 export function getMissionStatus(mission: Mission): MissionStatus {
@@ -89,6 +105,8 @@ export interface PendingMissionLog {
   missionId: string;
   missionTitle: string;
   reward: number;
+  rewardMin: number | null;
+  rewardMax: number | null;
   userId: string;
   slot: number;
   photoUrl: string | null;

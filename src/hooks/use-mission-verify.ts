@@ -23,13 +23,19 @@ export function useMissionVerify(
     missionId: string,
     primary: VerifyPrimary,
     extraUserIds: string[] = [],
+    reward?: number,
   ) {
     setIsPending(true);
     try {
       const results = await Promise.allSettled([
-        verifyMutation.mutateAsync({ marketId, missionId, ...primary }),
+        verifyMutation.mutateAsync({ marketId, missionId, reward, ...primary }),
         ...extraUserIds.map((uid) =>
-          verifyMutation.mutateAsync({ marketId, missionId, userId: uid }),
+          verifyMutation.mutateAsync({
+            marketId,
+            missionId,
+            userId: uid,
+            reward,
+          }),
         ),
       ]);
       const failed = results.filter((r) => r.status === "rejected");

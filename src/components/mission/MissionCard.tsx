@@ -1,7 +1,7 @@
 import { CheckCircle2, Circle, Clock } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { Mission } from "@/types";
+import { formatReward, type Mission } from "@/types";
 
 interface MissionCardProps {
   mission: Mission;
@@ -47,7 +47,7 @@ export function MissionCard({ mission, marketId }: MissionCardProps) {
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="text-sm font-bold tabular-nums text-emerald-500">
-              +{mission.reward}
+              +{formatReward(mission)}
             </span>
             {status === "completed" ? (
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
