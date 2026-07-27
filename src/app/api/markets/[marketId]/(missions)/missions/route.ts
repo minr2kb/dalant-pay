@@ -63,7 +63,7 @@ export const POST = marketAdminRoute<{ marketId: string }>(
         limit_count: body.limitCount,
         active_from: body.activeFrom,
         active_until: body.activeUntil,
-        is_active: true,
+        is_active: false,
         sort_order: nextSortOrder,
       })
       .select()

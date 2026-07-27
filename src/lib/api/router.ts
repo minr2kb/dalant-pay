@@ -150,6 +150,15 @@ export const missionsRouter = defineRouter("/markets", {
     request: { path: marketAndMission },
     response: z.object({ id: z.string() }),
   }),
+  reorder: endpoint({
+    method: "PATCH",
+    path: "/:marketId/missions/reorder",
+    request: {
+      path: marketId,
+      body: z.object({ missionIds: z.array(z.string()) }),
+    },
+    response: z.array(MissionSchema),
+  }),
   verify: endpoint({
     method: "POST",
     path: "/:marketId/missions/:missionId/verify",
