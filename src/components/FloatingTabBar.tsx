@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -44,6 +44,10 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
   const pathname = usePathname();
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
+  // 찌그러짐(Squash) 상태 관리
+  const [isMoving, setIsMoving] = useState(false);
+  const prevIndexRef = useRef<number>(-1);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: setPendingHref is a stable useState setter, intentionally omitted so this reset only fires on pathname change, not on setter identity
   useEffect(() => {
     setPendingHref(null);
@@ -54,17 +58,39 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
   );
   const activeIndex = activeStates.indexOf(true);
 
+  // activeIndex가 변경될 때 순간적으로 scale 변형 트리거
+  useEffect(() => {
+    // 최초 로드 시나 이전과 동일한 인덱스일 때는 동작하지 않음
+    if (
+      prevIndexRef.current !== -1 &&
+      prevIndexRef.current !== activeIndex &&
+      activeIndex >= 0
+    ) {
+      setIsMoving(true);
+
+      // transition duration(300ms)에 맞춰 효과 해제
+      const timer = setTimeout(() => {
+        setIsMoving(false);
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+
+    prevIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
   return (
     <nav className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-lg">
       <div className="relative flex items-center rounded-full bg-white/10 dark:bg-gray-900/70 backdrop-blur-sm px-2 py-2 shadow-[0_3px_10px_0_rgba(0,0,0,0.1)] dark:shadow-[0_3px_10px_0_rgba(0,0,0,0.6)] dark:ring-1 dark:ring-white/10">
         {activeIndex >= 0 && (
           <div
             aria-hidden
-            className="absolute inset-y-2 rounded-full bg-black/3 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 transition-transform duration-300 ease-out"
+            className="absolute inset-y-2 rounded-full bg-black/3 dark:bg-white/5 backdrop-blur-xl backdrop-saturate-150 transition-all duration-300"
             style={{
               left: "0.5rem",
               width: `calc((100% - 1rem) / ${tabs.length})`,
               transform: `translateX(${activeIndex * 100}%)`,
+              transitionTimingFunction: "cubic-bezier(0.3, 1.3, 0.8, 1)",
             }}
           />
         )}
