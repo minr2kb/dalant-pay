@@ -306,6 +306,15 @@ export const itemsRouter = defineRouter("/markets", {
     request: { path: marketAndItem },
     response: z.object({ id: z.string() }),
   }),
+  reorder: endpoint({
+    method: "PATCH",
+    path: "/:marketId/items/reorder",
+    request: {
+      path: marketId,
+      body: z.object({ itemIds: z.array(z.string()) }),
+    },
+    response: z.array(MarketItemSchema),
+  }),
 });
 
 export const adminRouter = defineRouter("/markets", {

@@ -1,24 +1,111 @@
 "use client";
 
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
+import { ChevronLeft, GripVertical, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { Suspense, use, useState } from "react";
+import { Suspense, use } from "react";
 import { openModal } from "@/lib/overlay";
 import { itemsQuery } from "@/lib/query/queries";
 import type { MarketItem } from "@/types";
 import { ItemFormModal } from "./ItemFormModal";
 
+function SortableItemCard({
+  item,
+  onEdit,
+  onDelete,
+  deleting,
+}: {
+  item: MarketItem;
+  onEdit: () => void;
+  onDelete: () => void;
+  deleting: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`relative flex items-center gap-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 ${isDragging ? "relative z-10 opacity-90 shadow-lg" : ""}`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="shrink-0 touch-none cursor-grab p-1 text-gray-300 active:cursor-grabbing dark:text-gray-600"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        onClick={onEdit}
+        className="flex min-w-0 flex-1 flex-col items-start pr-5 text-left"
+      >
+        <p className="w-full truncate text-sm font-semibold text-gray-800 dark:text-gray-200">
+          {item.name}
+        </p>
+        <p className="text-base font-bold tabular-nums text-emerald-500">
+          {item.price}
+        </p>
+      </button>
+
+      <button
+        type="button"
+        onClick={onDelete}
+        disabled={deleting}
+        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-gray-300 dark:text-gray-600 hover:bg-rose-50 hover:text-rose-400 disabled:opacity-40"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
 function AdminItemsGrid({ marketId }: { marketId: string }) {
   const { data: items } = useSuspenseQuery(itemsQuery.list({ marketId }));
-  const updateMutation = useMutation(
-    itemsQuery.update({ invalidates: [itemsQuery.$key] }),
-  );
+  const queryClient = useQueryClient();
   const deleteMutation = useMutation(
     itemsQuery.delete({ invalidates: [itemsQuery.$key] }),
   );
+  const reorderMutation = useMutation(
+    itemsQuery.reorder({ invalidates: [itemsQuery.$key] }),
+  );
 
-  const [isReordering, setIsReordering] = useState(false);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   function openAdd() {
     openModal((close) => (
@@ -32,89 +119,67 @@ function AdminItemsGrid({ marketId }: { marketId: string }) {
     ));
   }
 
-  async function moveItem(index: number, direction: -1 | 1) {
-    const target = index + direction;
-    if (target < 0 || target >= items.length || isReordering) return;
-    const a = items[index];
-    const b = items[target];
-    setIsReordering(true);
+  // optimistic으로 로컬 순서를 먼저 반영한 뒤, 전체 순서를 통째로 서버에 덮어써서
+  // 항목별 부분 업데이트가 겹치며 나는 오류를 없앤다 (미션 순서 변경과 동일한 방식)
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((i) => i.id === active.id);
+    const newIndex = items.findIndex((i) => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const next = arrayMove(items, oldIndex, newIndex);
+
+    const { queryKey } = itemsQuery.list({ marketId });
+    const previous = queryClient.getQueryData<MarketItem[]>(queryKey);
+    queryClient.setQueryData<MarketItem[]>(
+      queryKey,
+      next.map((it, i) => ({ ...it, sortOrder: i })),
+    );
     try {
-      await Promise.all([
-        updateMutation.mutateAsync({
-          marketId,
-          itemId: a.id,
-          sortOrder: b.sortOrder,
-        }),
-        updateMutation.mutateAsync({
-          marketId,
-          itemId: b.id,
-          sortOrder: a.sortOrder,
-        }),
-      ]);
-    } finally {
-      setIsReordering(false);
+      await reorderMutation.mutateAsync({
+        marketId,
+        itemIds: next.map((it) => it.id),
+      });
+    } catch (e) {
+      queryClient.setQueryData(queryKey, previous);
+      throw e;
     }
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-      {items.map((item, index) => (
-        <div
-          key={item.id}
-          className="relative flex flex-col items-start gap-2 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4"
-        >
-          <button
-            type="button"
-            onClick={() => openEdit(item)}
-            className="flex w-full flex-col items-start pr-6 text-left"
-          >
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-              {item.name}
-            </p>
-            <p className="text-base font-bold tabular-nums text-emerald-500">
-              {item.price}
-            </p>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => deleteMutation.mutate({ marketId, itemId: item.id })}
-            disabled={deleteMutation.isPending}
-            className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-gray-300 dark:text-gray-600 hover:bg-rose-50 hover:text-rose-400 disabled:opacity-40"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-
-          <div className="flex w-full items-center justify-end gap-1">
-            <button
-              type="button"
-              onClick={() => moveItem(index, -1)}
-              disabled={index === 0 || isReordering}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => moveItem(index, 1)}
-              disabled={index === items.length - 1 || isReordering}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-gray-300 dark:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30"
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      ))}
-
-      <button
-        type="button"
-        onClick={openAdd}
-        className="flex min-h-[76px] flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4 text-gray-400 dark:text-gray-500 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={items.map((i) => i.id)}
+        strategy={rectSortingStrategy}
       >
-        <Plus className="h-5 w-5" />
-        <span className="text-xs font-medium">물품 추가</span>
-      </button>
-    </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {items.map((item) => (
+            <SortableItemCard
+              key={item.id}
+              item={item}
+              onEdit={() => openEdit(item)}
+              onDelete={() =>
+                deleteMutation.mutate({ marketId, itemId: item.id })
+              }
+              deleting={deleteMutation.isPending}
+            />
+          ))}
+
+          <button
+            type="button"
+            onClick={openAdd}
+            className="flex min-h-[76px] flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4 text-gray-400 dark:text-gray-500 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
+          >
+            <Plus className="h-5 w-5" />
+            <span className="text-xs font-medium">물품 추가</span>
+          </button>
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
 
