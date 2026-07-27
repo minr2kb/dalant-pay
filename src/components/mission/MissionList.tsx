@@ -4,17 +4,19 @@ import { useState } from "react";
 import { MissionCard } from "@/components/mission/MissionCard";
 import { getMissionStatus, type Mission } from "@/types";
 
-type Tab = "active" | "completed" | "past";
+type Tab = "active" | "completed" | "past" | "upcoming";
 
 const LABEL: Record<Tab, string> = {
   active: "진행중",
   completed: "완료됨",
   past: "지남",
+  upcoming: "예정",
 };
 const EMPTY: Record<Tab, string> = {
   active: "진행중인 미션이 없어요",
   completed: "완료한 미션이 없어요",
   past: "지난 미션이 없어요",
+  upcoming: "예정된 미션이 없어요",
 };
 
 function isCompleted(mission: Mission): boolean {
@@ -41,6 +43,7 @@ export function MissionList({
     active: missions.filter(
       (m) => getMissionStatus(m) === "active" && !isCompleted(m),
     ),
+    upcoming: missions.filter((m) => getMissionStatus(m) === "upcoming"),
     past: missions.filter(
       (m) => getMissionStatus(m) === "past" && !isCompleted(m),
     ),
@@ -49,7 +52,7 @@ export function MissionList({
   return (
     <div className="space-y-5">
       <div className="flex gap-2">
-        {(["active", "completed", "past"] as Tab[]).map((t) => (
+        {(["active", "completed", "upcoming", "past"] as Tab[]).map((t) => (
           <button
             key={t}
             type="button"

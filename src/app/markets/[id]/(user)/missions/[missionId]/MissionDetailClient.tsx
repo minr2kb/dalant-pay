@@ -1,13 +1,20 @@
 "use client";
 
 import { useMutation, useSuspenseQueries } from "@tanstack/react-query";
-import { Camera, CheckCircle2, ChevronLeft, Loader2 } from "lucide-react";
+import {
+  Camera,
+  CheckCircle2,
+  ChevronLeft,
+  Clock,
+  Loader2,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MissionSlot } from "@/components/mission/MissionSlot";
 import { QRModal } from "@/components/qr/QRModal";
 import { getApiErrorMessage } from "@/lib/api/client";
+import { formatKST } from "@/lib/format-date";
 import { marketsQuery, missionsQuery } from "@/lib/query/queries";
 import { uploadMissionPhoto } from "@/lib/upload";
 import { getMissionStatus } from "@/types";
@@ -52,7 +59,9 @@ export function MissionDetailClient({
 
   const isUnlimited = mission.limitCount === null;
   const nextPendingSlot = mission.slots?.find((s) => s.verifiedAt === null);
-  const isPast = getMissionStatus(mission) === "past";
+  const missionStatus = getMissionStatus(mission);
+  const isPast = missionStatus === "past";
+  const isUpcoming = missionStatus === "upcoming";
   // 무제한 미션은 slots에 완료 로그만 내려오므로 nextPendingSlot이 절대 안 잡힘 → 잠그지 않는다
   const isUserDone =
     !isUnlimited && !nextPendingSlot && (mission.slots?.length ?? 0) > 0;
@@ -133,7 +142,23 @@ export function MissionDetailClient({
           )}
         </div>
 
-        {isLocked ? (
+        {isUpcoming ? (
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 p-5 text-center space-y-1.5">
+            <Clock className="mx-auto h-8 w-8 text-gray-300 dark:text-gray-600" />
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              아직 시작되지 않은 미션이에요
+            </p>
+            {mission.activeFrom && (
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                {formatKST(mission.activeFrom, {
+                  month: "long",
+                  day: "numeric",
+                })}
+                부터 인증할 수 있어요
+              </p>
+            )}
+          </div>
+        ) : isLocked ? (
           <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 p-5 text-center space-y-1.5">
             <CheckCircle2 className="mx-auto h-8 w-8 text-gray-300 dark:text-gray-600" />
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
