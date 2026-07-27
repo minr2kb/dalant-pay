@@ -9,6 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MissionSlot } from "@/components/mission/MissionSlot";
@@ -43,6 +44,10 @@ export function MissionDetailClient({
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(false);
+  const fromTab = useSearchParams().get("from");
+  const backHref = fromTab
+    ? `/markets/${marketId}/missions?tab=${fromTab}`
+    : `/markets/${marketId}/missions`;
 
   const [{ data: mission }, { data: market }] = useSuspenseQueries({
     queries: [
@@ -109,10 +114,7 @@ export function MissionDetailClient({
   return (
     <div>
       <div className="sticky-header flex items-center gap-3 px-4 pt-4 pb-4 max-w-lg mx-auto">
-        <Link
-          href={`/markets/${marketId}/missions`}
-          className="text-gray-400 dark:text-gray-500"
-        >
+        <Link href={backHref} className="text-gray-400 dark:text-gray-500">
           <ChevronLeft className="h-6 w-6" />
         </Link>
         <h1 className="text-lg font-bold text-gray-900 dark:text-white">

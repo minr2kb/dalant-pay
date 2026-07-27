@@ -11,6 +11,7 @@ import { formatReward, type Mission } from "@/types";
 interface MissionCardProps {
   mission: Mission;
   marketId: string;
+  fromTab?: string;
 }
 
 function getMissionStatus(
@@ -24,13 +25,17 @@ function getMissionStatus(
   return "partial";
 }
 
-export function MissionCard({ mission, marketId }: MissionCardProps) {
+export function MissionCard({ mission, marketId, fromTab }: MissionCardProps) {
   const status = getMissionStatus(mission);
   const completedCount =
     mission.slots?.filter((s) => s.verifiedAt !== null).length ?? 0;
+  const href =
+    fromTab && fromTab !== "active"
+      ? `/markets/${marketId}/missions/${mission.id}?from=${fromTab}`
+      : `/markets/${marketId}/missions/${mission.id}`;
 
   return (
-    <Link href={`/markets/${marketId}/missions/${mission.id}`}>
+    <Link href={href}>
       <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-2.5 active:scale-[0.99] transition-transform">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0 space-y-1">

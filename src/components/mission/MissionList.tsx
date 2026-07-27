@@ -1,10 +1,12 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { MissionCard } from "@/components/mission/MissionCard";
 import { getMissionStatus, type Mission } from "@/types";
 
 type Tab = "active" | "completed" | "past" | "upcoming";
+const TABS: Tab[] = ["active", "completed", "upcoming", "past"];
 
 const LABEL: Record<Tab, string> = {
   active: "진행중",
@@ -36,7 +38,16 @@ export function MissionList({
   missions: Mission[];
   marketId: string;
 }) {
-  const [tab, setTab] = useState<Tab>("active");
+  // 미션 상세에서 뒤로가기했을 때 원래 보고 있던 탭으로 돌아가야 해서 —
+  // MissionCard가 현재 탭을 ?from=으로 넘기고, 상세 페이지가 그걸 다시 ?tab=으로
+  // 돌려준다 (src/components/mission/MissionCard.tsx, MissionDetailClient.tsx 참고).
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [tab, setTab] = useState<Tab>(
+    tabParam && (TABS as string[]).includes(tabParam)
+      ? (tabParam as Tab)
+      : "active",
+  );
 
   const byTab: Record<Tab, Mission[]> = {
     completed: missions.filter((m) => isCompleted(m)),
@@ -52,7 +63,7 @@ export function MissionList({
   return (
     <div className="space-y-5">
       <div className="flex gap-2">
-        {(["active", "completed", "upcoming", "past"] as Tab[]).map((t) => (
+        {TABS.map((t) => (
           <button
             key={t}
             type="button"
@@ -85,7 +96,11 @@ export function MissionList({
               className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300 fill-mode-both"
               style={{ animationDelay: `${i * 50}ms` }}
             >
-              <MissionCard mission={mission} marketId={marketId} />
+              <MissionCard
+                mission={mission}
+                marketId={marketId}
+                fromTab={tab}
+              />
             </div>
           ))
         )}
