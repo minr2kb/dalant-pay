@@ -234,6 +234,7 @@ export function MissionDetailClient({
                 missionId={missionId}
                 userId={userId}
                 missionTitle={mission.title}
+                slot={predictedSlot}
                 hint={QR_HINT[mission.type]}
                 disabled={mission.type === "upload" && !pendingPhotoUrl}
                 buttonText={

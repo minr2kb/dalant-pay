@@ -14,6 +14,7 @@ interface QRModalProps {
   missionId: string;
   userId: string;
   missionTitle: string;
+  slot?: number;
   hint?: string;
   disabled?: boolean;
   buttonText?: string;
@@ -23,9 +24,13 @@ function QRContent({
   marketId,
   missionId,
   missionTitle,
+  slot,
   hint,
   onClose,
-}: Pick<QRModalProps, "marketId" | "missionId" | "missionTitle" | "hint"> & {
+}: Pick<
+  QRModalProps,
+  "marketId" | "missionId" | "missionTitle" | "slot" | "hint"
+> & {
   onClose: () => void;
 }) {
   const [qrValue, setQrValue] = useState<string | null>(null);
@@ -71,9 +76,16 @@ function QRContent({
     <Modal onClose={onClose}>
       <div className="p-6 space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-gray-900 dark:text-white">
-            {missionTitle}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-gray-900 dark:text-white">
+              {missionTitle}
+            </h3>
+            {slot !== undefined && (
+              <span className="shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                {slot}회차
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -121,6 +133,7 @@ export function QRModal({
   marketId,
   missionId,
   missionTitle,
+  slot,
   hint,
   disabled = false,
   buttonText = "QR 생성하기",
@@ -133,6 +146,7 @@ export function QRModal({
             marketId={marketId}
             missionId={missionId}
             missionTitle={missionTitle}
+            slot={slot}
             hint={hint}
             onClose={close}
           />
