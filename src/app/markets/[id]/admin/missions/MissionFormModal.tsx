@@ -3,11 +3,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { openModal } from "@/lib/overlay";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { missionsQuery } from "@/lib/query/queries";
 import type { Mission, MissionType } from "@/types";
 import { ActivateConfirmModal } from "./ActivateConfirmModal";
@@ -55,6 +56,10 @@ export function MissionFormModal({
   onClose,
 }: MissionFormModalProps) {
   const [form, setForm] = useState(mission ? toForm(mission) : EMPTY_FORM);
+  const [created, setCreated] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const createMutation = useMutation(
     missionsQuery.create({ invalidates: [missionsQuery.$key] }),
@@ -85,25 +90,36 @@ export function MissionFormModal({
       activeFrom: form.activeFrom || null,
       activeUntil: form.activeUntil || null,
     };
-    if (mission) {
-      await updateMutation.mutateAsync({
-        marketId,
-        missionId: mission.id,
-        ...body,
-      });
-      onClose();
-      return;
+    try {
+      if (mission) {
+        await updateMutation.mutateAsync({
+          marketId,
+          missionId: mission.id,
+          ...body,
+        });
+        onClose();
+        return;
+      }
+      // 새 openModal을 여는 대신 같은 모달 안에서 내용만 확인 화면으로 바꾼다 —
+      // onClose()(history.back())를 부른 직후 곧바로 새 모달을 열면 back()과
+      // 그 모달의 pushState가 경쟁해서, 방금 연 확인 모달이 열리자마자
+      // 도로 닫혀버리는 문제가 있었다 (미션은 생성되는데 화면은 그대로).
+      const result = await createMutation.mutateAsync({ marketId, ...body });
+      setCreated({ id: result.id, title: result.title });
+    } catch (e) {
+      toast.error(getApiErrorMessage(e, "미션 저장에 실패했어요"));
     }
-    const created = await createMutation.mutateAsync({ marketId, ...body });
-    onClose();
-    openModal((close) => (
+  }
+
+  if (created) {
+    return (
       <ActivateConfirmModal
         marketId={marketId}
         missionId={created.id}
         missionTitle={created.title}
-        onClose={close}
+        onClose={onClose}
       />
-    ));
+    );
   }
 
   return (
@@ -305,7 +321,7 @@ export function MissionFormModal({
             disabled={!canSubmit}
             className="h-12 w-full rounded-full bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-600 disabled:opacity-40"
           >
-            {mission ? "저장하기" : "미션 추가"}
+            {isPending ? "저장 중…" : mission ? "저장하기" : "미션 추가"}
           </Button>
         </div>
       </div>
