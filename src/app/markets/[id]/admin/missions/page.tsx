@@ -1,15 +1,31 @@
 "use client";
 
 import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import {
-  ArrowDown,
-  ArrowUp,
   ChevronDown,
   ChevronUp,
+  GripVertical,
   Pencil,
   Plus,
   Trash2,
@@ -37,6 +53,163 @@ function formatPeriod(from: string | null, until: string | null) {
   return `${formatDate(until)}까지`;
 }
 
+function SortableMissionRow({
+  mission,
+  expanded,
+  onToggleExpand,
+  onToggleActive,
+  onEdit,
+  onDelete,
+}: {
+  mission: Mission;
+  expanded: boolean;
+  onToggleExpand: () => void;
+  onToggleActive: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: mission.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden ${isDragging ? "relative z-10 opacity-90 shadow-lg" : ""}`}
+    >
+      <div className="flex items-center gap-2 px-4 py-4">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="shrink-0 touch-none cursor-grab p-1 text-gray-300 active:cursor-grabbing dark:text-gray-600"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onToggleExpand}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+        >
+          <div className="min-w-0 flex-1">
+            <p
+              className={`truncate text-sm font-semibold ${mission.isActive ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}`}
+            >
+              {mission.title}
+            </p>
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                {TYPE_LABEL[mission.type]}
+              </span>
+
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                +{formatReward(mission)}
+              </span>
+              {mission.limitCount !== null && (
+                <>
+                  <span className="text-xs text-gray-300 dark:text-gray-600">
+                    ·
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    {mission.limitCount}회
+                  </span>
+                </>
+              )}
+              {mission.isGroup && (
+                <>
+                  <span className="text-xs text-gray-300 dark:text-gray-600">
+                    ·
+                  </span>
+                  <span className="text-xs font-medium text-blue-500">
+                    단체
+                  </span>
+                </>
+              )}
+            </div>
+            {(mission.activeFrom || mission.activeUntil) && (
+              <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                {formatPeriod(mission.activeFrom, mission.activeUntil)}
+              </p>
+            )}
+          </div>
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" />
+          ) : (
+            <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" />
+          )}
+        </button>
+
+        <Switch
+          checked={mission.isActive}
+          onCheckedChange={onToggleActive}
+          className="data-[state=checked]:bg-emerald-500 shrink-0"
+        />
+      </div>
+
+      {expanded && (
+        <div className="border-t border-gray-50 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 px-4 py-3 space-y-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+            <div>
+              <p className="text-gray-400 dark:text-gray-500">인증 방식</p>
+              <p className="font-medium text-gray-700 dark:text-gray-300">
+                {TYPE_LABEL[mission.type]}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400 dark:text-gray-500">보상</p>
+              <p className="font-medium text-gray-700 dark:text-gray-300">
+                +{formatReward(mission)}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400 dark:text-gray-500">최대 횟수</p>
+              <p className="font-medium text-gray-700 dark:text-gray-300">
+                {mission.limitCount !== null
+                  ? `${mission.limitCount}회`
+                  : "무제한"}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400 dark:text-gray-500">단체 미션</p>
+              <p className="font-medium text-gray-700 dark:text-gray-300">
+                {mission.isGroup ? "예" : "아니오"}
+              </p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-gray-400 dark:text-gray-500">활성화 기간</p>
+              <p className="font-medium text-gray-700 dark:text-gray-300">
+                {formatPeriod(mission.activeFrom, mission.activeUntil)}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              <Pencil className="h-3 w-3" /> 수정
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="flex items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-500 hover:bg-rose-100"
+            >
+              <Trash2 className="h-3 w-3" /> 삭제
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminMissionsContent({ marketId }: { marketId: string }) {
   const { data: missions } = useSuspenseQuery(missionsQuery.list({ marketId }));
   const queryClient = useQueryClient();
@@ -52,6 +225,13 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
   );
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   function openAdd() {
     openModal((close) => (
@@ -86,13 +266,13 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
 
   // optimistic으로 로컬 순서를 먼저 반영한 뒤, 전체 순서를 통째로 서버에 덮어써서
   // 항목별 부분 업데이트가 겹치며 나던 오류를 없앤다 (SE-14)
-  async function moveMission(index: number, direction: -1 | 1) {
-    const target = index + direction;
-    if (target < 0 || target >= missions.length || reorderMutation.isPending)
-      return;
-    const next = [...missions];
-    const [moved] = next.splice(index, 1);
-    next.splice(target, 0, moved);
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = missions.findIndex((m) => m.id === active.id);
+    const newIndex = missions.findIndex((m) => m.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const next = arrayMove(missions, oldIndex, newIndex);
 
     const { queryKey } = missionsQuery.list({ marketId });
     const previous = queryClient.getQueryData<Mission[]>(queryKey);
@@ -131,167 +311,39 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {missions.map((mission, index) => (
-          <div
-            key={mission.id}
-            className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden"
-          >
-            <div className="flex items-center gap-3 px-4 py-4">
-              <div className="flex shrink-0 flex-col">
-                <button
-                  type="button"
-                  onClick={() => moveMission(index, -1)}
-                  disabled={index === 0 || reorderMutation.isPending}
-                  className="p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-30 dark:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <ArrowUp className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveMission(index, 1)}
-                  disabled={
-                    index === missions.length - 1 || reorderMutation.isPending
-                  }
-                  className="p-0.5 text-gray-300 hover:text-gray-600 disabled:opacity-30 dark:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <ArrowDown className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={missions.map((m) => m.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-3">
+            {missions.map((mission) => (
+              <SortableMissionRow
+                key={mission.id}
+                mission={mission}
+                expanded={expandedId === mission.id}
+                onToggleExpand={() =>
                   setExpandedId(expandedId === mission.id ? null : mission.id)
                 }
-                className="flex min-w-0 flex-1 items-center gap-2 text-left"
-              >
-                <div className="min-w-0 flex-1">
-                  <p
-                    className={`truncate text-sm font-semibold ${mission.isActive ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}`}
-                  >
-                    {mission.title}
-                  </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {TYPE_LABEL[mission.type]}
-                    </span>
-
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                      +{formatReward(mission)}
-                    </span>
-                    {mission.limitCount !== null && (
-                      <>
-                        <span className="text-xs text-gray-300 dark:text-gray-600">
-                          ·
-                        </span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                          {mission.limitCount}회
-                        </span>
-                      </>
-                    )}
-                    {mission.isGroup && (
-                      <>
-                        <span className="text-xs text-gray-300 dark:text-gray-600">
-                          ·
-                        </span>
-                        <span className="text-xs font-medium text-blue-500">
-                          단체
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  {(mission.activeFrom || mission.activeUntil) && (
-                    <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                      {formatPeriod(mission.activeFrom, mission.activeUntil)}
-                    </p>
-                  )}
-                </div>
-                {expandedId === mission.id ? (
-                  <ChevronUp className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" />
-                )}
-              </button>
-
-              <Switch
-                checked={mission.isActive}
-                onCheckedChange={() =>
+                onToggleActive={() =>
                   toggleActive(mission.id, mission.isActive)
                 }
-                className="data-[state=checked]:bg-emerald-500 shrink-0"
+                onEdit={() => openEdit(mission)}
+                onDelete={() => deleteMission(mission.id)}
               />
-            </div>
-
-            {expandedId === mission.id && (
-              <div className="border-t border-gray-50 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 px-4 py-3 space-y-3">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                  <div>
-                    <p className="text-gray-400 dark:text-gray-500">
-                      인증 방식
-                    </p>
-                    <p className="font-medium text-gray-700 dark:text-gray-300">
-                      {TYPE_LABEL[mission.type]}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 dark:text-gray-500">보상</p>
-                    <p className="font-medium text-gray-700 dark:text-gray-300">
-                      +{formatReward(mission)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 dark:text-gray-500">
-                      최대 횟수
-                    </p>
-                    <p className="font-medium text-gray-700 dark:text-gray-300">
-                      {mission.limitCount !== null
-                        ? `${mission.limitCount}회`
-                        : "무제한"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 dark:text-gray-500">
-                      단체 미션
-                    </p>
-                    <p className="font-medium text-gray-700 dark:text-gray-300">
-                      {mission.isGroup ? "예" : "아니오"}
-                    </p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-gray-400 dark:text-gray-500">
-                      활성화 기간
-                    </p>
-                    <p className="font-medium text-gray-700 dark:text-gray-300">
-                      {formatPeriod(mission.activeFrom, mission.activeUntil)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => openEdit(mission)}
-                    className="flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  >
-                    <Pencil className="h-3 w-3" /> 수정
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteMission(mission.id)}
-                    className="flex items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-500 hover:bg-rose-100"
-                  >
-                    <Trash2 className="h-3 w-3" /> 삭제
-                  </button>
-                </div>
-              </div>
+            ))}
+            {missions.length === 0 && (
+              <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
+                등록된 미션이 없어요
+              </p>
             )}
           </div>
-        ))}
-        {missions.length === 0 && (
-          <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
-            등록된 미션이 없어요
-          </p>
-        )}
-      </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
