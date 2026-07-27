@@ -4,7 +4,7 @@ import { MissionDetailClient } from "./MissionDetailClient";
 function Skeleton() {
   return (
     <div>
-      <div className="flex items-center gap-3 px-4 pb-4 max-w-lg mx-auto">
+      <div className="flex items-center gap-3 px-4 pt-4 pb-4 max-w-lg mx-auto">
         <div className="h-6 w-6 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
         <div className="h-6 w-40 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
       </div>

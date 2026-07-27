@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -106,48 +106,53 @@ export function InstallPwaBanner() {
   const showEscapeButton = isInApp && canEscape;
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-emerald-100 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-3">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-          홈 화면에 추가하세요
-        </p>
-        <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70">
-          {isInApp
-            ? "다른 브라우저로 열어야 설치할 수 있어요"
-            : isIOS
-              ? "공유 버튼을 누르고 '홈 화면에 추가'를 선택하세요"
-              : "앱처럼 더 빠르게 이용할 수 있어요"}
-        </p>
+    <div className="pt-4">
+      <div className="flex items-center gap-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-900/20 px-4 py-3.5 animate-in fade-in-0 slide-in-from-top-2 duration-300 fill-mode-both">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400">
+          <Download className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+            홈 화면에 추가하세요
+          </p>
+          <p className="text-xs text-emerald-600/80 dark:text-emerald-400/70">
+            {isInApp
+              ? "다른 브라우저로 열어야 설치할 수 있어요"
+              : isIOS
+                ? "공유 버튼을 누르고 '홈 화면에 추가'를 선택하세요"
+                : "앱처럼 더 빠르게 이용할 수 있어요"}
+          </p>
+        </div>
+        {showEscapeButton && (
+          <Button
+            onClick={escapeInAppBrowser}
+            className="h-10 shrink-0 rounded-full bg-emerald-500 px-4 text-sm font-semibold text-white hover:bg-emerald-600"
+          >
+            다른 브라우저로 열기
+          </Button>
+        )}
+        {isInApp && !canEscape && (
+          <p className="shrink-0 text-[11px] text-emerald-600/70 dark:text-emerald-400/60">
+            우측 상단 메뉴에서 선택
+          </p>
+        )}
+        {!isIOS && !isInApp && (
+          <Button
+            onClick={install}
+            className="h-10 shrink-0 rounded-full bg-emerald-500 px-4 text-sm font-semibold text-white hover:bg-emerald-600"
+          >
+            설치
+          </Button>
+        )}
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="닫기"
+          className="shrink-0 rounded-full p-1.5 text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
-      {showEscapeButton && (
-        <Button
-          onClick={escapeInAppBrowser}
-          className="h-10 shrink-0 rounded-full bg-emerald-500 px-4 text-sm font-semibold text-white hover:bg-emerald-600"
-        >
-          다른 브라우저로 열기
-        </Button>
-      )}
-      {isInApp && !canEscape && (
-        <p className="shrink-0 text-[11px] text-emerald-600/70 dark:text-emerald-400/60">
-          우측 상단 메뉴에서 선택
-        </p>
-      )}
-      {!isIOS && !isInApp && (
-        <Button
-          onClick={install}
-          className="h-10 shrink-0 rounded-full bg-emerald-500 px-4 text-sm font-semibold text-white hover:bg-emerald-600"
-        >
-          설치
-        </Button>
-      )}
-      <button
-        type="button"
-        onClick={dismiss}
-        aria-label="닫기"
-        className="shrink-0 rounded-full p-1.5 text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
-      >
-        <X className="h-4 w-4" />
-      </button>
     </div>
   );
 }
