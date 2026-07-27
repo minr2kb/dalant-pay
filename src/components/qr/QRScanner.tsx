@@ -76,6 +76,7 @@ interface QRScannerProps {
   title: string;
   hint?: string;
   badge?: ReactNode;
+  footer?: ReactNode;
   onScan: (value: string) => void;
   onClose: () => void;
   children?: ReactNode;
@@ -86,6 +87,7 @@ export function QRScanner({
   title,
   hint,
   badge,
+  footer,
   onScan,
   onClose,
   children,
@@ -243,6 +245,8 @@ export function QRScanner({
                 QR 코드를 인식하는 중…
               </p>
             )}
+
+            {footer}
           </div>
         </div>
       )}

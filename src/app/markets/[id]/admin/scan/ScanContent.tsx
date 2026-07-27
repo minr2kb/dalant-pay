@@ -97,6 +97,16 @@ function ScanInner({ marketId }: { marketId: string }) {
       hint="미션 인증 QR을 화면 중앙에 맞춰주세요"
       onScan={handleScan}
       onClose={() => router.back()}
+      footer={
+        <button
+          type="button"
+          disabled={locked}
+          onClick={() => openFlow({})}
+          className="h-10 rounded-full bg-white/20 px-4 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/30 disabled:opacity-40"
+        >
+          수동인증
+        </button>
+      }
     >
       {/* ponytail: QRScanner only restarts its camera stream when this
           children/hasOverlay flag toggles — an empty placeholder while
