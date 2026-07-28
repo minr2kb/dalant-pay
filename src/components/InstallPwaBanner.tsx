@@ -3,6 +3,12 @@
 import { Download, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  isAndroid,
+  isInAppBrowser,
+  isIOS as isIOSBrowser,
+  isKakao,
+} from "@/lib/user-agent";
 
 const SNOOZE_KEY = "pwa-install-snooze-until";
 const INSTALLED_KEY = "pwa-installed";
@@ -23,20 +29,6 @@ function isStandalone() {
 function isSnoozed() {
   const until = Number(localStorage.getItem(SNOOZE_KEY) ?? 0);
   return Date.now() < until;
-}
-
-function isKakao() {
-  return /KAKAOTALK/i.test(navigator.userAgent);
-}
-
-function isAndroid() {
-  return /android/i.test(navigator.userAgent);
-}
-
-function isInAppBrowser() {
-  return /KAKAOTALK|NAVER\(|Instagram|FBAN|FBAV|Line\//i.test(
-    navigator.userAgent,
-  );
 }
 
 /** 카카오톡은 공식 탈출 스킴이 있고, 안드로이드는 intent://로 크롬을 강제 지정할 수 있다.
@@ -65,7 +57,7 @@ export function InstallPwaBanner() {
     if (localStorage.getItem(INSTALLED_KEY) === "true") return;
     if (isStandalone() || isSnoozed()) return;
 
-    setIsIOS(/iphone|ipad|ipod/i.test(navigator.userAgent));
+    setIsIOS(isIOSBrowser());
     setIsInApp(isInAppBrowser());
     setCanEscape(isKakao() || isAndroid());
     setDismissed(false);

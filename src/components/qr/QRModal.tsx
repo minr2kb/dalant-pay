@@ -6,8 +6,8 @@ import { Modal } from "@/components/Modal";
 import { QRCodeImage } from "@/components/qr/QRCodeImage";
 import { Button } from "@/components/ui/button";
 import { useInterval } from "@/hooks/use-interval";
-import { useSamsungInternet } from "@/hooks/use-samsung-internet";
 import { openModal } from "@/lib/overlay";
+import { isSamsungInternetBrowser } from "@/lib/user-agent";
 
 interface QRModalProps {
   marketId: string;
@@ -36,7 +36,7 @@ function QRContent({
   const [qrValue, setQrValue] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
-  const isSamsungInternet = useSamsungInternet();
+  const isSamsungInternet = isSamsungInternetBrowser();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: refreshTick isn't read in the body, it's a tick counter that intentionally re-triggers this fetch every 5 minutes
   useEffect(() => {

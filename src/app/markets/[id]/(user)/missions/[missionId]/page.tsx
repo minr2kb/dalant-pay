@@ -19,7 +19,7 @@ function Skeleton() {
   );
 }
 
-import { getCurrentUserId } from "@/lib/auth";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 
 export default async function MissionDetailPage(
   props: PageProps<"/markets/[id]/missions/[missionId]">,

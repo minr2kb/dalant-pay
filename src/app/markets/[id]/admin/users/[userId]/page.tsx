@@ -1,4 +1,3 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -6,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { listMissions } from "@/lib/data/missions";
 import { getParticipant } from "@/lib/data/participants";
 import { getQueryClient } from "@/lib/query/get-query-client";
+import { Hydrated } from "@/lib/query/hydrate";
 import { missionsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/server";
 import { AdminUserDetailClient } from "./AdminUserDetailClient";
@@ -15,11 +15,13 @@ export default async function AdminUserDetailPage(
 ) {
   const { id: marketId, userId } = await props.params;
   const supabase = await createClient();
-  const qc = getQueryClient();
+  // participant는 아래 헤더에서도 직접 쓰이는 값이라 hydrate/hydrateAll(캐시 채우기 전용)로
+  // 감추지 않고 그대로 받아서 qc에 직접 얹는다.
   const [participant, missions] = await Promise.all([
     getParticipant(supabase, marketId, userId),
     listMissions(supabase, marketId),
   ]);
+  const qc = getQueryClient();
   qc.setQueryData(
     participantsQuery.get({ marketId, userId }).queryKey,
     participant,
@@ -47,7 +49,7 @@ export default async function AdminUserDetailPage(
           {participant.participant.displayName}
         </h1>
       </div>
-      <HydrationBoundary state={dehydrate(qc)}>
+      <Hydrated qc={qc}>
         <Suspense
           fallback={
             <p className="py-8 text-center text-sm text-gray-400">
@@ -57,7 +59,7 @@ export default async function AdminUserDetailPage(
         >
           <AdminUserDetailClient marketId={marketId} userId={userId} />
         </Suspense>
-      </HydrationBoundary>
+      </Hydrated>
     </div>
   );
 }

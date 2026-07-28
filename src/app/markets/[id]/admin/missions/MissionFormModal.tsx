@@ -8,11 +8,11 @@ import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { getApiErrorMessage } from "@/lib/api/client";
+import { getApiErrorMessage } from "@/lib/api/executor";
 import { missionsQuery } from "@/lib/query/queries";
-import type { Mission, MissionType } from "@/types";
+import { MISSION_TYPE_LABEL, type Mission, type MissionType } from "@/types";
 import { ActivateConfirmModal } from "./ActivateConfirmModal";
-import { TYPE_DESC, TYPE_LABEL } from "./constants";
+import { MISSION_TYPES, TYPE_DESC } from "./constants";
 
 const EMPTY_FORM = {
   title: "",
@@ -174,9 +174,7 @@ export function MissionFormModal({
               인증 방식
             </p>
             <div className="grid grid-cols-2 gap-2">
-              {(
-                ["user_qr", "upload", "admin_qr", "manual"] as MissionType[]
-              ).map((t) => (
+              {MISSION_TYPES.map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -193,7 +191,9 @@ export function MissionFormModal({
                       : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >
-                  <p className="text-xs font-semibold">{TYPE_LABEL[t]}</p>
+                  <p className="text-xs font-semibold">
+                    {MISSION_TYPE_LABEL[t]}
+                  </p>
                   <p
                     className={`mt-0.5 text-[10px] ${form.type === t ? "text-white/70" : "text-gray-400 dark:text-gray-500"}`}
                   >

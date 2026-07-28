@@ -3,28 +3,23 @@
 import {
   closestCenter,
   DndContext,
-  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronLeft, GripVertical, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Suspense, use } from "react";
+import { useOptimisticReorder } from "@/hooks/use-optimistic-reorder";
 import { openModal } from "@/lib/overlay";
 import { itemsQuery } from "@/lib/query/queries";
 import type { MarketItem } from "@/types";
@@ -92,7 +87,6 @@ function SortableItemCard({
 
 function AdminItemsGrid({ marketId }: { marketId: string }) {
   const { data: items } = useSuspenseQuery(itemsQuery.list({ marketId }));
-  const queryClient = useQueryClient();
   const deleteMutation = useMutation(
     itemsQuery.delete({ invalidates: [itemsQuery.$key] }),
   );
@@ -119,32 +113,11 @@ function AdminItemsGrid({ marketId }: { marketId: string }) {
     ));
   }
 
-  // optimistic으로 로컬 순서를 먼저 반영한 뒤, 전체 순서를 통째로 서버에 덮어써서
-  // 항목별 부분 업데이트가 겹치며 나는 오류를 없앤다 (미션 순서 변경과 동일한 방식)
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = items.findIndex((i) => i.id === active.id);
-    const newIndex = items.findIndex((i) => i.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const next = arrayMove(items, oldIndex, newIndex);
-
-    const { queryKey } = itemsQuery.list({ marketId });
-    const previous = queryClient.getQueryData<MarketItem[]>(queryKey);
-    queryClient.setQueryData<MarketItem[]>(
-      queryKey,
-      next.map((it, i) => ({ ...it, sortOrder: i })),
-    );
-    try {
-      await reorderMutation.mutateAsync({
-        marketId,
-        itemIds: next.map((it) => it.id),
-      });
-    } catch (e) {
-      queryClient.setQueryData(queryKey, previous);
-      throw e;
-    }
-  }
+  const handleDragEnd = useOptimisticReorder(
+    itemsQuery.list({ marketId }).queryKey,
+    items,
+    (itemIds) => reorderMutation.mutateAsync({ marketId, itemIds }),
+  );
 
   return (
     <DndContext

@@ -3,7 +3,7 @@ import { routarMutationCache, routarQueryClient } from "@routar/react-query";
 import { isServer, type QueryClient } from "@tanstack/react-query";
 import { cache } from "react";
 import { toast } from "sonner";
-import { OfflineError } from "@/lib/api/client";
+import { OfflineError } from "@/lib/api/executor";
 
 // mutation이 실패했을 때 원인별로 다른 안내를 한 곳에서 낸다. HttpError(서버가 실제로
 // 응답한 에러, 예: "이미 완료한 미션이에요")는 각 mutation의 개별 onError가 이미 자기

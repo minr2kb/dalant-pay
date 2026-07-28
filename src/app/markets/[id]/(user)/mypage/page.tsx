@@ -1,7 +1,8 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { getCurrentUserId } from "@/lib/auth";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { getMarket } from "@/lib/data/markets";
 import { getParticipant } from "@/lib/data/participants";
+import { getQueryClient } from "@/lib/query/get-query-client";
+import { Hydrated, hydrateAll } from "@/lib/query/hydrate";
 import { prefetchIfFirstVisit } from "@/lib/query/prefetch";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -13,23 +14,25 @@ export default async function MyPage(props: PageProps<"/markets/[id]/mypage">) {
   // 쿼리 키를 맞추기 위함 (useSessionUserId()의 비동기 확인을 기다리지 않도록).
   const userId = await getCurrentUserId();
 
-  const qc = await prefetchIfFirstVisit(async (qc) => {
+  const qc = getQueryClient();
+  await prefetchIfFirstVisit(async () => {
     if (!userId) return;
     const supabase = await createClient();
-    const [market, participants] = await Promise.all([
-      getMarket(supabase, marketId),
-      getParticipant(supabase, marketId, userId),
+    await hydrateAll(qc, [
+      {
+        queryKey: marketsQuery.get({ marketId }).queryKey,
+        queryFn: () => getMarket(supabase, marketId),
+      },
+      {
+        queryKey: participantsQuery.get({ marketId, userId }).queryKey,
+        queryFn: () => getParticipant(supabase, marketId, userId),
+      },
     ]);
-    qc.setQueryData(marketsQuery.get({ marketId }).queryKey, market);
-    qc.setQueryData(
-      participantsQuery.get({ marketId, userId }).queryKey,
-      participants,
-    );
   });
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
+    <Hydrated qc={qc}>
       <MyPageClient marketId={marketId} initialUserId={userId} />
-    </HydrationBoundary>
+    </Hydrated>
   );
 }

@@ -2,10 +2,13 @@ import { Calendar, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { getCurrentUserId } from "@/lib/auth";
-import { mapMarket } from "@/lib/db";
+import { getCurrentUserId } from "@/lib/auth/current-user";
+import {
+  getMarketWithParticipantCount,
+  isMarketParticipant,
+} from "@/lib/data/markets";
 import { formatKST } from "@/lib/format-date";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/service";
 import { JoinButton } from "./JoinButton";
 
 export async function generateMetadata(
@@ -44,30 +47,14 @@ export default async function MarketJoinPage(
   // 이미 참여 중인 유저(특히 PWA start_url로 매번 여기부터 여는 경우)는
   // 참여 화면을 거칠 필요 없이 바로 홈으로 — 안 그러면 페이지 로드가 두 번 겹친다.
   const userId = await getCurrentUserId();
-  if (userId) {
-    const { data: existingParticipant } = await supabase
-      .from("market_participants")
-      .select("id")
-      .eq("market_id", id)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (existingParticipant) redirect(`/markets/${id}/home`);
+  if (userId && (await isMarketParticipant(supabase, id, userId))) {
+    redirect(`/markets/${id}/home`);
   }
 
   // 로그인 전 방문자(QR 랜딩)도 봐야 하는 공개 화면이라 세션 클라이언트 대신 서비스롤로 조회한다.
-  const { data: marketRow } = await supabase
-    .from("markets")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  const { count } = await supabase
-    .from("market_participants")
-    .select("*", { count: "exact", head: true })
-    .eq("market_id", id);
-
-  if (!marketRow) return null;
-  const market = mapMarket(marketRow);
+  const result = await getMarketWithParticipantCount(supabase, id);
+  if (!result) return null;
+  const { market, participantCount: count } = result;
 
   const startDate = formatKST(market.startsAt, {
     month: "long",
@@ -106,7 +93,7 @@ export default async function MarketJoinPage(
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
             <Users className="h-4 w-4 text-emerald-500" />
-            <span>현재 {count ?? 0}명 참여 중</span>
+            <span>현재 {count}명 참여 중</span>
           </div>
         </div>
 

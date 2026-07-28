@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { mapMarket } from "@/lib/db";
+import { mapMarket } from "@/lib/data/mappers";
 
 // ponytail: PWA 오프라인 QA용 "DEV TEST" 마켓 — 개발 계정에만 보이면 되는 일회성
 // 케이스라 별도 visibility 컬럼/기능 없이 하드코딩으로 막는다. 나중에 실제로
@@ -15,6 +15,40 @@ export async function getMarket(supabase: SupabaseClient, marketId: string) {
     .single();
   if (error || !data) throw new Error("Not found");
   return mapMarket(data as Record<string, unknown>);
+}
+
+export async function isMarketParticipant(
+  supabase: SupabaseClient,
+  marketId: string,
+  userId: string,
+) {
+  const { data } = await supabase
+    .from("market_participants")
+    .select("id")
+    .eq("market_id", marketId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return data !== null;
+}
+
+// 로그인 전 방문자(QR 랜딩)도 봐야 하는 공개 화면용 — getMarket과 달리 없으면
+// throw 대신 null을 돌려줘서 페이지가 조용히 처리할 수 있게 한다.
+export async function getMarketWithParticipantCount(
+  supabase: SupabaseClient,
+  marketId: string,
+) {
+  const [{ data: marketRow }, { count }] = await Promise.all([
+    supabase.from("markets").select("*").eq("id", marketId).single(),
+    supabase
+      .from("market_participants")
+      .select("*", { count: "exact", head: true })
+      .eq("market_id", marketId),
+  ]);
+  if (!marketRow) return null;
+  return {
+    market: mapMarket(marketRow as Record<string, unknown>),
+    participantCount: count ?? 0,
+  };
 }
 
 export async function listMarkets(supabase: SupabaseClient, userId: string) {

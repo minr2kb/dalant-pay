@@ -1,8 +1,8 @@
 import type { RequestShape } from "@routar/core";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase"; // service role — bypasses RLS for trusted server code
 import { createClient as createSsrClient } from "@/lib/supabase/server"; // session auth only
+import { supabase } from "@/lib/supabase/service"; // service role — bypasses RLS for trusted server code
 
 export type Supabase = typeof supabase;
 
@@ -42,17 +42,25 @@ export function route<P = Record<string, string>>(
   };
 }
 
+// 세 라우트 래퍼(authRoute/marketParticipantRoute/marketAdminRoute) 공통 부분 —
+// params와 세션 클라이언트를 병렬로 받아온 뒤 claims를 확인한다. 실패 시 401 Response를 돌려준다.
+async function authenticate<P>(props: { params: Promise<P> }) {
+  const [params, ssrClient] = await Promise.all([
+    props.params,
+    createSsrClient(),
+  ]);
+  const { data } = await ssrClient.auth.getClaims();
+  if (!data) return err("Unauthorized", 401);
+  return { params, userId: data.claims.sub };
+}
+
 export function authRoute<P = Record<string, string>>(
   fn: (req: NextRequest, ctx: AuthRouteCtx<P>) => Promise<Response>,
 ) {
   return async (req: NextRequest, props: { params: Promise<P> }) => {
-    const [params, ssrClient] = await Promise.all([
-      props.params,
-      createSsrClient(),
-    ]);
-    const { data } = await ssrClient.auth.getClaims();
-    if (!data) return err("Unauthorized", 401);
-    return fn(req, { supabase, params, userId: data.claims.sub });
+    const auth = await authenticate(props);
+    if (auth instanceof Response) return auth;
+    return fn(req, { supabase, ...auth });
   };
 }
 
@@ -60,13 +68,9 @@ export function marketParticipantRoute<P extends { marketId: string }>(
   fn: (req: NextRequest, ctx: AuthRouteCtx<P>) => Promise<Response>,
 ) {
   return async (req: NextRequest, props: { params: Promise<P> }) => {
-    const [params, ssrClient] = await Promise.all([
-      props.params,
-      createSsrClient(),
-    ]);
-    const { data } = await ssrClient.auth.getClaims();
-    if (!data) return err("Unauthorized", 401);
-    const userId = data.claims.sub;
+    const auth = await authenticate(props);
+    if (auth instanceof Response) return auth;
+    const { params, userId } = auth;
     const { data: p } = await supabase
       .from("market_participants")
       .select("id")
@@ -82,13 +86,9 @@ export function marketAdminRoute<P extends { marketId: string }>(
   fn: (req: NextRequest, ctx: AuthRouteCtx<P>) => Promise<Response>,
 ) {
   return async (req: NextRequest, props: { params: Promise<P> }) => {
-    const [params, ssrClient] = await Promise.all([
-      props.params,
-      createSsrClient(),
-    ]);
-    const { data } = await ssrClient.auth.getClaims();
-    if (!data) return err("Unauthorized", 401);
-    const userId = data.claims.sub;
+    const auth = await authenticate(props);
+    if (auth instanceof Response) return auth;
+    const { params, userId } = auth;
     const { data: p } = await supabase
       .from("market_participants")
       .select("role")

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { mapMission, mapPendingMissionLog } from "@/lib/db";
+import { groupBy } from "es-toolkit";
+import { mapMission, mapPendingMissionLog } from "@/lib/data/mappers";
 import { getMissionStatus } from "@/types";
 
 export async function listMissions(
@@ -30,8 +31,9 @@ export async function listMissions(
     logs = (data ?? []) as Record<string, unknown>[];
   }
 
+  const logsByMission = groupBy(logs, (l) => l.mission_id as string);
   let result = (missions ?? []).map((m) =>
-    mapMission(m as Record<string, unknown>, logs),
+    mapMission(m as Record<string, unknown>, logsByMission[m.id as string]),
   );
   if (opts?.status)
     result = result.filter((m) => getMissionStatus(m) === opts.status);

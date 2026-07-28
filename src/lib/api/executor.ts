@@ -1,19 +1,4 @@
-import {
-  createApi,
-  createFetchExecutor,
-  definePlugin,
-  HttpError,
-} from "@routar/core";
-import {
-  adminRouter,
-  itemsRouter,
-  marketsRouter,
-  missionsRouter,
-  ordersRouter,
-  participantsRouter,
-  pointLogsRouter,
-  transferRouter,
-} from "./router";
+import { createFetchExecutor, definePlugin, HttpError } from "@routar/core";
 
 const BASE_URL =
   typeof window === "undefined"
@@ -43,12 +28,6 @@ const offlineGuardPlugin = definePlugin({
   },
 });
 
-const executor = createFetchExecutor(`${BASE_URL}/api`, {
-  unwrap: (raw) => (raw as { data: unknown })?.data ?? raw,
-  plugins: [offlineGuardPlugin],
-  timeout: 10_000,
-});
-
 // 서버는 실패 시 항상 { error: string } 봉투로 응답한다(src/lib/api/route-helpers.ts의
 // err() 참고) — HttpError.body는 라이브러리에서 unknown으로 열려있으니, 호출부마다
 // `as any`로 뚫는 대신 여기서 한 번만 좁혀서 재사용한다.
@@ -66,11 +45,8 @@ export function getApiErrorMessage(e: unknown, fallback: string): string {
   return fallback;
 }
 
-export const marketsApi = createApi(executor, marketsRouter);
-export const participantsApi = createApi(executor, participantsRouter);
-export const missionsApi = createApi(executor, missionsRouter);
-export const pointLogsApi = createApi(executor, pointLogsRouter);
-export const ordersApi = createApi(executor, ordersRouter);
-export const itemsApi = createApi(executor, itemsRouter);
-export const adminApi = createApi(executor, adminRouter);
-export const transferApi = createApi(executor, transferRouter);
+export const executor = createFetchExecutor(`${BASE_URL}/api`, {
+  unwrap: (raw) => (raw as { data: unknown })?.data ?? raw,
+  plugins: [offlineGuardPlugin],
+  timeout: 10_000,
+});

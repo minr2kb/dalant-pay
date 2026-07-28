@@ -3,7 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { getApiErrorMessage } from "@/lib/api/client";
+import { getApiErrorMessage } from "@/lib/api/executor";
 import { missionsQuery } from "@/lib/query/queries";
 
 type VerifyPrimary = { token: string } | { userId: string; slot?: number };

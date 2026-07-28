@@ -1,3 +1,4 @@
+import { keyBy } from "es-toolkit";
 import type {
   Market,
   MarketItem,
@@ -50,15 +51,16 @@ export function mapParticipant(
 
 export function mapMission(
   row: Record<string, unknown>,
-  logs: Record<string, unknown>[] = [],
+  // 호출부가 이미 이 미션에 해당하는 로그만 추려서 넘긴다 (listMissions 참고).
+  logsForMission: Record<string, unknown>[] = [],
 ): Mission {
   const limitCount = row.limit_count as number | null;
-  const logsForThis = logs.filter((l) => l.mission_id === row.id);
 
   let slots: MissionSlotData[] | undefined;
   if (limitCount !== null) {
+    const logsBySlot = keyBy(logsForMission, (l) => l.slot as number);
     slots = Array.from({ length: limitCount }, (_, i) => {
-      const log = logsForThis.find((l) => (l.slot as number) === i + 1);
+      const log = logsBySlot[i + 1];
       return {
         slot: i + 1,
         verifiedByName: log ? (log.verified_by_name as string | null) : null,
@@ -66,8 +68,8 @@ export function mapMission(
         photoUrl: log ? (log.photo_url as string | null) : null,
       };
     });
-  } else if (logsForThis.length > 0) {
-    slots = logsForThis.map((log) => ({
+  } else if (logsForMission.length > 0) {
+    slots = logsForMission.map((log) => ({
       slot: log.slot as number,
       verifiedByName: (log.verified_by_name as string | null) ?? null,
       verifiedAt: (log.verified_at as string | null) ?? null,

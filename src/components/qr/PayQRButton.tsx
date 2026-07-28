@@ -3,9 +3,9 @@
 import { QrCode, Wallet, X } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { QRCodeImage } from "@/components/qr/QRCodeImage";
-import { useSamsungInternet } from "@/hooks/use-samsung-internet";
 import { openModal } from "@/lib/overlay";
 import { encodePayQR } from "@/lib/qr";
+import { isSamsungInternetBrowser } from "@/lib/user-agent";
 
 interface PayQRButtonProps {
   marketId: string;
@@ -23,7 +23,7 @@ function PayQRContent({
   userName: string;
   onClose: () => void;
 }) {
-  const isSamsungInternet = useSamsungInternet();
+  const isSamsungInternet = isSamsungInternetBrowser();
 
   return (
     <Modal onClose={onClose}>

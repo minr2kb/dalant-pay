@@ -1,7 +1,8 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { getCurrentUserId } from "@/lib/auth";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { listMissions } from "@/lib/data/missions";
 import { getQueryClient } from "@/lib/query/get-query-client";
+import { Hydrated, hydrate } from "@/lib/query/hydrate";
+import { prefetchQuietly } from "@/lib/query/prefetch";
 import { missionsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/server";
 import { MissionListClient } from "./MissionListClient";
@@ -15,20 +16,17 @@ export default async function MissionsPage(
 
   if (userId) {
     const supabase = await createClient();
-    try {
-      const missions = await listMissions(supabase, marketId, { userId });
-      qc.setQueryData(
-        missionsQuery.list({ marketId, userId }).queryKey,
-        missions,
-      );
-    } catch {
-      // 조회 실패 시 클라이언트가 기존처럼 직접 받아온다.
-    }
+    await prefetchQuietly(async () => {
+      await hydrate(qc, {
+        queryKey: missionsQuery.list({ marketId, userId }).queryKey,
+        queryFn: () => listMissions(supabase, marketId, { userId }),
+      });
+    });
   }
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
+    <Hydrated qc={qc}>
       <MissionListClient marketId={marketId} initialUserId={userId} />
-    </HydrationBoundary>
+    </Hydrated>
   );
 }

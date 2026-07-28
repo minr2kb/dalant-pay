@@ -3,6 +3,13 @@ export type MissionType = "user_qr" | "upload" | "admin_qr" | "manual";
 export type PointReasonType = "mission" | "purchase" | "manual" | "transfer";
 export type Gender = "male" | "female";
 
+export const MISSION_TYPE_LABEL: Record<MissionType, string> = {
+  user_qr: "유저 간 인증",
+  upload: "업로드형",
+  admin_qr: "관리자 인증",
+  manual: "상시",
+};
+
 export interface User {
   id: string;
   name: string;

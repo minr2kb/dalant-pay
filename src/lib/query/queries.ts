@@ -8,7 +8,7 @@ import {
   participantsApi,
   pointLogsApi,
   transferApi,
-} from "@/lib/api/client";
+} from "@/lib/api/apis";
 
 export const marketsQuery = createQueries(marketsApi, { flatten: true });
 export const participantsQuery = createQueries(participantsApi, {

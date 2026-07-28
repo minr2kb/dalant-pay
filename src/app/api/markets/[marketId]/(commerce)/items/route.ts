@@ -8,7 +8,7 @@ import {
 } from "@/lib/api/route-helpers";
 import { itemsRouter } from "@/lib/api/router";
 import { listItems } from "@/lib/data/items";
-import { mapItem } from "@/lib/db";
+import { mapItem } from "@/lib/data/mappers";
 
 const createItemParser = createParser(itemsRouter.endpoints.create);
 

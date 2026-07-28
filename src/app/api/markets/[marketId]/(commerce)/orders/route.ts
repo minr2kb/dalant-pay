@@ -7,7 +7,7 @@ import {
   route,
 } from "@/lib/api/route-helpers";
 import { ordersRouter } from "@/lib/api/router";
-import { mapOrder } from "@/lib/db";
+import { mapOrder } from "@/lib/data/mappers";
 
 const createOrderParser = createParser(ordersRouter.endpoints.create);
 

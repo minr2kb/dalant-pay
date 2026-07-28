@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/server";
+import { supabase } from "@/lib/supabase/service";
 
 // ponytail: local-only auth bypass, gated at build time by NODE_ENV — never reachable in a production build.
 // Uses generateLink+verifyOtp (not signInWithPassword) so it isn't blocked by captcha protection on the password grant.

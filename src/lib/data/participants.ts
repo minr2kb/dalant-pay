@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { mapOrder, mapParticipant, mapPointLog } from "@/lib/db";
+import { mapOrder, mapParticipant, mapPointLog } from "@/lib/data/mappers";
+import { resolveDisplayName } from "@/lib/resolve-display-name";
 
 export async function joinMarket(
   supabase: SupabaseClient,
@@ -49,19 +50,10 @@ export async function joinMarket(
       .filter(Boolean),
   );
 
-  let displayName = realName;
-  let hasConflict = false;
-
-  if (existingNames.has(realName)) {
-    hasConflict = true;
-    for (const suffix of "BCDEFGHIJKLMNOPQRSTUVWXYZ") {
-      const candidate = `${realName}${suffix}`;
-      if (!existingNames.has(candidate)) {
-        displayName = candidate;
-        break;
-      }
-    }
-  }
+  const { displayName, hasConflict } = resolveDisplayName(
+    realName,
+    existingNames,
+  );
 
   await supabase.from("market_participants").insert({
     market_id: marketId,

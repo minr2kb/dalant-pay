@@ -3,14 +3,12 @@
 import {
   closestCenter,
   DndContext,
-  type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -33,11 +31,11 @@ import {
 import { Suspense, use, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useOptimisticReorder } from "@/hooks/use-optimistic-reorder";
 import { formatKST } from "@/lib/format-date";
 import { openModal } from "@/lib/overlay";
 import { missionsQuery } from "@/lib/query/queries";
-import { formatReward, type Mission } from "@/types";
-import { TYPE_LABEL } from "./constants";
+import { formatReward, MISSION_TYPE_LABEL, type Mission } from "@/types";
 import Loading from "./loading";
 import { MissionFormModal } from "./MissionFormModal";
 
@@ -105,7 +103,7 @@ function SortableMissionRow({
             </p>
             <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
               <span className="text-xs text-gray-400 dark:text-gray-500">
-                {TYPE_LABEL[mission.type]}
+                {MISSION_TYPE_LABEL[mission.type]}
               </span>
 
               <span className="text-xs text-gray-400 dark:text-gray-500">
@@ -158,7 +156,7 @@ function SortableMissionRow({
             <div>
               <p className="text-gray-400 dark:text-gray-500">인증 방식</p>
               <p className="font-medium text-gray-700 dark:text-gray-300">
-                {TYPE_LABEL[mission.type]}
+                {MISSION_TYPE_LABEL[mission.type]}
               </p>
             </div>
             <div>
@@ -210,7 +208,30 @@ function SortableMissionRow({
   );
 }
 
-function AdminMissionsContent({ marketId }: { marketId: string }) {
+function AdminMissionsHeader({ marketId }: { marketId: string }) {
+  function openAdd() {
+    openModal((close) => (
+      <MissionFormModal marketId={marketId} mission={null} onClose={close} />
+    ));
+  }
+
+  return (
+    <div className="sticky-header -mx-4 flex items-center justify-between px-4 pt-4 pb-3">
+      <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+        미션 관리
+      </h1>
+      <Button
+        onClick={openAdd}
+        className="h-10 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 text-sm"
+      >
+        <Plus className="mr-1 h-4 w-4" />
+        미션 추가
+      </Button>
+    </div>
+  );
+}
+
+function AdminMissionsList({ marketId }: { marketId: string }) {
   const { data: missions } = useSuspenseQuery(missionsQuery.list({ marketId }));
   const queryClient = useQueryClient();
 
@@ -232,12 +253,6 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-
-  function openAdd() {
-    openModal((close) => (
-      <MissionFormModal marketId={marketId} mission={null} onClose={close} />
-    ));
-  }
 
   function openEdit(mission: Mission) {
     setExpandedId(null);
@@ -264,32 +279,11 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
     }
   }
 
-  // optimistic으로 로컬 순서를 먼저 반영한 뒤, 전체 순서를 통째로 서버에 덮어써서
-  // 항목별 부분 업데이트가 겹치며 나던 오류를 없앤다 (SE-14)
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = missions.findIndex((m) => m.id === active.id);
-    const newIndex = missions.findIndex((m) => m.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const next = arrayMove(missions, oldIndex, newIndex);
-
-    const { queryKey } = missionsQuery.list({ marketId });
-    const previous = queryClient.getQueryData<Mission[]>(queryKey);
-    queryClient.setQueryData<Mission[]>(
-      queryKey,
-      next.map((m, i) => ({ ...m, sortOrder: i })),
-    );
-    try {
-      await reorderMutation.mutateAsync({
-        marketId,
-        missionIds: next.map((m) => m.id),
-      });
-    } catch (e) {
-      queryClient.setQueryData(queryKey, previous);
-      throw e;
-    }
-  }
+  const handleDragEnd = useOptimisticReorder(
+    missionsQuery.list({ marketId }).queryKey,
+    missions,
+    (missionIds) => reorderMutation.mutateAsync({ marketId, missionIds }),
+  );
 
   async function deleteMission(missionId: string) {
     await deleteMutation.mutateAsync({ marketId, missionId });
@@ -297,54 +291,37 @@ function AdminMissionsContent({ marketId }: { marketId: string }) {
   }
 
   return (
-    <div className="px-4 max-w-lg mx-auto space-y-5">
-      <div className="sticky-header -mx-4 flex items-center justify-between px-4 pt-4 pb-3">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-          미션 관리
-        </h1>
-        <Button
-          onClick={openAdd}
-          className="h-10 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 text-sm"
-        >
-          <Plus className="mr-1 h-4 w-4" />
-          미션 추가
-        </Button>
-      </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={missions.map((m) => m.id)}
+        strategy={verticalListSortingStrategy}
       >
-        <SortableContext
-          items={missions.map((m) => m.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-3">
-            {missions.map((mission) => (
-              <SortableMissionRow
-                key={mission.id}
-                mission={mission}
-                expanded={expandedId === mission.id}
-                onToggleExpand={() =>
-                  setExpandedId(expandedId === mission.id ? null : mission.id)
-                }
-                onToggleActive={() =>
-                  toggleActive(mission.id, mission.isActive)
-                }
-                onEdit={() => openEdit(mission)}
-                onDelete={() => deleteMission(mission.id)}
-              />
-            ))}
-            {missions.length === 0 && (
-              <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
-                등록된 미션이 없어요
-              </p>
-            )}
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
+        <div className="space-y-3">
+          {missions.map((mission) => (
+            <SortableMissionRow
+              key={mission.id}
+              mission={mission}
+              expanded={expandedId === mission.id}
+              onToggleExpand={() =>
+                setExpandedId(expandedId === mission.id ? null : mission.id)
+              }
+              onToggleActive={() => toggleActive(mission.id, mission.isActive)}
+              onEdit={() => openEdit(mission)}
+              onDelete={() => deleteMission(mission.id)}
+            />
+          ))}
+          {missions.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
+              등록된 미션이 없어요
+            </p>
+          )}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
 
@@ -353,8 +330,11 @@ export default function AdminMissionsPage(
 ) {
   const { id: marketId } = use(props.params);
   return (
-    <Suspense fallback={<Loading />}>
-      <AdminMissionsContent marketId={marketId} />
-    </Suspense>
+    <div className="px-4 max-w-lg mx-auto space-y-5">
+      <AdminMissionsHeader marketId={marketId} />
+      <Suspense fallback={<Loading />}>
+        <AdminMissionsList marketId={marketId} />
+      </Suspense>
+    </div>
   );
 }

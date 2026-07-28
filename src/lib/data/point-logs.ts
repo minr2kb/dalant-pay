@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { mapPointLog } from "@/lib/db";
+import { groupBy, sumBy } from "es-toolkit";
+import { mapPointLog } from "@/lib/data/mappers";
 
 export async function listPointLogs(
   supabase: SupabaseClient,
@@ -31,12 +32,11 @@ export async function listEarnedTotals(
     .is("voided_at", null);
   if (error) throw new Error(error.message);
 
-  const totals = new Map<string, number>();
-  for (const row of data ?? []) {
-    const userId = row.user_id as string;
-    totals.set(userId, (totals.get(userId) ?? 0) + (row.amount as number));
-  }
-  return Array.from(totals, ([userId, earned]) => ({ userId, earned }));
+  const byUser = groupBy(data ?? [], (row) => row.user_id as string);
+  return Object.entries(byUser).map(([userId, rows]) => ({
+    userId,
+    earned: sumBy(rows, (row) => row.amount as number),
+  }));
 }
 
 export async function listRecentMissionLogs(

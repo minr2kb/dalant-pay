@@ -14,18 +14,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { MissionSlot } from "@/components/mission/MissionSlot";
 import { QRModal } from "@/components/qr/QRModal";
-import { getApiErrorMessage } from "@/lib/api/client";
+import { getApiErrorMessage } from "@/lib/api/executor";
 import { formatKST } from "@/lib/format-date";
 import { marketsQuery, missionsQuery } from "@/lib/query/queries";
 import { uploadMissionPhoto } from "@/lib/upload";
-import { formatReward, getMissionStatus } from "@/types";
-
-const TYPE_LABEL: Record<string, string> = {
-  user_qr: "유저 간 인증",
-  upload: "업로드형",
-  admin_qr: "관리자 인증",
-  manual: "상시",
-};
+import { formatReward, getMissionStatus, MISSION_TYPE_LABEL } from "@/types";
 
 const QR_HINT: Record<string, string> = {
   user_qr: "유저 간 인증 미션: 상대방이 이 QR을 찍어줘야 해요",
@@ -126,7 +119,7 @@ export function MissionDetailClient({
         <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 p-4 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {TYPE_LABEL[mission.type]}
+              {MISSION_TYPE_LABEL[mission.type]}
             </span>
             <span className="text-lg font-bold text-emerald-500">
               +{formatReward(mission)} {market.pointLabel}

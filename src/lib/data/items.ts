@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { mapItem } from "@/lib/db";
+import { mapItem } from "@/lib/data/mappers";
 
 export async function listItems(supabase: SupabaseClient, marketId: string) {
   const { data, error } = await supabase

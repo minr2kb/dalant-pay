@@ -9,7 +9,7 @@ import { Modal } from "@/components/Modal";
 import { QRScanner } from "@/components/qr/QRScanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getApiErrorMessage } from "@/lib/api/client";
+import { getApiErrorMessage } from "@/lib/api/executor";
 import { openModal } from "@/lib/overlay";
 import { parseQR } from "@/lib/qr";
 import { missionsQuery, participantsQuery } from "@/lib/query/queries";

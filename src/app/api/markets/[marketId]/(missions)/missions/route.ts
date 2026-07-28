@@ -7,8 +7,8 @@ import {
   route,
 } from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
+import { mapMission } from "@/lib/data/mappers";
 import { listMissions } from "@/lib/data/missions";
-import { mapMission } from "@/lib/db";
 
 const createMissionParser = createParser(missionsRouter.endpoints.create);
 

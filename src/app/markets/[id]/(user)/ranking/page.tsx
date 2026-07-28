@@ -1,8 +1,9 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { getCurrentUserId } from "@/lib/auth";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { getMarket } from "@/lib/data/markets";
 import { listParticipants } from "@/lib/data/participants";
 import { listEarnedTotals, listRecentMissionLogs } from "@/lib/data/point-logs";
+import { getQueryClient } from "@/lib/query/get-query-client";
+import { Hydrated, hydrateAll } from "@/lib/query/hydrate";
 import { prefetchIfFirstVisit } from "@/lib/query/prefetch";
 import {
   marketsQuery,
@@ -16,35 +17,34 @@ export default async function RankingPage(
   props: PageProps<"/markets/[id]/ranking">,
 ) {
   const { id: marketId } = await props.params;
-  const qc = await prefetchIfFirstVisit(async (qc) => {
+  const qc = getQueryClient();
+  await prefetchIfFirstVisit(async () => {
     const userId = await getCurrentUserId();
     if (!userId) return;
     const supabase = await createClient();
-    const [market, participants, recentMissions, earnedTotals] =
-      await Promise.all([
-        getMarket(supabase, marketId),
-        listParticipants(supabase, marketId),
-        listRecentMissionLogs(supabase, marketId),
-        listEarnedTotals(supabase, marketId),
-      ]);
-    qc.setQueryData(marketsQuery.get({ marketId }).queryKey, market);
-    qc.setQueryData(
-      participantsQuery.list({ marketId }).queryKey,
-      participants,
-    );
-    qc.setQueryData(
-      pointLogsQuery.recentMissions({ marketId }).queryKey,
-      recentMissions,
-    );
-    qc.setQueryData(
-      pointLogsQuery.earnedTotals({ marketId }).queryKey,
-      earnedTotals,
-    );
+    await hydrateAll(qc, [
+      {
+        queryKey: marketsQuery.get({ marketId }).queryKey,
+        queryFn: () => getMarket(supabase, marketId),
+      },
+      {
+        queryKey: participantsQuery.list({ marketId }).queryKey,
+        queryFn: () => listParticipants(supabase, marketId),
+      },
+      {
+        queryKey: pointLogsQuery.recentMissions({ marketId }).queryKey,
+        queryFn: () => listRecentMissionLogs(supabase, marketId),
+      },
+      {
+        queryKey: pointLogsQuery.earnedTotals({ marketId }).queryKey,
+        queryFn: () => listEarnedTotals(supabase, marketId),
+      },
+    ]);
   });
 
   return (
-    <HydrationBoundary state={dehydrate(qc)}>
+    <Hydrated qc={qc}>
       <RankingClient marketId={marketId} />
-    </HydrationBoundary>
+    </Hydrated>
   );
 }

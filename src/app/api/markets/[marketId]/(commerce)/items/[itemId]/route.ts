@@ -6,7 +6,7 @@ import {
   parseRequest,
 } from "@/lib/api/route-helpers";
 import { itemsRouter } from "@/lib/api/router";
-import { mapItem } from "@/lib/db";
+import { mapItem } from "@/lib/data/mappers";
 
 const updateItemParser = createParser(itemsRouter.endpoints.update);
 
