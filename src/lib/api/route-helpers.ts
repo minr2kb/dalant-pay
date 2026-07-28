@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createClient as createSsrClient } from "@/lib/supabase/server"; // session auth only
 import { supabase } from "@/lib/supabase/service"; // service role — bypasses RLS for trusted server code
+import type { Role } from "@/types";
 
 export type Supabase = typeof supabase;
 
@@ -42,7 +43,7 @@ export function route<P = Record<string, string>>(
   };
 }
 
-// 세 라우트 래퍼(authRoute/marketParticipantRoute/marketAdminRoute) 공통 부분 —
+// 세 라우트 래퍼(authRoute/marketParticipantRoute/marketRoleRoute) 공통 부분 —
 // params와 세션 클라이언트를 병렬로 받아온 뒤 claims를 확인한다. 실패 시 401 Response를 돌려준다.
 async function authenticate<P>(props: { params: Promise<P> }) {
   const [params, ssrClient] = await Promise.all([
@@ -82,7 +83,12 @@ export function marketParticipantRoute<P extends { marketId: string }>(
   };
 }
 
-export function marketAdminRoute<P extends { marketId: string }>(
+export function isStaffRole(role: string | null | undefined): boolean {
+  return role === "admin" || role === "owner";
+}
+
+export function marketRoleRoute<P extends { marketId: string }>(
+  allowedRoles: Role[],
   fn: (req: NextRequest, ctx: AuthRouteCtx<P>) => Promise<Response>,
 ) {
   return async (req: NextRequest, props: { params: Promise<P> }) => {
@@ -95,7 +101,27 @@ export function marketAdminRoute<P extends { marketId: string }>(
       .eq("market_id", params.marketId)
       .eq("user_id", userId)
       .single();
-    if (p?.role !== "admin") return err("Forbidden", 403);
+    if (!p || !allowedRoles.includes(p.role as Role))
+      return err("Forbidden", 403);
     return fn(req, { supabase, params, userId });
   };
+}
+
+// transfer/orders/미션 인증/포인트 지급/참여(join) 라우트가 공통으로 쓰는 마켓
+// 활성기간 체크 — 예전엔 transfer 라우트에만 있었다. 마켓 종료(ends_at을
+// 현재로 설정)가 모든 거래를 막으려면 이 체크가 해당 라우트 전부에 있어야 한다.
+export async function assertMarketActive(
+  marketId: string,
+): Promise<Response | null> {
+  const { data: market } = await supabase
+    .from("markets")
+    .select("starts_at, ends_at")
+    .eq("id", marketId)
+    .single();
+  const now = new Date();
+  if (market?.starts_at && new Date(market.starts_at as string) > now)
+    return err("마켓이 아직 시작되지 않았습니다", 403);
+  if (market?.ends_at && new Date(market.ends_at as string) < now)
+    return err("마켓이 종료되었습니다", 403);
+  return null;
 }
