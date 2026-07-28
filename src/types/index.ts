@@ -1,4 +1,4 @@
-export type Role = "admin" | "user";
+export type Role = "admin" | "user" | "owner";
 export type MissionType = "user_qr" | "upload" | "admin_qr" | "manual";
 export type PointReasonType = "mission" | "purchase" | "manual" | "transfer";
 export type Gender = "male" | "female";
