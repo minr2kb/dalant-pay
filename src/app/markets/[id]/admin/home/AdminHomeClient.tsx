@@ -8,6 +8,7 @@ import {
   Coins,
   CreditCard,
   ScanLine,
+  Settings,
   ShieldCheck,
   User,
 } from "lucide-react";
@@ -21,9 +22,15 @@ import {
   participantsQuery,
   pointLogsQuery,
 } from "@/lib/query/queries";
-import { getMissionStatus } from "@/types";
+import { getMissionStatus, type Role } from "@/types";
 
-export function AdminHomeClient({ marketId }: { marketId: string }) {
+export function AdminHomeClient({
+  marketId,
+  myRole,
+}: {
+  marketId: string;
+  myRole: Role | undefined;
+}) {
   const [
     { data: market },
     { data: participants },
@@ -71,13 +78,24 @@ export function AdminHomeClient({ marketId }: { marketId: string }) {
             <ShieldCheck className="h-4 w-4 text-emerald-500" />
           </div>
         </div>
-        <Link
-          href={`/markets/${marketId}/home`}
-          className="flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all"
-        >
-          <User className="h-3.5 w-3.5" />
-          일반화면
-        </Link>
+        <div className="flex items-center gap-2">
+          {myRole === "owner" && (
+            <Link
+              href={`/markets/${marketId}/admin/settings`}
+              className="flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              마켓 설정
+            </Link>
+          )}
+          <Link
+            href={`/markets/${marketId}/home`}
+            className="flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-all"
+          >
+            <User className="h-3.5 w-3.5" />
+            일반화면
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2">

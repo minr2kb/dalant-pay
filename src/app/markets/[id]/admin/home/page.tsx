@@ -1,3 +1,4 @@
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { getMarket } from "@/lib/data/markets";
 import { listMissions, listPendingMissionLogs } from "@/lib/data/missions";
 import { listParticipants } from "@/lib/data/participants";
@@ -11,6 +12,7 @@ import {
   pointLogsQuery,
 } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/server";
+import type { Role } from "@/types";
 import { AdminHomeClient } from "./AdminHomeClient";
 
 export default async function AdminHomePage(
@@ -18,6 +20,18 @@ export default async function AdminHomePage(
 ) {
   const { id: marketId } = await props.params;
   const supabase = await createClient();
+
+  const userId = await getCurrentUserId();
+  const { data: myParticipant } = userId
+    ? await supabase
+        .from("market_participants")
+        .select("role")
+        .eq("market_id", marketId)
+        .eq("user_id", userId)
+        .maybeSingle()
+    : { data: null };
+  const myRole = myParticipant?.role as Role | undefined;
+
   const qc = await hydrateAll(getQueryClient(), [
     {
       queryKey: marketsQuery.get({ marketId }).queryKey,
@@ -42,7 +56,7 @@ export default async function AdminHomePage(
   ]);
   return (
     <Hydrated qc={qc}>
-      <AdminHomeClient marketId={marketId} />
+      <AdminHomeClient marketId={marketId} myRole={myRole} />
     </Hydrated>
   );
 }
