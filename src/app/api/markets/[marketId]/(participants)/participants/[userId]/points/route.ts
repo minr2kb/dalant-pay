@@ -1,18 +1,24 @@
 import { createParser } from "@routar/core";
 import {
+  assertMarketActive,
   err,
-  marketAdminRoute,
+  marketRoleRoute,
   ok,
   parseRequest,
 } from "@/lib/api/route-helpers";
 import { participantsRouter } from "@/lib/api/router";
+import { STAFF_ROLES } from "@/types";
 
 const adjustPointsParser = createParser(
   participantsRouter.endpoints.adjustPoints,
 );
 
-export const PATCH = marketAdminRoute<{ marketId: string; userId: string }>(
+export const PATCH = marketRoleRoute<{ marketId: string; userId: string }>(
+  STAFF_ROLES,
   async (req, { supabase, params }) => {
+    const gate = await assertMarketActive(params.marketId);
+    if (gate) return gate;
+
     const parsed = await parseRequest(adjustPointsParser.parseRequest, {
       path: params,
       body: await req.json(),

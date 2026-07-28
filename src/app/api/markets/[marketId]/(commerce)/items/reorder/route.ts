@@ -1,16 +1,18 @@
 import { createParser } from "@routar/core";
 import {
   err,
-  marketAdminRoute,
+  marketRoleRoute,
   ok,
   parseRequest,
 } from "@/lib/api/route-helpers";
 import { itemsRouter } from "@/lib/api/router";
 import { listItems } from "@/lib/data/items";
+import { STAFF_ROLES } from "@/types";
 
 const reorderParser = createParser(itemsRouter.endpoints.reorder);
 
-export const PATCH = marketAdminRoute<{ marketId: string }>(
+export const PATCH = marketRoleRoute<{ marketId: string }>(
+  STAFF_ROLES,
   async (req, { supabase, params }) => {
     const parsed = await parseRequest(reorderParser.parseRequest, {
       path: params,

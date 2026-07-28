@@ -1,5 +1,12 @@
 import { createParser } from "@routar/core";
-import { authRoute, err, ok, parseRequest } from "@/lib/api/route-helpers";
+import {
+  assertMarketActive,
+  authRoute,
+  err,
+  isStaffRole,
+  ok,
+  parseRequest,
+} from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
 import { resolveNextSlot } from "@/lib/mission-slots";
 import { verifyMissionQR } from "@/lib/qr-server";
@@ -17,6 +24,9 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     const { marketId, missionId } = params;
 
     if (!body.token && !body.userId) return err("QR 인증이 필요해요", 400);
+
+    const gate = await assertMarketActive(marketId);
+    if (gate) return gate;
 
     const [
       { data: mission, error: e1 },
@@ -52,7 +62,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
 
     if (
       (mission.type === "admin_qr" || mission.type === "upload") &&
-      verifierRole !== "admin"
+      !isStaffRole(verifierRole)
     )
       return err("관리자만 인증할 수 있는 미션이에요", 403);
 
@@ -64,12 +74,12 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
         return err("미션 정보가 일치하지 않아요", 400);
       targetUserId = parsed.userId;
     } else {
-      if (verifierRole !== "admin") return err("권한이 없어요", 403);
+      if (!isStaffRole(verifierRole)) return err("권한이 없어요", 403);
       // biome-ignore lint/style/noNonNullAssertion: schema types userId as optional, but the !body.token && !body.userId guard above already ensures it's present here since body.token is falsy in this branch
       targetUserId = body.userId!;
     }
 
-    if (targetUserId === verifiedBy && verifierRole !== "admin")
+    if (targetUserId === verifiedBy && !isStaffRole(verifierRole))
       return err("본인의 QR은 인증할 수 없어요", 403);
 
     const { data: participant, error: e2 } = await supabase
@@ -130,7 +140,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       p_verified_at: verifiedAt,
       p_reward: reward,
       p_mission_title: mission.title,
-      p_allow_self: verifierRole === "admin",
+      p_allow_self: isStaffRole(verifierRole),
     });
 
     if (e3) {

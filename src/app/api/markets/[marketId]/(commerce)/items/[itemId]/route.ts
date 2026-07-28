@@ -1,16 +1,18 @@
 import { createParser } from "@routar/core";
 import {
   err,
-  marketAdminRoute,
+  marketRoleRoute,
   ok,
   parseRequest,
 } from "@/lib/api/route-helpers";
 import { itemsRouter } from "@/lib/api/router";
 import { mapItem } from "@/lib/data/mappers";
+import { STAFF_ROLES } from "@/types";
 
 const updateItemParser = createParser(itemsRouter.endpoints.update);
 
-export const PATCH = marketAdminRoute<{ marketId: string; itemId: string }>(
+export const PATCH = marketRoleRoute<{ marketId: string; itemId: string }>(
+  STAFF_ROLES,
   async (req, { supabase, params }) => {
     const parsed = await parseRequest(updateItemParser.parseRequest, {
       path: params,
@@ -35,7 +37,8 @@ export const PATCH = marketAdminRoute<{ marketId: string; itemId: string }>(
   },
 );
 
-export const DELETE = marketAdminRoute<{ marketId: string; itemId: string }>(
+export const DELETE = marketRoleRoute<{ marketId: string; itemId: string }>(
+  STAFF_ROLES,
   async (_req, { supabase, params }) => {
     const { error } = await supabase
       .from("market_items")

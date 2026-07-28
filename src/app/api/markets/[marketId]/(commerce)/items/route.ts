@@ -1,7 +1,7 @@
 import { createParser } from "@routar/core";
 import {
   err,
-  marketAdminRoute,
+  marketRoleRoute,
   ok,
   parseRequest,
   route,
@@ -9,6 +9,7 @@ import {
 import { itemsRouter } from "@/lib/api/router";
 import { listItems } from "@/lib/data/items";
 import { mapItem } from "@/lib/data/mappers";
+import { STAFF_ROLES } from "@/types";
 
 const createItemParser = createParser(itemsRouter.endpoints.create);
 
@@ -22,7 +23,8 @@ export const GET = route<{ marketId: string }>(
   },
 );
 
-export const POST = marketAdminRoute<{ marketId: string }>(
+export const POST = marketRoleRoute<{ marketId: string }>(
+  STAFF_ROLES,
   async (req, { supabase, params }) => {
     const parsed = await parseRequest(createItemParser.parseRequest, {
       path: params,

@@ -3,7 +3,9 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createClient as createSsrClient } from "@/lib/supabase/server"; // session auth only
 import { supabase } from "@/lib/supabase/service"; // service role — bypasses RLS for trusted server code
-import type { Role } from "@/types";
+import { isStaffRole, type Role } from "@/types";
+
+export { isStaffRole };
 
 export type Supabase = typeof supabase;
 
@@ -81,10 +83,6 @@ export function marketParticipantRoute<P extends { marketId: string }>(
     if (!p) return err("Forbidden", 403);
     return fn(req, { supabase, params, userId });
   };
-}
-
-export function isStaffRole(role: string | null | undefined): boolean {
-  return role === "admin" || role === "owner";
 }
 
 export function marketRoleRoute<P extends { marketId: string }>(
