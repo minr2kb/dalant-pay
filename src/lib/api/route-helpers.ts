@@ -100,7 +100,7 @@ export function marketRoleRoute<P extends { marketId: string }>(
       .select("role")
       .eq("market_id", params.marketId)
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
     if (!p || !allowedRoles.includes(p.role as Role))
       return err("Forbidden", 403);
     return fn(req, { supabase, params, userId });
@@ -113,15 +113,17 @@ export function marketRoleRoute<P extends { marketId: string }>(
 export async function assertMarketActive(
   marketId: string,
 ): Promise<Response | null> {
-  const { data: market } = await supabase
+  const { data: market, error } = await supabase
     .from("markets")
     .select("starts_at, ends_at")
     .eq("id", marketId)
     .single();
+  // 없는 마켓/조회 실패는 fail-closed — 통과시키면 종료된 마켓에서 거래가 열린다.
+  if (error || !market) return err("마켓을 찾을 수 없습니다", 404);
   const now = new Date();
-  if (market?.starts_at && new Date(market.starts_at as string) > now)
+  if (market.starts_at && new Date(market.starts_at as string) > now)
     return err("마켓이 아직 시작되지 않았습니다", 403);
-  if (market?.ends_at && new Date(market.ends_at as string) < now)
+  if (market.ends_at && new Date(market.ends_at as string) < now)
     return err("마켓이 종료되었습니다", 403);
   return null;
 }
