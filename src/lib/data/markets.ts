@@ -68,10 +68,41 @@ export async function listMarkets(supabase: SupabaseClient, userId: string) {
   const joinedIds = new Set((myParticipations ?? []).map((p) => p.market_id));
 
   return (markets ?? [])
+    .filter((m) => joinedIds.has(m.id as string))
     .filter((m) => m.id !== DEV_ONLY_MARKET_ID || userId === DEV_USER_ID)
     .map((m) => ({
       market: mapMarket(m as Record<string, unknown>),
       participantCount: m.market_participants?.[0]?.count ?? 0,
-      isJoined: joinedIds.has(m.id as string),
     }));
+}
+
+export async function canCreateMarket(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("users")
+    .select("can_create_market")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.can_create_market === true;
+}
+
+// 마켓 수정 화면(owner 전용) 전용 — admin_code를 포함하므로 공개 getMarket과
+// 분리한다. GET /api/markets/:marketId는 인증 없는 QR 랜딩 페이지도 호출하는
+// 공개 라우트라 admin_code를 여기 섞으면 안 된다.
+export async function getMarketForOwner(
+  supabase: SupabaseClient,
+  marketId: string,
+) {
+  const { data, error } = await supabase
+    .from("markets")
+    .select("*")
+    .eq("id", marketId)
+    .single();
+  if (error || !data) throw new Error("Not found");
+  return {
+    ...mapMarket(data as Record<string, unknown>),
+    adminCode: data.admin_code as string,
+  };
 }
