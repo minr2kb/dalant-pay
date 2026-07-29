@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
 import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelative } from "@/lib/format-date";
 import {
   marketsQuery,
@@ -139,9 +140,9 @@ export function RankingClient({ marketId }: { marketId: string }) {
           </h2>
           <div className="flex gap-2 overflow-hidden -mx-4 px-4">
             {[1, 2, 3].map((i) => (
-              <div
+              <Skeleton
                 key={i}
-                className="h-[72px] w-40 shrink-0 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
+                className="h-[72px] w-40 shrink-0 rounded-2xl"
               />
             ))}
           </div>

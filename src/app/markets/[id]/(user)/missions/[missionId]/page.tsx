@@ -1,18 +1,19 @@
 import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MissionDetailClient } from "./MissionDetailClient";
 
-function Skeleton() {
+function MissionDetailSkeleton() {
   return (
     <div>
       <div className="flex items-center gap-3 px-4 pt-4 pb-4 max-w-lg mx-auto">
-        <div className="h-6 w-6 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
-        <div className="h-6 w-40 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+        <Skeleton className="h-6 w-6 rounded" />
+        <Skeleton className="h-6 w-40" />
       </div>
       <div className="px-4 max-w-lg mx-auto space-y-6">
-        <div className="h-20 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
+        <Skeleton className="h-20 rounded-2xl" />
         <div className="space-y-3">
-          <div className="h-12 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800" />
-          <div className="h-12 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800" />
+          <Skeleton className="h-12 rounded-full" />
+          <Skeleton className="h-12 rounded-full" />
         </div>
       </div>
     </div>
@@ -29,7 +30,7 @@ export default async function MissionDetailPage(
   if (!userId) return null;
 
   return (
-    <Suspense fallback={<Skeleton />}>
+    <Suspense fallback={<MissionDetailSkeleton />}>
       <MissionDetailClient
         marketId={marketId}
         missionId={missionId}

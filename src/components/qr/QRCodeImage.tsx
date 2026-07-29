@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // QR 스펙 권장 최소 여백(quiet zone) — 모듈 4개 폭.
 const QUIET_ZONE_MODULES = 4;
@@ -87,8 +88,8 @@ export function QRCodeImage({ value, size }: { value: string; size: number }) {
         // biome-ignore lint/performance/noImgElement: rasterized data URI, not a build-time asset next/image can optimize
         <img src={pngUrl} width={size} height={size} alt="" />
       ) : (
-        <div
-          className="animate-pulse rounded-xl bg-gray-100"
+        <Skeleton
+          className="rounded-xl dark:bg-gray-100"
           style={{ width: size, height: size }}
         />
       )}
