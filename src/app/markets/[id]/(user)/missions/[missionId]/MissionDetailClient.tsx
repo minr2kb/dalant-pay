@@ -54,6 +54,13 @@ export function MissionDetailClient({
       invalidates: [missionsQuery.$key],
     }),
   );
+  const deletePhotoMutation = useMutation(
+    missionsQuery.deletePhoto({
+      invalidates: [missionsQuery.$key],
+      onError: () =>
+        toast.error("삭제에 실패했어요", { description: "다시 시도해주세요" }),
+    }),
+  );
 
   const isUnlimited = mission.limitCount === null;
   const nextPendingSlot = mission.slots?.find((s) => s.verifiedAt === null);
@@ -218,6 +225,18 @@ export function MissionDetailClient({
                   <p className="text-center text-xs text-gray-400 dark:text-gray-500">
                     사진을 업로드해야 QR을 생성할 수 있어요
                   </p>
+                )}
+                {pendingPhotoUrl && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      deletePhotoMutation.mutate({ marketId, missionId })
+                    }
+                    disabled={deletePhotoMutation.isPending || uploading}
+                    className="mx-auto block text-center text-xs text-gray-400 underline underline-offset-2 hover:text-rose-400 disabled:opacity-40 dark:text-gray-500"
+                  >
+                    {deletePhotoMutation.isPending ? "삭제 중…" : "사진 삭제"}
+                  </button>
                 )}
               </div>
             )}
