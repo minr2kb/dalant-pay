@@ -111,6 +111,18 @@ export const participantsRouter = defineRouter("/markets", {
       displayName: z.string(),
     }),
   }),
+  promoteOwner: endpoint({
+    method: "POST",
+    path: "/:marketId/participants/:userId/promote-owner",
+    request: { path: marketAndUser },
+    response: MarketParticipantSchema,
+  }),
+  revokeRole: endpoint({
+    method: "POST",
+    path: "/:marketId/participants/:userId/revoke-role",
+    request: { path: marketAndUser },
+    response: MarketParticipantSchema,
+  }),
 });
 
 export const missionsRouter = defineRouter("/markets", {

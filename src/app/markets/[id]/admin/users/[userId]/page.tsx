@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { listMissions } from "@/lib/data/missions";
 import { getParticipant } from "@/lib/data/participants";
 import { getQueryClient } from "@/lib/query/get-query-client";
@@ -15,12 +16,22 @@ export default async function AdminUserDetailPage(
 ) {
   const { id: marketId, userId } = await props.params;
   const supabase = await createClient();
+  const callerId = await getCurrentUserId();
   // participant는 아래 헤더에서도 직접 쓰이는 값이라 hydrate/hydrateAll(캐시 채우기 전용)로
   // 감추지 않고 그대로 받아서 qc에 직접 얹는다.
-  const [participant, missions] = await Promise.all([
+  const [participant, missions, caller] = await Promise.all([
     getParticipant(supabase, marketId, userId),
     listMissions(supabase, marketId),
+    callerId
+      ? supabase
+          .from("market_participants")
+          .select("role")
+          .eq("market_id", marketId)
+          .eq("user_id", callerId)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+  const isOwner = caller.data?.role === "owner";
   const qc = getQueryClient();
   qc.setQueryData(
     participantsQuery.get({ marketId, userId }).queryKey,
@@ -28,28 +39,28 @@ export default async function AdminUserDetailPage(
   );
   qc.setQueryData(missionsQuery.list({ marketId }).queryKey, missions);
   return (
-    <div>
-      <div className="sticky-header flex items-center gap-3 px-4 pt-4 pb-4 max-w-lg mx-auto">
-        <Link
-          href={`/markets/${marketId}/admin/users`}
-          className="text-gray-400"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </Link>
-        <Avatar>
-          <AvatarImage
-            src={participant.participant.user.avatarUrl ?? undefined}
-            alt=""
-          />
-          <AvatarFallback>
-            {participant.participant.user.realName.slice(0, 1)}
-          </AvatarFallback>
-        </Avatar>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-          {participant.participant.displayName}
-        </h1>
-      </div>
-      <Hydrated qc={qc}>
+    <Hydrated qc={qc}>
+      <div>
+        <div className="sticky-header flex items-center gap-3 px-4 pt-4 pb-4 max-w-lg mx-auto">
+          <Link
+            href={`/markets/${marketId}/admin/users`}
+            className="text-gray-400"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Link>
+          <Avatar>
+            <AvatarImage
+              src={participant.participant.user.avatarUrl ?? undefined}
+              alt=""
+            />
+            <AvatarFallback>
+              {participant.participant.user.realName.slice(0, 1)}
+            </AvatarFallback>
+          </Avatar>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+            {participant.participant.displayName}
+          </h1>
+        </div>
         <Suspense
           fallback={
             <p className="py-8 text-center text-sm text-gray-400">
@@ -57,9 +68,13 @@ export default async function AdminUserDetailPage(
             </p>
           }
         >
-          <AdminUserDetailClient marketId={marketId} userId={userId} />
+          <AdminUserDetailClient
+            marketId={marketId}
+            userId={userId}
+            isOwner={isOwner}
+          />
         </Suspense>
-      </Hydrated>
-    </div>
+      </div>
+    </Hydrated>
   );
 }

@@ -67,6 +67,11 @@ export function AdminUsersClient({ marketId }: { marketId: string }) {
                         ({p.displayName})
                       </span>
                     )}
+                    {p.role === "owner" && (
+                      <span className="rounded-full bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 text-[10px] font-medium text-amber-600">
+                        소유자
+                      </span>
+                    )}
                     {p.role === "admin" && (
                       <span className="rounded-full bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 text-[10px] font-medium text-purple-600">
                         관리자
