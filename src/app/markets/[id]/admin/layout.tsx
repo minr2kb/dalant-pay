@@ -1,7 +1,22 @@
 import { FloatingTabBar } from "@/components/FloatingTabBar";
+import { getCurrentUserId } from "@/lib/auth/current-user";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminLayout(props: LayoutProps<"/markets/[id]">) {
   const { id } = await props.params;
+
+  const userId = await getCurrentUserId();
+  let isOwner = false;
+  if (userId) {
+    const supabase = await createClient();
+    const { data: participant } = await supabase
+      .from("market_participants")
+      .select("role")
+      .eq("market_id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    isOwner = participant?.role === "owner";
+  }
 
   const tabs = [
     {
@@ -28,6 +43,16 @@ export default async function AdminLayout(props: LayoutProps<"/markets/[id]">) {
       href: `/markets/${id}/admin/users`,
       icon: "Users",
     },
+    ...(isOwner
+      ? [
+          {
+            label: "설정",
+            segment: "admin/settings",
+            href: `/markets/${id}/admin/settings`,
+            icon: "Settings",
+          },
+        ]
+      : []),
   ];
 
   return (

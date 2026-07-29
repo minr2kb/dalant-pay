@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
-import { Camera, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { Camera, LayoutGrid, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useRef } from "react";
@@ -171,6 +172,15 @@ export function MyPageClient({
           ))}
         </div>
       </div>
+
+      <Button
+        variant="outline"
+        className="h-12 w-full gap-2"
+        render={<Link href="/markets" />}
+      >
+        <LayoutGrid className="h-4 w-4" />
+        마켓 목록으로
+      </Button>
 
       <Button
         variant="outline"
