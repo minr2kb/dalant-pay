@@ -26,10 +26,13 @@
 ### 권한
 | 권한 | 설명 |
 |------|------|
+| `owner` | `admin` 권한 전체 + 마켓 생성, 마켓 설정 변경/종료 |
 | `admin` | 미션 관리, QR 스캔 처리, 달란트 수동 지급/차감, 마켓 POS 사용 |
 | `user` | 미션 인증 제출, 달란트 내역 확인, 마켓 구매, 참여자 간 전송 |
 
 관리자도 참여자로서 동일하게 미션을 수행할 수 있습니다. 단, 자기 자신의 QR을 스캔하는 것은 서버에서 차단합니다.
+
+마켓 생성은 화이트리스트(`users.can_create_market`)된 유저만 가능하며, 생성한 유저는 해당 마켓의 `owner`가 됩니다.
 
 ---
 
@@ -42,11 +45,18 @@
 - **마켓 결제** — 홈 화면에서 결제 QR을 생성하면 관리자가 스캔해서 즉시 차감
 
 ### 관리자
-- **QR 스캔** — 참여자가 제시한 QR을 스캔해 미션 인증 또는 마켓 결제를 즉시 처리
+- **QR 스캔** — 참여자가 제시한 QR을 스캔해 미션 인증 또는 마켓 결제를 즉시 처리. QR 없이 미션·참여자를 직접 선택하는 수동인증도 지원
+- **활동 내역** — 업로드형 미션의 승인 대기 목록과 최근 활동을 한 화면에서 확인
 - **달란트 관리** — 참여자별 수동 지급·차감 및 전체 잔액 현황 확인
-- **미션 관리** — 미션 추가, 활성화/비활성화, 인증 타입·보상·횟수 설정
+- **미션 관리** — 미션 추가, 활성화/비활성화, 인증 타입·보상(고정 또는 범위)·횟수 설정, 드래그로 순서 변경
+- **물품 관리** — 마켓 물품 추가/수정/삭제, 드래그로 순서 변경
 - **마켓 POS** — 물품을 선택하고 참여자 QR을 스캔해 결제 처리
 - **유저 관리** — 참여자별 달란트 잔액, 미션 완료 현황 확인
+
+### 오너 (`owner`)
+- **마켓 생성** — 화이트리스트된 유저만 새 마켓 생성 가능
+- **마켓 설정** — 마켓 정보 수정, 종료 처리
+- **초대** — QR 코드 또는 링크 복사로 마켓 참여 초대
 
 ---
 
@@ -98,17 +108,19 @@ dalant:p:<marketId>:<userId>
 ## DB 스키마
 
 ```sql
-users               (id uuid PK, name, real_name, birth_date, gender)
+users               (id uuid PK, name, real_name, birth_date, gender, can_create_market)
 markets             (id text PK, title, point_label, admin_code, starts_at, ends_at)
 market_participants (id text PK, market_id text FK, user_id uuid FK, role, balance int)
 market_items        (id text PK, market_id text FK, name, price int)
-missions            (id text PK, market_id text FK, title, type, is_group, reward, limit_count, active_from, active_until, is_active)
+missions            (id text PK, market_id text FK, title, type, is_group, reward, reward_min, reward_max, limit_count, active_from, active_until, is_active)
 mission_logs        (id text PK, mission_id text FK, user_id uuid FK, verified_by uuid FK, slot int, photo_url)
 point_logs          (id text PK, market_id text FK, user_id uuid FK, amount int, reason_type, memo)
 orders              (id text PK, market_id text FK, user_id uuid FK, verified_by uuid FK, items jsonb, total int)
 ```
 
 **ID 타입**: `users.id` / `*.user_id`만 `uuid`. 나머지 모든 PK/FK는 `text` (nanoid).
+
+**권한(`role`)**: `'owner' | 'admin' | 'user'`
 
 `reason_type`: `'mission' | 'purchase' | 'manual' | 'transfer'`
 
@@ -136,7 +148,9 @@ orders              (id text PK, market_id text FK, user_id uuid FK, verified_by
 ```
 /login                              카카오 로그인
 /onboarding                         최초 1회 본명·생일·성별 입력
-/markets                            마켓 목록
+/markets                            마켓 목록 (참여 중인 마켓만)
+/markets/new                        마켓 생성 (owner 화이트리스트 전용)
+/markets/[id]                       QR 랜딩 · 초대 링크 진입점 (마켓 참여)
 /markets/[id]/home                  유저 홈 (잔액, 결제 QR, 전송, 최근 내역)
 /markets/[id]/missions              미션 목록
 /markets/[id]/missions/[missionId]  미션 상세 및 인증
@@ -144,12 +158,15 @@ orders              (id text PK, market_id text FK, user_id uuid FK, verified_by
 /markets/[id]/mypage                마이페이지
 /markets/[id]/ranking               달란트 랭킹
 /markets/[id]/admin/home            관리자 홈
-/markets/[id]/admin/scan            QR 스캔
+/markets/[id]/admin/scan            QR 스캔 (수동인증 포함)
+/markets/[id]/admin/activity        활동 내역 (승인 대기 등)
 /markets/[id]/admin/points          달란트 수동 관리
 /markets/[id]/admin/missions        미션 관리
+/markets/[id]/admin/items           물품 관리
 /markets/[id]/admin/pos             마켓 POS
 /markets/[id]/admin/users           유저 관리
 /markets/[id]/admin/users/[userId]  유저 상세
+/markets/[id]/admin/settings        마켓 설정 (owner 전용)
 ```
 
 ---
