@@ -175,7 +175,7 @@ export function MyPageClient({
 
       <Button
         variant="outline"
-        className="h-12 w-full gap-2"
+        className="h-12 w-full gap-2 rounded-2xl border-gray-200 dark:border-gray-700"
         render={<Link href="/markets" />}
       >
         <LayoutGrid className="h-4 w-4" />
@@ -184,7 +184,7 @@ export function MyPageClient({
 
       <Button
         variant="outline"
-        className="h-12 w-full gap-2 text-red-500 border-red-100 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
+        className="h-12 w-full gap-2 rounded-2xl text-red-500 border-red-100 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
         onClick={handleLogout}
       >
         <LogOut className="h-4 w-4" />
