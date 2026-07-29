@@ -691,11 +691,11 @@ CREATE POLICY "mlogs_select" ON "public"."mission_logs" FOR SELECT USING ((("use
 
 
 
-CREATE POLICY "mp_insert" ON "public"."market_participants" FOR INSERT TO "authenticated" WITH CHECK (("user_id" = "auth"."uid"()));
+CREATE POLICY "mp_insert" ON "public"."market_participants" FOR INSERT TO "authenticated" WITH CHECK (((("user_id" = "auth"."uid"())) AND (("role" = 'user'::"text")) AND (("balance" = 0))));
 
 
 
-CREATE POLICY "mp_select" ON "public"."market_participants" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "mp_select" ON "public"."market_participants" FOR SELECT TO "authenticated" USING ("public"."is_market_participant"("market_id"));
 
 
 
@@ -732,7 +732,10 @@ CREATE POLICY "users_insert" ON "public"."users" FOR INSERT TO "authenticated" W
 
 
 
-CREATE POLICY "users_select" ON "public"."users" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "users_select" ON "public"."users" FOR SELECT TO "authenticated" USING ((("id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
+   FROM ("public"."market_participants" "mp_self"
+     JOIN "public"."market_participants" "mp_target" ON (("mp_self"."market_id" = "mp_target"."market_id")))
+  WHERE (("mp_self"."user_id" = "auth"."uid"()) AND ("mp_target"."user_id" = "users"."id"))))));
 
 
 
