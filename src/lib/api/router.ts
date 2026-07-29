@@ -224,6 +224,15 @@ export const missionsRouter = defineRouter("/markets", {
     },
     response: z.object({ slot: z.number(), photoUrl: z.string() }),
   }),
+  deletePhoto: endpoint({
+    method: "DELETE",
+    path: "/:marketId/missions/:missionId/photo",
+    request: {
+      path: marketAndMission,
+      body: z.object({ userId: z.string().optional() }),
+    },
+    response: z.object({ deleted: z.boolean() }),
+  }),
   pendingLogs: endpoint({
     method: "GET",
     path: "/:marketId/missions/pending",

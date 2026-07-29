@@ -1,9 +1,16 @@
 import { createParser } from "@routar/core";
-import { authRoute, err, ok, parseRequest } from "@/lib/api/route-helpers";
+import {
+  authRoute,
+  err,
+  isStaffRole,
+  ok,
+  parseRequest,
+} from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
 import { resolveNextSlot } from "@/lib/mission-slots";
 
 const uploadPhotoParser = createParser(missionsRouter.endpoints.uploadPhoto);
+const deletePhotoParser = createParser(missionsRouter.endpoints.deletePhoto);
 
 export const POST = authRoute<{ marketId: string; missionId: string }>(
   async (req, { supabase, params, userId }) => {
@@ -75,5 +82,41 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     );
     if (error) return err("업로드에 실패했어요", 500);
     return ok({ slot, photoUrl });
+  },
+);
+
+// 아직 승인되지 않은(verified_at null) 업로드만 삭제 대상 — 리워드가 나간 적
+// 없으니 point_logs revoke처럼 voided_at으로 남길 필요 없이 그냥 지운다.
+// 본인은 항상 자기 사진을 지울 수 있고, 다른 유저 걸 지우려면(관리자 반려) staff 권한 필요.
+export const DELETE = authRoute<{ marketId: string; missionId: string }>(
+  async (req, { supabase, params, userId: callerId }) => {
+    const parsed = await parseRequest(deletePhotoParser.parseRequest, {
+      path: params,
+      body: await req.json(),
+    });
+    if (parsed instanceof Response) return parsed;
+    const { marketId, missionId } = params;
+    const targetUserId = parsed.body.userId ?? callerId;
+
+    if (targetUserId !== callerId) {
+      const { data: caller } = await supabase
+        .from("market_participants")
+        .select("role")
+        .eq("market_id", marketId)
+        .eq("user_id", callerId)
+        .maybeSingle();
+      if (!isStaffRole(caller?.role)) return err("권한이 없어요", 403);
+    }
+
+    const { data, error } = await supabase
+      .from("mission_logs")
+      .delete()
+      .eq("mission_id", missionId)
+      .eq("user_id", targetUserId)
+      .is("verified_at", null)
+      .select("id");
+    if (error) return err("삭제에 실패했어요", 500);
+    if (!data || data.length === 0) return err("삭제할 사진이 없어요", 404);
+    return ok({ deleted: true });
   },
 );
