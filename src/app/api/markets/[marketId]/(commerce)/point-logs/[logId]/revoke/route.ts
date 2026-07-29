@@ -1,6 +1,8 @@
-import { err, marketAdminRoute, ok } from "@/lib/api/route-helpers";
+import { err, marketRoleRoute, ok } from "@/lib/api/route-helpers";
+import { STAFF_ROLES } from "@/types";
 
-export const POST = marketAdminRoute<{ marketId: string; logId: string }>(
+export const POST = marketRoleRoute<{ marketId: string; logId: string }>(
+  STAFF_ROLES,
   async (_req, { supabase, params, userId: voidedBy }) => {
     const { marketId, logId } = params;
 

@@ -18,6 +18,7 @@ export default async function AdminHomePage(
 ) {
   const { id: marketId } = await props.params;
   const supabase = await createClient();
+
   const qc = await hydrateAll(getQueryClient(), [
     {
       queryKey: marketsQuery.get({ marketId }).queryKey,

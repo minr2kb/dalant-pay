@@ -1,6 +1,6 @@
 import { AuthGate } from "@/components/AuthGate";
 import { getCurrentUserId } from "@/lib/auth/current-user";
-import { listMarkets } from "@/lib/data/markets";
+import { canCreateMarket, listMarkets } from "@/lib/data/markets";
 import { getQueryClient } from "@/lib/query/get-query-client";
 import { Hydrated, hydrate } from "@/lib/query/hydrate";
 import { prefetchIfFirstVisit } from "@/lib/query/prefetch";
@@ -10,8 +10,10 @@ import { MarketsListClient } from "./MarketsListClient";
 
 export default async function MarketsPage() {
   const qc = getQueryClient();
+  const userId = await getCurrentUserId();
+  let canCreate = false;
+
   await prefetchIfFirstVisit(async () => {
-    const userId = await getCurrentUserId();
     if (!userId) return;
     const supabase = await createClient();
     await hydrate(qc, {
@@ -20,10 +22,15 @@ export default async function MarketsPage() {
     });
   });
 
+  if (userId) {
+    const supabase = await createClient();
+    canCreate = await canCreateMarket(supabase, userId);
+  }
+
   return (
     <Hydrated qc={qc}>
       <AuthGate>
-        <MarketsListClient />
+        <MarketsListClient canCreateMarket={canCreate} />
       </AuthGate>
     </Hydrated>
   );

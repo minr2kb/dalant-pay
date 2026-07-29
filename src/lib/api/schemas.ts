@@ -23,7 +23,6 @@ export const MarketSchema = z.object({
 export const MarketListItemSchema = z.object({
   market: MarketSchema,
   participantCount: z.number(),
-  isJoined: z.boolean(),
 });
 
 export const MissionSlotSchema = z.object({
@@ -55,7 +54,7 @@ export const MarketParticipantSchema = z.object({
   id: z.string(),
   marketId: z.string(),
   user: UserSchema,
-  role: z.enum(["admin", "user"]),
+  role: z.enum(["admin", "user", "owner"]),
   balance: z.number(),
   displayName: z.string(),
 });

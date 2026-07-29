@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
-import { Camera, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import { Camera, LayoutGrid, LogOut, Monitor, Moon, Sun } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useRef } from "react";
@@ -9,6 +10,7 @@ import { useSessionUserId } from "@/components/AuthGate";
 import { MarketShareButton } from "@/components/market/MarketShareButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth/sign-out";
 import { formatKST } from "@/lib/format-date";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
@@ -81,8 +83,7 @@ export function MyPageClient({
     : "-";
 
   async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.push("/login");
   }
 
@@ -174,7 +175,16 @@ export function MyPageClient({
 
       <Button
         variant="outline"
-        className="h-12 w-full gap-2 text-red-500 border-red-100 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
+        className="h-12 w-full gap-2 rounded-2xl border-gray-200 dark:border-gray-700"
+        render={<Link href="/markets" />}
+      >
+        <LayoutGrid className="h-4 w-4" />
+        마켓 목록으로
+      </Button>
+
+      <Button
+        variant="outline"
+        className="h-12 w-full gap-2 rounded-2xl text-red-500 border-red-100 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
         onClick={handleLogout}
       >
         <LogOut className="h-4 w-4" />

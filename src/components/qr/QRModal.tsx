@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { QRCodeImage } from "@/components/qr/QRCodeImage";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useInterval } from "@/hooks/use-interval";
 import { openModal } from "@/lib/overlay";
 import { isSamsungInternetBrowser } from "@/lib/user-agent";
@@ -99,7 +100,7 @@ function QRContent({
           {qrValue ? (
             <QRCodeImage value={qrValue} size={272} />
           ) : (
-            <div className="h-full w-full animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+            <Skeleton className="h-full w-full rounded-xl" />
           )}
         </div>
 

@@ -1,5 +1,11 @@
 import { createParser } from "@routar/core";
-import { authRoute, err, ok, parseRequest } from "@/lib/api/route-helpers";
+import {
+  assertMarketActive,
+  authRoute,
+  err,
+  ok,
+  parseRequest,
+} from "@/lib/api/route-helpers";
 import { transferRouter } from "@/lib/api/router";
 
 const transferParser = createParser(transferRouter.endpoints.transfer);
@@ -17,34 +23,21 @@ export const POST = authRoute<{ marketId: string }>(
     if (body.toUserId === fromUserId)
       return err("자신에게는 전송할 수 없습니다", 400);
 
+    const gate = await assertMarketActive(marketId);
+    if (gate) return gate;
+
     // 이름 조회 (memo 생성용)
-    const [{ data: fromUser }, { data: toUser }, { data: market }] =
-      await Promise.all([
-        supabase
-          .from("users")
-          .select("real_name")
-          .eq("id", fromUserId)
-          .single(),
-        supabase
-          .from("users")
-          .select("real_name")
-          .eq("id", body.toUserId)
-          .single(),
-        supabase
-          .from("markets")
-          .select("starts_at, ends_at")
-          .eq("id", marketId)
-          .single(),
-      ]);
+    const [{ data: fromUser }, { data: toUser }] = await Promise.all([
+      supabase.from("users").select("real_name").eq("id", fromUserId).single(),
+      supabase
+        .from("users")
+        .select("real_name")
+        .eq("id", body.toUserId)
+        .single(),
+    ]);
 
     if (!fromUser) return err("송신자를 찾을 수 없습니다", 404);
     if (!toUser) return err("수신자를 찾을 수 없습니다", 404);
-
-    const now = new Date();
-    if (market?.starts_at && new Date(market.starts_at as string) > now)
-      return err("마켓이 아직 시작되지 않았습니다", 403);
-    if (market?.ends_at && new Date(market.ends_at as string) < now)
-      return err("마켓이 종료되었습니다", 403);
 
     const memo = `${fromUser.real_name} -> ${toUser.real_name}`;
 

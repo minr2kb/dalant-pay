@@ -1,4 +1,5 @@
 import {
+  assertMarketActive,
   authRoute,
   err,
   marketParticipantRoute,
@@ -20,6 +21,8 @@ export const GET = marketParticipantRoute<{ marketId: string }>(
 
 export const POST = authRoute<{ marketId: string }>(
   async (_req, { supabase, params, userId }) => {
+    const gate = await assertMarketActive(params.marketId);
+    if (gate) return gate;
     try {
       const result = await joinMarket(supabase, params.marketId, userId);
       return ok(result);

@@ -34,6 +34,37 @@ export const marketsRouter = defineRouter("/markets", {
     request: { path: marketId },
     response: MarketSchema,
   }),
+  create: endpoint({
+    method: "POST",
+    path: "/",
+    request: {
+      body: z.object({
+        title: z.string().min(1),
+        description: z.string().optional(),
+        pointLabel: z.string().min(1),
+        adminCode: z.string().min(4),
+        startsAt: z.string(),
+        endsAt: z.string(),
+      }),
+    },
+    response: z.object({ marketId: z.string() }),
+  }),
+  update: endpoint({
+    method: "PATCH",
+    path: "/:marketId",
+    request: {
+      path: marketId,
+      body: z.object({
+        title: z.string().min(1).optional(),
+        description: z.string().optional(),
+        pointLabel: z.string().min(1).optional(),
+        adminCode: z.string().min(4).optional(),
+        startsAt: z.string().optional(),
+        endsAt: z.string().optional(),
+      }),
+    },
+    response: MarketSchema,
+  }),
 });
 
 export const participantsRouter = defineRouter("/markets", {

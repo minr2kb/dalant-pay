@@ -1,7 +1,8 @@
 "use client";
 
-import { Share2, X } from "lucide-react";
+import { Copy, Share2, X } from "lucide-react";
 import QRCode from "react-qr-code";
+import { toast } from "sonner";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
 import { openModal } from "@/lib/overlay";
@@ -15,6 +16,12 @@ export function MarketShareButton({
 }) {
   function handleOpen() {
     const shareUrl = `${window.location.origin}/markets/${marketId}`;
+
+    async function handleCopy() {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("링크가 복사되었어요");
+    }
+
     openModal((close) => (
       <Modal onClose={close}>
         <div className="p-6 space-y-5">
@@ -43,6 +50,15 @@ export function MarketShareButton({
           <p className="text-center text-xs text-gray-400 dark:text-gray-500">
             이 QR을 스캔하면 마켓에 바로 참여할 수 있어요
           </p>
+
+          <Button
+            variant="outline"
+            className="h-12 w-full gap-2 rounded-2xl border-gray-200 dark:border-gray-700"
+            onClick={handleCopy}
+          >
+            <Copy className="h-4 w-4" />
+            링크 복사
+          </Button>
         </div>
       </Modal>
     ));

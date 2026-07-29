@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: NEXT_PUBLIC_SUPABASE_URL/ANON_KEY are required env vars set at build/deploy time and must fail loudly if missing */
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { isStaffRole } from "@/types";
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -70,7 +71,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // /admin/* 페이지는 로그인만 확인되고 role은 안 걸러져서, 일반 유저도 URL을 직접
-  // 치면 화면 자체는 보였다(액션은 marketAdminRoute가 403으로 막지만) — 여기서 role도 같이 검증.
+  // 치면 화면 자체는 보였다(액션은 marketRoleRoute가 403으로 막지만) — 여기서 role도 같이 검증.
   const adminMatch = pathname.match(/^\/markets\/([^/]+)\/admin(\/.*)?$/);
   if (user && adminMatch) {
     const marketId = adminMatch[1];
@@ -80,7 +81,7 @@ export async function proxy(request: NextRequest) {
       .eq("market_id", marketId)
       .eq("user_id", user.sub)
       .maybeSingle();
-    if (participant?.role !== "admin") {
+    if (!isStaffRole(participant?.role)) {
       return NextResponse.redirect(
         new URL(`/markets/${marketId}/home`, request.url),
       );

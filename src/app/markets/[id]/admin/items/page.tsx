@@ -19,6 +19,7 @@ import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronLeft, GripVertical, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Suspense, use } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useOptimisticReorder } from "@/hooks/use-optimistic-reorder";
 import { openModal } from "@/lib/overlay";
 import { itemsQuery } from "@/lib/query/queries";
@@ -160,10 +161,7 @@ function GridSkeleton() {
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
       {[1, 2, 3, 4].map((i) => (
-        <div
-          key={i}
-          className="h-[76px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800"
-        />
+        <Skeleton key={i} className="h-[76px] rounded-2xl" />
       ))}
     </div>
   );

@@ -6,6 +6,7 @@ import {
   ListTodo,
   type LucideIcon,
   QrCode,
+  Settings,
   ShoppingBag,
   Trophy,
   User,
@@ -27,6 +28,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Users,
   ShoppingBag,
   Trophy,
+  Settings,
 };
 
 export interface TabItem {

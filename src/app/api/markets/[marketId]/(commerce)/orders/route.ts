@@ -1,13 +1,15 @@
 import { createParser } from "@routar/core";
 import {
+  assertMarketActive,
   err,
-  marketAdminRoute,
+  marketRoleRoute,
   ok,
   parseRequest,
   route,
 } from "@/lib/api/route-helpers";
 import { ordersRouter } from "@/lib/api/router";
 import { mapOrder } from "@/lib/data/mappers";
+import { STAFF_ROLES } from "@/types";
 
 const createOrderParser = createParser(ordersRouter.endpoints.create);
 
@@ -28,8 +30,12 @@ export const GET = route<{ marketId: string }>(
   },
 );
 
-export const POST = marketAdminRoute<{ marketId: string }>(
+export const POST = marketRoleRoute<{ marketId: string }>(
+  STAFF_ROLES,
   async (req, { supabase, params, userId: verifiedBy }) => {
+    const gate = await assertMarketActive(params.marketId);
+    if (gate) return gate;
+
     const parsed = await parseRequest(createOrderParser.parseRequest, {
       path: params,
       body: await req.json(),

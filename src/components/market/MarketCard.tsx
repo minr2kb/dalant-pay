@@ -6,26 +6,33 @@ import type { Market } from "@/types";
 interface MarketCardProps {
   market: Market;
   participantCount: number;
-  isJoined: boolean;
 }
 
-export function MarketCard({
-  market,
-  participantCount,
-  isJoined,
-}: MarketCardProps) {
+export function MarketCard({ market, participantCount }: MarketCardProps) {
   const startDate = formatKST(market.startsAt, {
     month: "long",
     day: "numeric",
   });
   const endDate = formatKST(market.endsAt, { month: "long", day: "numeric" });
+  const isEnded = new Date(market.endsAt) < new Date();
 
   return (
-    <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4">
+    <div
+      className={`rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4 ${
+        isEnded ? "opacity-60" : ""
+      }`}
+    >
       <div className="space-y-1">
-        <h3 className="font-bold text-gray-900 dark:text-white text-base">
-          {market.title}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-gray-900 dark:text-white text-base">
+            {market.title}
+          </h3>
+          {isEnded && (
+            <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] font-semibold text-gray-500 dark:text-gray-400">
+              종료됨
+            </span>
+          )}
+        </div>
         {market.description && (
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {market.description}
@@ -43,14 +50,10 @@ export function MarketCard({
         </span>
       </div>
       <Link
-        href={isJoined ? `/markets/${market.id}/home` : `/markets/${market.id}`}
-        className={`flex w-full items-center justify-center rounded-full py-2.5 text-sm font-medium transition-colors ${
-          isJoined
-            ? "bg-emerald-500 text-white hover:bg-emerald-600"
-            : "border border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
-        }`}
+        href={`/markets/${market.id}/home`}
+        className="flex w-full items-center justify-center rounded-full py-2.5 text-sm font-medium transition-colors bg-emerald-500 text-white hover:bg-emerald-600"
       >
-        {isJoined ? "입장하기" : "참여하기"}
+        입장하기
       </Link>
     </div>
   );

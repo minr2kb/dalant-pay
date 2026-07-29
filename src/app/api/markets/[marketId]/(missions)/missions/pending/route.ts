@@ -1,7 +1,9 @@
-import { err, marketAdminRoute, ok } from "@/lib/api/route-helpers";
+import { err, marketRoleRoute, ok } from "@/lib/api/route-helpers";
 import { listPendingMissionLogs } from "@/lib/data/missions";
+import { STAFF_ROLES } from "@/types";
 
-export const GET = marketAdminRoute<{ marketId: string }>(
+export const GET = marketRoleRoute<{ marketId: string }>(
+  STAFF_ROLES,
   async (_req, { supabase, params }) => {
     try {
       return ok(await listPendingMissionLogs(supabase, params.marketId));

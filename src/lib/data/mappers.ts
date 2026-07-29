@@ -8,6 +8,7 @@ import type {
   Order,
   PendingMissionLog,
   PointLog,
+  Role,
   User,
 } from "@/types";
 
@@ -43,7 +44,7 @@ export function mapParticipant(
     id: row.id as string,
     marketId: row.market_id as string,
     user,
-    role: row.role as "admin" | "user",
+    role: row.role as Role,
     balance: row.balance as number,
     displayName: (row.display_name as string | null) ?? user.realName,
   };

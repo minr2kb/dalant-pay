@@ -1,4 +1,9 @@
-export type Role = "admin" | "user";
+export type Role = "admin" | "user" | "owner";
+export const STAFF_ROLES: Role[] = ["admin", "owner"];
+
+export function isStaffRole(role: string | null | undefined): boolean {
+  return role === "admin" || role === "owner";
+}
 export type MissionType = "user_qr" | "upload" | "admin_qr" | "manual";
 export type PointReasonType = "mission" | "purchase" | "manual" | "transfer";
 export type Gender = "male" | "female";
