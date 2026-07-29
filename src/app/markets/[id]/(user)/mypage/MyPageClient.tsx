@@ -10,6 +10,7 @@ import { useSessionUserId } from "@/components/AuthGate";
 import { MarketShareButton } from "@/components/market/MarketShareButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth/sign-out";
 import { formatKST } from "@/lib/format-date";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
@@ -82,8 +83,7 @@ export function MyPageClient({
     : "-";
 
   async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.push("/login");
   }
 

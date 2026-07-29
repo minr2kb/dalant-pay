@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MarketCard } from "@/components/market/MarketCard";
+import { signOut } from "@/lib/auth/sign-out";
 import { marketsQuery } from "@/lib/query/queries";
-import { createClient } from "@/lib/supabase/client";
 import { MarketsSkeleton } from "./MarketsSkeleton";
 
 export function MarketsListClient({
@@ -24,8 +24,7 @@ export function MarketsListClient({
   });
 
   async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.push("/login");
   }
 
