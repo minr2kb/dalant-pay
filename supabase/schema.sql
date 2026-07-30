@@ -359,6 +359,20 @@ SET default_tablespace = '';
 SET default_table_access_method = "heap";
 
 
+CREATE TABLE IF NOT EXISTS "public"."idempotency_keys" (
+    "key" "text" NOT NULL,
+    "market_id" "text" NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "endpoint" "text" NOT NULL,
+    "status" integer,
+    "response" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."idempotency_keys" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."market_items" (
     "name" "text" NOT NULL,
     "price" integer NOT NULL,
@@ -498,6 +512,11 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
 ALTER TABLE "public"."users" OWNER TO "postgres";
 
 
+ALTER TABLE ONLY "public"."idempotency_keys"
+    ADD CONSTRAINT "idempotency_keys_pkey" PRIMARY KEY ("key");
+
+
+
 ALTER TABLE ONLY "public"."market_items"
     ADD CONSTRAINT "market_items_pkey" PRIMARY KEY ("id");
 
@@ -625,6 +644,14 @@ ALTER TABLE ONLY "public"."point_logs"
 
 ALTER TABLE ONLY "public"."point_logs"
     ADD CONSTRAINT "point_logs_voided_by_fkey" FOREIGN KEY ("voided_by") REFERENCES "public"."users"("id");
+
+
+
+CREATE INDEX IF NOT EXISTS "idempotency_keys_created_at_idx" ON "public"."idempotency_keys" USING "btree" ("created_at");
+
+
+
+ALTER TABLE "public"."idempotency_keys" ENABLE ROW LEVEL SECURITY;
 
 
 
@@ -970,6 +997,11 @@ GRANT ALL ON FUNCTION "public"."transfer_points"("p_market_id" "text", "p_from_u
 
 
 
+
+
+
+-- 서버 전용 테이블 — 새로 만들 때부터 anon/authenticated 기본 GRANT를 주지 않는다.
+GRANT ALL ON TABLE "public"."idempotency_keys" TO "service_role";
 
 
 

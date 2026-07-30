@@ -1,10 +1,11 @@
 import { createParser } from "@routar/core";
+import { NextResponse } from "next/server";
+import { withIdempotencyKey } from "@/lib/api/idempotency";
 import {
   assertMarketActive,
   authRoute,
   err,
   isStaffRole,
-  ok,
   parseRequest,
 } from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
@@ -131,51 +132,75 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       reward = body.reward;
     }
 
-    const { error: e3 } = await supabase.rpc("award_mission", {
-      p_market_id: marketId,
-      p_mission_id: missionId,
-      p_user_id: targetUserId,
-      p_verified_by: verifiedBy,
-      p_slot: slotNum,
-      p_verified_by_name: verifierName,
-      p_verified_at: verifiedAt,
-      p_reward: reward,
-      p_mission_title: mission.title,
-      p_allow_self: isStaffRole(verifierRole),
-    });
+    // idempotencyKey가 있으면 같은 키의 재시도는 award_mission을 다시 안 태우고
+    // 첫 실행 결과를 그대로 재생한다 — 네트워크 문제로 응답을 못 받은 클라이언트가
+    // 재시도할 때 "이미 인증된 미션이에요" 에러 대신 원래 성공 응답을 그대로 받는다.
+    const { status, json } = await withIdempotencyKey(
+      supabase,
+      {
+        key: req.headers.get("Idempotency-Key") ?? undefined,
+        marketId,
+        userId: verifiedBy,
+        endpoint: "verify",
+      },
+      async () => {
+        const { error: e3 } = await supabase.rpc("award_mission", {
+          p_market_id: marketId,
+          p_mission_id: missionId,
+          p_user_id: targetUserId,
+          p_verified_by: verifiedBy,
+          p_slot: slotNum,
+          p_verified_by_name: verifierName,
+          p_verified_at: verifiedAt,
+          p_reward: reward,
+          p_mission_title: mission.title,
+          p_allow_self: isStaffRole(verifierRole),
+        });
 
-    if (e3) {
-      if (e3.message.includes("self verification not allowed"))
-        return err("본인의 QR은 인증할 수 없어요", 403);
-      if (
-        e3.message.includes("already exists") ||
-        e3.message.includes("unique")
-      )
-        return err("이미 인증된 미션이에요", 409);
-      return err("적립에 실패했어요", 500);
-    }
+        if (e3) {
+          if (e3.message.includes("self verification not allowed"))
+            return {
+              status: 403,
+              json: { error: "본인의 QR은 인증할 수 없어요" },
+            };
+          if (
+            e3.message.includes("already exists") ||
+            e3.message.includes("unique")
+          )
+            return { status: 409, json: { error: "이미 인증된 미션이에요" } };
+          return { status: 500, json: { error: "적립에 실패했어요" } };
+        }
 
-    // ponytail: 알림은 부가 기능 — 실패해도 인증 자체는 이미 성공했으니 무시
-    try {
-      const { data: marketRow } = await supabase
-        .from("markets")
-        .select("point_label")
-        .eq("id", marketId)
-        .maybeSingle();
-      await sendPushToUsers([targetUserId], {
-        title: "미션 인증 완료",
-        body: `${mission.title} · +${reward}${marketRow?.point_label ?? "포인트"}`,
-        url: `/markets/${marketId}/missions/${missionId}`,
-      });
-    } catch {}
+        // ponytail: 알림은 부가 기능 — 실패해도 인증 자체는 이미 성공했으니 무시
+        try {
+          const { data: marketRow } = await supabase
+            .from("markets")
+            .select("point_label")
+            .eq("id", marketId)
+            .maybeSingle();
+          await sendPushToUsers([targetUserId], {
+            title: "미션 인증 완료",
+            body: `${mission.title} · +${reward}${marketRow?.point_label ?? "포인트"}`,
+            url: `/markets/${marketId}/missions/${missionId}`,
+          });
+        } catch {}
 
-    return ok({
-      missionId,
-      userId: targetUserId,
-      verifiedBy,
-      slot: slotNum,
-      reward,
-      verifiedAt,
-    });
+        return {
+          status: 200,
+          json: {
+            data: {
+              missionId,
+              userId: targetUserId,
+              verifiedBy,
+              slot: slotNum,
+              reward,
+              verifiedAt,
+            },
+          },
+        };
+      },
+    );
+
+    return NextResponse.json(json, { status });
   },
 );
