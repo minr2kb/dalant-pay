@@ -51,20 +51,15 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
   }
 }
 
-export async function sendPushToMarketStaff(
+export async function sendPushToMarketParticipants(
   marketId: string,
   payload: PushPayload,
-  excludeUserId?: string,
 ) {
-  const { data: staff } = await supabase
+  const { data: participants } = await supabase
     .from("market_participants")
     .select("user_id")
-    .eq("market_id", marketId)
-    .in("role", ["admin", "owner"]);
+    .eq("market_id", marketId);
 
-  const userIds = (staff ?? [])
-    .map((p) => p.user_id as string)
-    .filter((id) => id !== excludeUserId);
-
+  const userIds = (participants ?? []).map((p) => p.user_id as string);
   await sendPushToUsers(userIds, payload);
 }

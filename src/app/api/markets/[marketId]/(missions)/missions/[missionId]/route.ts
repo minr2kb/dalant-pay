@@ -9,6 +9,7 @@ import {
 import { missionsRouter } from "@/lib/api/router";
 import { mapMission } from "@/lib/data/mappers";
 import { getMission } from "@/lib/data/missions";
+import { sendPushToMarketParticipants } from "@/lib/push/send";
 import { STAFF_ROLES } from "@/types";
 
 const updateMissionParser = createParser(missionsRouter.endpoints.update);
@@ -63,6 +64,18 @@ export const PATCH = marketRoleRoute<{ marketId: string; missionId: string }>(
     if ("isActive" in body) update.is_active = body.isActive;
     if ("sortOrder" in body) update.sort_order = body.sortOrder;
 
+    // 새로 활성화되는 순간만 알림감 — 이미 활성 중인 미션을 다른 이유로 수정할 때마다
+    // 매번 재알림하면 스팸이 되니, 꺼져있다가 켜지는 전환에만 보낸다.
+    let wasInactive = false;
+    if (update.is_active === true) {
+      const { data: before } = await supabase
+        .from("missions")
+        .select("is_active")
+        .eq("id", params.missionId)
+        .maybeSingle();
+      wasInactive = before?.is_active === false;
+    }
+
     const { data, error } = await supabase
       .from("missions")
       .update(update)
@@ -71,6 +84,18 @@ export const PATCH = marketRoleRoute<{ marketId: string; missionId: string }>(
       .single();
 
     if (error || !data) return err(error?.message ?? "Not found", 404);
+
+    // ponytail: 알림은 부가 기능 — 실패해도 활성화 자체는 이미 성공했으니 무시
+    if (wasInactive) {
+      try {
+        await sendPushToMarketParticipants(params.marketId, {
+          title: "새 미션이 열렸어요",
+          body: `${data.title as string} 미션을 확인해보세요`,
+          url: `/markets/${params.marketId}/missions/${params.missionId}`,
+        });
+      } catch {}
+    }
+
     return ok(mapMission(data as Record<string, unknown>));
   },
 );

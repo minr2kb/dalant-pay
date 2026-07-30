@@ -5,6 +5,7 @@ import { CheckCircle, CheckSquare, ChevronLeft, Square } from "lucide-react";
 import Link from "next/link";
 import { Suspense, use, useState } from "react";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/executor";
@@ -172,9 +173,10 @@ function AdminPointsBody({ marketId }: { marketId: string }) {
               )}
               <div className="flex min-w-0 flex-1 items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-bold text-gray-600 dark:text-gray-300">
-                    {p.user.realName[0]}
-                  </span>
+                  <Avatar className="h-8 w-8 shrink-0">
+                    <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
+                    <AvatarFallback>{p.user.realName[0]}</AvatarFallback>
+                  </Avatar>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                       {p.user.realName}

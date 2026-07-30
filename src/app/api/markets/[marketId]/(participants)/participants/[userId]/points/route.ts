@@ -46,21 +46,23 @@ export const PATCH = marketRoleRoute<{ marketId: string; userId: string }>(
 
     const newBalance = (data as { newBalance: number }).newBalance;
 
-    // ponytail: 알림은 부가 기능 — 실패해도 지급 자체는 이미 성공했으니 무시. 차감은 알리지 않는다.
-    if (body.amount > 0) {
-      try {
-        const { data: marketRow } = await supabase
-          .from("markets")
-          .select("point_label")
-          .eq("id", marketId)
-          .maybeSingle();
-        await sendPushToUsers([userId], {
-          title: `${marketRow?.point_label ?? "포인트"}를 받았어요`,
-          body: `관리자가 ${body.amount}${marketRow?.point_label ?? "포인트"}을 지급했어요`,
-          url: `/markets/${marketId}/home`,
-        });
-      } catch {}
-    }
+    // ponytail: 알림은 부가 기능 — 실패해도 지급/차감 자체는 이미 성공했으니 무시
+    try {
+      const { data: marketRow } = await supabase
+        .from("markets")
+        .select("point_label")
+        .eq("id", marketId)
+        .maybeSingle();
+      const label = marketRow?.point_label ?? "포인트";
+      const isGain = body.amount > 0;
+      await sendPushToUsers([userId], {
+        title: isGain ? `${label}를 받았어요` : `${label}가 차감됐어요`,
+        body: isGain
+          ? `관리자가 ${body.amount}${label}을 지급했어요`
+          : `관리자가 ${Math.abs(body.amount)}${label}을 차감했어요`,
+        url: `/markets/${marketId}/home`,
+      });
+    } catch {}
 
     return ok({
       userId,

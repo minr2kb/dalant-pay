@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/route-helpers";
 import { ordersRouter } from "@/lib/api/router";
 import { mapOrder } from "@/lib/data/mappers";
+import { sendPushToUsers } from "@/lib/push/send";
 import { STAFF_ROLES } from "@/types";
 
 const createOrderParser = createParser(ordersRouter.endpoints.create);
@@ -97,6 +98,20 @@ export const POST = marketRoleRoute<{ marketId: string }>(
     if (e2 || !result) return err(e2?.message ?? "Error");
 
     const r = result as { orderId: string; newBalance: number };
+
+    // ponytail: 알림은 부가 기능 — 실패해도 구매 자체는 이미 성공했으니 무시
+    try {
+      const { data: marketRow } = await supabase
+        .from("markets")
+        .select("point_label")
+        .eq("id", params.marketId)
+        .maybeSingle();
+      await sendPushToUsers([body.userId], {
+        title: "구매 완료",
+        body: `${itemName} -${total}${marketRow?.point_label ?? "포인트"}`,
+        url: `/markets/${params.marketId}/history`,
+      });
+    } catch {}
 
     return ok(
       {

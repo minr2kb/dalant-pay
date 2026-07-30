@@ -1,4 +1,5 @@
 import { err, marketRoleRoute, ok } from "@/lib/api/route-helpers";
+import { sendPushToUsers } from "@/lib/push/send";
 import { STAFF_ROLES } from "@/types";
 
 export const POST = marketRoleRoute<{ marketId: string; logId: string }>(
@@ -23,6 +24,34 @@ export const POST = marketRoleRoute<{ marketId: string; logId: string }>(
     }
 
     const newBalance = (data as { newBalance: number }).newBalance;
+
+    // ponytail: 알림은 부가 기능 — 실패해도 철회 자체는 이미 성공했으니 무시
+    try {
+      const [{ data: log }, { data: market }] = await Promise.all([
+        supabase
+          .from("point_logs")
+          .select("user_id, amount, reason_type, mission_title, memo")
+          .eq("id", logId)
+          .maybeSingle(),
+        supabase
+          .from("markets")
+          .select("point_label")
+          .eq("id", marketId)
+          .maybeSingle(),
+      ]);
+      if (log) {
+        const label =
+          log.reason_type === "mission"
+            ? (log.mission_title as string | null)
+            : (log.memo as string | null);
+        await sendPushToUsers([log.user_id as string], {
+          title: "지급이 철회됐어요",
+          body: `${label ?? "지급"} ${Math.abs(log.amount as number)}${market?.point_label ?? "포인트"}이 철회됐어요`,
+          url: `/markets/${marketId}/history`,
+        });
+      }
+    } catch {}
+
     return ok({ id: logId, newBalance });
   },
 );

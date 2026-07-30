@@ -8,7 +8,7 @@ import {
 } from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
 import { resolveNextSlot } from "@/lib/mission-slots";
-import { sendPushToMarketStaff, sendPushToUsers } from "@/lib/push/send";
+import { sendPushToUsers } from "@/lib/push/send";
 
 const uploadPhotoParser = createParser(missionsRouter.endpoints.uploadPhoto);
 const deletePhotoParser = createParser(missionsRouter.endpoints.deletePhoto);
@@ -20,7 +20,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       body: await req.json(),
     });
     if (parsed instanceof Response) return parsed;
-    const { marketId, missionId } = params;
+    const { missionId } = params;
     const { photoUrl } = parsed.body;
 
     const { data: mission } = await supabase
@@ -82,19 +82,6 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       { onConflict: "mission_id,user_id,slot" },
     );
     if (error) return err("업로드에 실패했어요", 500);
-
-    // ponytail: 알림은 부가 기능 — 실패해도 업로드 자체는 이미 성공했으니 무시
-    try {
-      await sendPushToMarketStaff(
-        marketId,
-        {
-          title: "새 인증 대기",
-          body: `${mission.title} 업로드가 확인을 기다리고 있어요`,
-          url: `/markets/${marketId}/admin/activity?scope=pending`,
-        },
-        userId,
-      );
-    } catch {}
 
     return ok({ slot, photoUrl });
   },
