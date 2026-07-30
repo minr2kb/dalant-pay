@@ -8,6 +8,7 @@ import { useEffect, useMemo } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
 import { InstallPwaBanner } from "@/components/InstallPwaBanner";
 import { AdminAccessButton } from "@/components/market/AdminAccessButton";
+import { maybeShowNotificationPrompt } from "@/components/NotificationPromptSheet";
 import { NumberTicker } from "@/components/NumberTicker";
 import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
 import { PointLogItem } from "@/components/points/PointLogItem";
@@ -40,6 +41,10 @@ export function UserHomeClient({
   useEffect(() => {
     if (userId) ensureJoined({ marketId });
   }, [userId, marketId, ensureJoined]);
+
+  useEffect(() => {
+    maybeShowNotificationPrompt();
+  }, []);
 
   const [{ data: market }, { data: participants }] = useQueries({
     queries: [
