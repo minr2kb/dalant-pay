@@ -8,6 +8,7 @@ import {
 } from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
 import { resolveNextSlot } from "@/lib/mission-slots";
+import { sendPushToMarketStaff, sendPushToUsers } from "@/lib/push/send";
 
 const uploadPhotoParser = createParser(missionsRouter.endpoints.uploadPhoto);
 const deletePhotoParser = createParser(missionsRouter.endpoints.deletePhoto);
@@ -19,12 +20,12 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       body: await req.json(),
     });
     if (parsed instanceof Response) return parsed;
-    const { missionId } = params;
+    const { marketId, missionId } = params;
     const { photoUrl } = parsed.body;
 
     const { data: mission } = await supabase
       .from("missions")
-      .select("limit_count, is_active, active_from, active_until")
+      .select("title, limit_count, is_active, active_from, active_until")
       .eq("id", missionId)
       .single();
     if (!mission) return err("미션을 찾을 수 없어요", 404);
@@ -81,6 +82,20 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       { onConflict: "mission_id,user_id,slot" },
     );
     if (error) return err("업로드에 실패했어요", 500);
+
+    // ponytail: 알림은 부가 기능 — 실패해도 업로드 자체는 이미 성공했으니 무시
+    try {
+      await sendPushToMarketStaff(
+        marketId,
+        {
+          title: "새 인증 대기",
+          body: `${mission.title} 업로드가 확인을 기다리고 있어요`,
+          url: `/markets/${marketId}/admin/activity?scope=pending`,
+        },
+        userId,
+      );
+    } catch {}
+
     return ok({ slot, photoUrl });
   },
 );
@@ -117,6 +132,23 @@ export const DELETE = authRoute<{ marketId: string; missionId: string }>(
       .select("id");
     if (error) return err("삭제에 실패했어요", 500);
     if (!data || data.length === 0) return err("삭제할 사진이 없어요", 404);
+
+    // ponytail: 알림은 부가 기능 — 실패해도 반려 자체는 이미 성공했으니 무시
+    if (targetUserId !== callerId) {
+      try {
+        const { data: mission } = await supabase
+          .from("missions")
+          .select("title")
+          .eq("id", missionId)
+          .maybeSingle();
+        await sendPushToUsers([targetUserId], {
+          title: "인증이 반려됐어요",
+          body: `${mission?.title ?? "미션"} 사진이 반려됐어요. 다시 업로드해주세요`,
+          url: `/markets/${marketId}/missions/${missionId}`,
+        });
+      } catch {}
+    }
+
     return ok({ deleted: true });
   },
 );

@@ -7,6 +7,7 @@ import {
   parseRequest,
 } from "@/lib/api/route-helpers";
 import { transferRouter } from "@/lib/api/router";
+import { sendPushToUsers } from "@/lib/push/send";
 
 const transferParser = createParser(transferRouter.endpoints.transfer);
 
@@ -60,6 +61,20 @@ export const POST = authRoute<{ marketId: string }>(
     }
 
     const newBalance = (data as { new_balance: number }).new_balance;
+
+    // ponytail: 알림은 부가 기능 — 실패해도 전송 자체는 이미 성공했으니 무시
+    try {
+      const { data: marketRow } = await supabase
+        .from("markets")
+        .select("point_label")
+        .eq("id", marketId)
+        .maybeSingle();
+      await sendPushToUsers([body.toUserId], {
+        title: "달란트를 받았어요",
+        body: `${fromUser.real_name}님이 ${body.amount}${marketRow?.point_label ?? "포인트"}을 보냈어요`,
+        url: `/markets/${marketId}/home`,
+      });
+    } catch {}
 
     return ok({
       fromUserId,

@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/route-helpers";
 import { missionsRouter } from "@/lib/api/router";
 import { resolveNextSlot } from "@/lib/mission-slots";
+import { sendPushToUsers } from "@/lib/push/send";
 import { verifyMissionQR } from "@/lib/qr-server";
 
 const verifyMissionParser = createParser(missionsRouter.endpoints.verify);
@@ -153,6 +154,20 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
         return err("이미 인증된 미션이에요", 409);
       return err("적립에 실패했어요", 500);
     }
+
+    // ponytail: 알림은 부가 기능 — 실패해도 인증 자체는 이미 성공했으니 무시
+    try {
+      const { data: marketRow } = await supabase
+        .from("markets")
+        .select("point_label")
+        .eq("id", marketId)
+        .maybeSingle();
+      await sendPushToUsers([targetUserId], {
+        title: "미션 인증 완료",
+        body: `${mission.title} · +${reward}${marketRow?.point_label ?? "포인트"}`,
+        url: `/markets/${marketId}/missions/${missionId}`,
+      });
+    } catch {}
 
     return ok({
       missionId,
