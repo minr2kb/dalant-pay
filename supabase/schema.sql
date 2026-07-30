@@ -985,8 +985,7 @@ GRANT ALL ON TABLE "public"."market_participants" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."markets" TO "anon";
-GRANT ALL ON TABLE "public"."markets" TO "authenticated";
+GRANT SELECT ("id", "title", "description", "point_label", "starts_at", "ends_at", "created_at") ON TABLE "public"."markets" TO "authenticated";
 GRANT ALL ON TABLE "public"."markets" TO "service_role";
 
 
