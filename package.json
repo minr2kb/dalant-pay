@@ -17,6 +17,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@routar/core": "^1.11.0",
     "@routar/react-query": "^1.11.0",
+    "@sentry/nextjs": "^10",
     "@serwist/window": "^9.5.11",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
