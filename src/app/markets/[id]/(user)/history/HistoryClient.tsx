@@ -1,12 +1,21 @@
 "use client";
 
-import { useIsRestoring, useQueries } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useIsRestoring,
+  useQueries,
+} from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { useMemo } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
 import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
 import { PointLogItem } from "@/components/points/PointLogItem";
-import { marketsQuery, participantsQuery } from "@/lib/query/queries";
+import { Button } from "@/components/ui/button";
+import {
+  marketsQuery,
+  participantsQuery,
+  pointLogsQuery,
+} from "@/lib/query/queries";
 import { HistorySkeleton } from "./HistorySkeleton";
 
 export function HistoryClient({ marketId }: { marketId: string }) {
@@ -23,6 +32,20 @@ export function HistoryClient({ marketId }: { marketId: string }) {
     ],
   });
 
+  const {
+    data: logPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...pointLogsQuery.list.infinite({
+      path: { marketId },
+      query: { userId: userId ?? "" },
+    }),
+    enabled: !!userId,
+  });
+  const logs = useMemo(() => logPages?.pages.flat() ?? [], [logPages]);
+
   const orderMap = useMemo(
     () => keyBy(participants?.orders ?? [], (o) => o.id),
     [participants],
@@ -30,7 +53,7 @@ export function HistoryClient({ marketId }: { marketId: string }) {
 
   if (isRestoring || !market || !participants) return <HistorySkeleton />;
 
-  const { participant: user, pointLogs: logs } = participants;
+  const { participant: user } = participants;
 
   return (
     <div className="px-4 max-w-lg mx-auto space-y-5">
@@ -66,6 +89,16 @@ export function HistoryClient({ marketId }: { marketId: string }) {
           <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
             아직 내역이 없어요
           </p>
+        )}
+        {hasNextPage && (
+          <Button
+            variant="outline"
+            className="h-10 w-full"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "불러오는 중…" : "더 보기"}
+          </Button>
         )}
       </div>
     </div>

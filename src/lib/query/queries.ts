@@ -16,7 +16,21 @@ export const participantsQuery = createQueries(participantsApi, {
   flatten: true,
 });
 export const missionsQuery = createQueries(missionsApi, { flatten: true });
-export const pointLogsQuery = createQueries(pointLogsApi, { flatten: true });
+
+export const POINT_LOGS_PAGE_SIZE = 20;
+export const pointLogsQuery = createQueries(pointLogsApi, {
+  flatten: true,
+  infinite: {
+    list: {
+      initialPageParam: 0,
+      getNextPageParam: (lastPage, allPages) =>
+        lastPage.length === POINT_LOGS_PAGE_SIZE ? allPages.length : undefined,
+      pageParam: (page) => ({
+        query: { page, pageSize: POINT_LOGS_PAGE_SIZE },
+      }),
+    },
+  },
+});
 export const ordersQuery = createQueries(ordersApi, { flatten: true });
 export const itemsQuery = createQueries(itemsApi, { flatten: true });
 export const adminQuery = createQueries(adminApi, { flatten: true });

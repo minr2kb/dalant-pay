@@ -5,7 +5,7 @@ import { mapPointLog } from "@/lib/data/mappers";
 export async function listPointLogs(
   supabase: SupabaseClient,
   marketId: string,
-  opts?: { userId?: string },
+  opts?: { userId?: string; page?: number; pageSize?: number },
 ) {
   let query = supabase
     .from("point_logs")
@@ -13,6 +13,12 @@ export async function listPointLogs(
     .eq("market_id", marketId)
     .order("created_at", { ascending: false });
   if (opts?.userId) query = query.eq("user_id", opts.userId);
+  // page/pageSize 둘 다 있을 때만 자르고, 없으면 기존처럼 전체 반환 — admin/home
+  // 대시보드의 합계 계산은 여전히 전체 목록이 필요해서 그 호출부는 그대로 둔다.
+  if (opts?.page !== undefined && opts?.pageSize !== undefined) {
+    const from = opts.page * opts.pageSize;
+    query = query.range(from, from + opts.pageSize - 1);
+  }
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []).map((r) => mapPointLog(r as Record<string, unknown>));

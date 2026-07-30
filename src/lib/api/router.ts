@@ -261,7 +261,13 @@ export const pointLogsRouter = defineRouter("/markets", {
     path: "/:marketId/point-logs",
     request: {
       path: marketId,
-      query: z.object({ userId: z.string().optional() }).optional(),
+      query: z
+        .object({
+          userId: z.string().optional(),
+          page: z.coerce.number().int().min(0).optional(),
+          pageSize: z.coerce.number().int().min(1).optional(),
+        })
+        .optional(),
     },
     response: z.array(PointLogSchema),
   }),

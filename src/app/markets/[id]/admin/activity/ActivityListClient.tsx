@@ -1,6 +1,9 @@
 "use client";
 
-import { useSuspenseQueries } from "@tanstack/react-query";
+import {
+  useSuspenseInfiniteQuery,
+  useSuspenseQueries,
+} from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -10,6 +13,7 @@ import { openPendingMissionDetail } from "@/components/mission/PendingMissionDet
 import { PendingMissionLogItem } from "@/components/mission/PendingMissionLogItem";
 import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
 import { PointLogItem } from "@/components/points/PointLogItem";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -47,19 +51,26 @@ export function ActivityListClient({
     searchParams.get("scope") === "pending" ? "pending" : "all",
   );
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [
-    { data: market },
-    { data: participants },
-    { data: logs },
-    { data: pendingLogs },
-  ] = useSuspenseQueries({
-    queries: [
-      marketsQuery.get({ marketId }),
-      participantsQuery.list({ marketId }),
-      pointLogsQuery.list({ marketId }),
-      missionsQuery.pendingLogs({ marketId }),
-    ],
-  });
+  const [{ data: market }, { data: participants }, { data: pendingLogs }] =
+    useSuspenseQueries({
+      queries: [
+        marketsQuery.get({ marketId }),
+        participantsQuery.list({ marketId }),
+        missionsQuery.pendingLogs({ marketId }),
+      ],
+    });
+
+  const {
+    data: logPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useSuspenseInfiniteQuery(
+    pointLogsQuery.list.infinite({ path: { marketId } }),
+  );
+  // scope/typeFilter는 지금까지 불러온 페이지 안에서만 걸러진다 — 필터를 걸어둔
+  // 채로 "더 보기"를 여러 번 눌러야 다음 매치가 나올 수 있음(서버단 필터링은 아직 없음).
+  const logs = logPages.pages.flat();
 
   const participantMap = keyBy(participants, (p) => p.user.id);
   const visibleLogs = logs
@@ -172,29 +183,41 @@ export function ActivityListClient({
           활동 내역이 없어요
         </div>
       ) : (
-        <div className="space-y-2">
-          {visibleLogs.map((log) => {
-            const participantName =
-              participantMap[log.userId]?.user.realName ?? "알 수 없음";
-            return (
-              <PointLogItem
-                key={log.id}
-                log={log}
-                pointLabel={market.pointLabel}
-                participantName={participantName}
-                onClick={() =>
-                  openPointLogDetail({
-                    log,
-                    participantName,
-                    pointLabel: market.pointLabel,
-                    marketId,
-                    isAdmin: true,
-                  })
-                }
-              />
-            );
-          })}
-        </div>
+        <>
+          <div className="space-y-2">
+            {visibleLogs.map((log) => {
+              const participantName =
+                participantMap[log.userId]?.user.realName ?? "알 수 없음";
+              return (
+                <PointLogItem
+                  key={log.id}
+                  log={log}
+                  pointLabel={market.pointLabel}
+                  participantName={participantName}
+                  onClick={() =>
+                    openPointLogDetail({
+                      log,
+                      participantName,
+                      pointLabel: market.pointLabel,
+                      marketId,
+                      isAdmin: true,
+                    })
+                  }
+                />
+              );
+            })}
+          </div>
+          {hasNextPage && (
+            <Button
+              variant="outline"
+              className="h-10 w-full"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage ? "불러오는 중…" : "더 보기"}
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
