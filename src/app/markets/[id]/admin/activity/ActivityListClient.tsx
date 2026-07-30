@@ -65,9 +65,7 @@ export function ActivityListClient({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useSuspenseInfiniteQuery(
-    pointLogsQuery.list.infinite({ path: { marketId } }),
-  );
+  } = useSuspenseInfiniteQuery(pointLogsQuery.list.infinite({ marketId }));
   // scope/typeFilter는 지금까지 불러온 페이지 안에서만 걸러진다 — 필터를 걸어둔
   // 채로 "더 보기"를 여러 번 눌러야 다음 매치가 나올 수 있음(서버단 필터링은 아직 없음).
   const logs = logPages.pages.flat();

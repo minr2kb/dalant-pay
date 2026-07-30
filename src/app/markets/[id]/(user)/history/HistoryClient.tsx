@@ -38,10 +38,7 @@ export function HistoryClient({ marketId }: { marketId: string }) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    ...pointLogsQuery.list.infinite({
-      path: { marketId },
-      query: { userId: userId ?? "" },
-    }),
+    ...pointLogsQuery.list.infinite({ marketId, userId: userId ?? "" }),
     enabled: !!userId,
   });
   const logs = useMemo(() => logPages?.pages.flat() ?? [], [logPages]);

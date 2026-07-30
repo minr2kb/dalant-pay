@@ -21,11 +21,11 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.4)
       '@routar/core':
-        specifier: ^1.11.0
-        version: 1.11.0
+        specifier: ^1.11.1
+        version: 1.11.1
       '@routar/react-query':
-        specifier: ^1.11.0
-        version: 1.11.0(@tanstack/react-query@5.101.2(react@19.2.4))
+        specifier: ^1.11.1
+        version: 1.11.1(@tanstack/react-query@5.101.2(react@19.2.4))
       '@sentry/nextjs':
         specifier: ^10
         version: 10.69.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)(webpack@5.109.2(esbuild@0.28.1))
@@ -1324,11 +1324,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@routar/core@1.11.0':
-    resolution: {integrity: sha512-XqXTo5H26dSjP0ipiUuYAVp6JnspX+g8NPVv3meiwTSVzy6BJuvhCFhKlNKJuskativVa5O2WTnK+d4YWDSN7g==}
+  '@routar/core@1.11.1':
+    resolution: {integrity: sha512-rHNOY7szPDuTSa1NPpNGe8N+QQlHuhJYEognXErIgORMfbI56gFLAdNUiycxaU4RtHuYVBCLtKtIOL6t8LIB1A==}
 
-  '@routar/react-query@1.11.0':
-    resolution: {integrity: sha512-qibWW6lob+CR1rlGjCYWIFzJkQwZpgtchPVQ2BqJbHeX2CsHfcXai3ta4/RPdqu9HzEfxHrIMfRObcwo12yc8w==}
+  '@routar/react-query@1.11.1':
+    resolution: {integrity: sha512-ApmjQ8bsUziLWEfWD18rSHKF0ZtA3SGk14HxdtGNpo95XBi9tvscJzHjh6GIIrnBcrW+nr+4IoFIQkYD7QimYw==}
     peerDependencies:
       '@tanstack/react-query': '>=5.0.0'
 
@@ -4806,11 +4806,11 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.3':
     optional: true
 
-  '@routar/core@1.11.0': {}
+  '@routar/core@1.11.1': {}
 
-  '@routar/react-query@1.11.0(@tanstack/react-query@5.101.2(react@19.2.4))':
+  '@routar/react-query@1.11.1(@tanstack/react-query@5.101.2(react@19.2.4))':
     dependencies:
-      '@routar/core': 1.11.0
+      '@routar/core': 1.11.1
       '@tanstack/react-query': 5.101.2(react@19.2.4)
 
   '@sec-ant/readable-stream@0.4.1': {}
