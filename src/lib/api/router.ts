@@ -395,3 +395,29 @@ export const transferRouter = defineRouter("/markets", {
     response: TransferResponseSchema,
   }),
 });
+
+// 마켓에 속하지 않는 리소스 — 푸시 구독은 유저·디바이스 단위라 /markets 밖에 둔다.
+export const pushRouter = defineRouter("/push", {
+  subscribe: endpoint({
+    method: "POST",
+    path: "/subscribe",
+    request: {
+      body: z.object({
+        endpoint: z.string(),
+        keys: z.object({
+          p256dh: z.string(),
+          auth: z.string(),
+        }),
+      }),
+    },
+    response: z.object({ ok: z.boolean() }),
+  }),
+  unsubscribe: endpoint({
+    method: "POST",
+    path: "/unsubscribe",
+    request: {
+      body: z.object({ endpoint: z.string() }),
+    },
+    response: z.object({ ok: z.boolean() }),
+  }),
+});

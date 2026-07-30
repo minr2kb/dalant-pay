@@ -7,6 +7,7 @@ import {
   ordersApi,
   participantsApi,
   pointLogsApi,
+  pushApi,
   transferApi,
 } from "@/lib/api/apis";
 
@@ -20,3 +21,4 @@ export const ordersQuery = createQueries(ordersApi, { flatten: true });
 export const itemsQuery = createQueries(itemsApi, { flatten: true });
 export const adminQuery = createQueries(adminApi, { flatten: true });
 export const transferQuery = createQueries(transferApi, { flatten: true });
+export const pushQuery = createQueries(pushApi, { flatten: true });

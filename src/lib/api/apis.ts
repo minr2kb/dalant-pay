@@ -8,6 +8,7 @@ import {
   ordersRouter,
   participantsRouter,
   pointLogsRouter,
+  pushRouter,
   transferRouter,
 } from "@/lib/api/router";
 
@@ -19,3 +20,4 @@ export const ordersApi = createApi(executor, ordersRouter);
 export const itemsApi = createApi(executor, itemsRouter);
 export const adminApi = createApi(executor, adminRouter);
 export const transferApi = createApi(executor, transferRouter);
+export const pushApi = createApi(executor, pushRouter);
