@@ -45,8 +45,8 @@ export const POST = marketRoleRoute<{ marketId: string; logId: string }>(
             ? (log.mission_title as string | null)
             : (log.memo as string | null);
         await sendPushToUsers([log.user_id as string], {
-          title: "지급이 철회됐어요",
-          body: `${label ?? "지급"} ${Math.abs(log.amount as number)}${market?.point_label ?? "포인트"}이 철회됐어요`,
+          title: "지급이 취소됐어요",
+          body: `${label ?? "지급"} ${Math.abs(log.amount as number)}${market?.point_label ?? "포인트"}가 취소됐어요`,
           url: `/markets/${marketId}/history`,
         });
       }
