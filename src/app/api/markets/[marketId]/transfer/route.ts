@@ -88,7 +88,7 @@ export const POST = authRoute<{ marketId: string }>(
             .eq("id", marketId)
             .maybeSingle();
           await sendPushToUsers([body.toUserId], {
-            title: "달란트를 받았어요",
+            title: `${marketRow?.point_label ?? "포인트"}를 받았어요`,
             body: `${fromUser.real_name}님이 ${body.amount}${marketRow?.point_label ?? "포인트"}을 보냈어요`,
             url: `/markets/${marketId}/home`,
           });

@@ -180,7 +180,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
             .maybeSingle();
           await sendPushToUsers([targetUserId], {
             title: "미션 인증 완료",
-            body: `${mission.title} · +${reward}${marketRow?.point_label ?? "포인트"}`,
+            body: `${mission.title} +${reward}${marketRow?.point_label ?? "포인트"}`,
             url: `/markets/${marketId}/missions/${missionId}`,
           });
         } catch {}

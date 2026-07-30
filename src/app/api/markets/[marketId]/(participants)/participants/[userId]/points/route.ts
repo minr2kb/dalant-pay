@@ -55,7 +55,7 @@ export const PATCH = marketRoleRoute<{ marketId: string; userId: string }>(
           .eq("id", marketId)
           .maybeSingle();
         await sendPushToUsers([userId], {
-          title: "달란트를 받았어요",
+          title: `${marketRow?.point_label ?? "포인트"}를 받았어요`,
           body: `관리자가 ${body.amount}${marketRow?.point_label ?? "포인트"}을 지급했어요`,
           url: `/markets/${marketId}/home`,
         });

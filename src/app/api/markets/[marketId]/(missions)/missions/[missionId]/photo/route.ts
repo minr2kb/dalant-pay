@@ -143,7 +143,7 @@ export const DELETE = authRoute<{ marketId: string; missionId: string }>(
           .maybeSingle();
         await sendPushToUsers([targetUserId], {
           title: "인증이 반려됐어요",
-          body: `${mission?.title ?? "미션"} 사진이 반려됐어요. 다시 업로드해주세요`,
+          body: `${mission?.title ?? "미션"}이 반려됐어요. 다시 업로드해주세요`,
           url: `/markets/${marketId}/missions/${missionId}`,
         });
       } catch {}
