@@ -45,18 +45,36 @@ export async function listEarnedTotals(
   }));
 }
 
+// 1일 이내 인증은 개수 제한 없이 전부 보여주되, 그게 5개가 안 되면 그 이전
+// 기록까지 끌어와서 최소 5개는 맞춘다 (전체를 합쳐도 5개가 안 되면 있는 만큼만).
+const RECENT_MISSION_WINDOW_MS = 24 * 60 * 60 * 1000;
+const RECENT_MISSION_MIN_COUNT = 5;
+
 export async function listRecentMissionLogs(
   supabase: SupabaseClient,
   marketId: string,
-  limit = 10,
 ) {
-  const { data, error } = await supabase
+  const since = new Date(Date.now() - RECENT_MISSION_WINDOW_MS).toISOString();
+
+  const { data: withinWindow, error } = await supabase
+    .from("point_logs")
+    .select("*, mission_logs(photo_url, slot, verified_by)")
+    .eq("market_id", marketId)
+    .eq("reason_type", "mission")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  if (withinWindow.length >= RECENT_MISSION_MIN_COUNT) {
+    return withinWindow.map((r) => mapPointLog(r as Record<string, unknown>));
+  }
+
+  const { data: topUp, error: topUpError } = await supabase
     .from("point_logs")
     .select("*, mission_logs(photo_url, slot, verified_by)")
     .eq("market_id", marketId)
     .eq("reason_type", "mission")
     .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => mapPointLog(r as Record<string, unknown>));
+    .limit(RECENT_MISSION_MIN_COUNT);
+  if (topUpError) throw new Error(topUpError.message);
+  return (topUp ?? []).map((r) => mapPointLog(r as Record<string, unknown>));
 }

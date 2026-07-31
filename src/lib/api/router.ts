@@ -278,9 +278,6 @@ export const pointLogsRouter = defineRouter("/markets", {
     path: "/:marketId/point-logs/recent-missions",
     request: {
       path: marketId,
-      query: z
-        .object({ limit: z.coerce.number().int().min(1).optional() })
-        .optional(),
     },
     response: z.array(PointLogSchema),
   }),
