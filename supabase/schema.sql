@@ -163,7 +163,7 @@ CREATE OR REPLACE FUNCTION "public"."is_market_admin"("p_market_id" "text") RETU
     AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.market_participants
-    WHERE user_id = auth.uid() AND market_id = p_market_id AND role = 'admin'
+    WHERE user_id = auth.uid() AND market_id = p_market_id AND role IN ('admin', 'owner')
   );
 $$;
 
