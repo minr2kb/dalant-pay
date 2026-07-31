@@ -20,7 +20,19 @@ function HistoryAwareModal({
 }) {
   const idRef = useRef<symbol | null>(null);
   if (idRef.current === null) idRef.current = Symbol();
+  const closeRef = useRef(close);
+  const unmountRef = useRef(unmount);
 
+  useEffect(() => {
+    closeRef.current = close;
+    unmountRef.current = unmount;
+  }, [close, unmount]);
+
+  // overlay-kit이 마운트 직후 isOpen:false→true로 한 번 더 리렌더하면서
+  // close/unmount를 매번 새 함수로 내려주는데, 이 effect가 그 참조를 deps로
+  // 물고 있으면 pushState가 모달 하나당 2번씩 찍혀서(닫을 때 history.back()은
+  // 1번만 불리니) 뒤로가기 누를 때마다 유령 히스토리 엔트리가 쌓인다 —
+  // 마운트당 정확히 1번만 push하도록 deps를 비우고 최신 close/unmount는 ref로 참조.
   useEffect(() => {
     const id = idRef.current as symbol;
     overlayStack.push(id);
@@ -29,8 +41,8 @@ function HistoryAwareModal({
     const handlePop = () => {
       if (overlayStack[overlayStack.length - 1] !== id) return;
       overlayStack.pop();
-      close();
-      unmount();
+      closeRef.current();
+      unmountRef.current();
     };
     window.addEventListener("popstate", handlePop);
     return () => {
@@ -38,7 +50,7 @@ function HistoryAwareModal({
       const idx = overlayStack.lastIndexOf(id);
       if (idx !== -1) overlayStack.splice(idx, 1);
     };
-  }, [close, unmount]);
+  }, []);
 
   // 뒤로가기로 닫기(X 버튼/배경 클릭용) — 실제 close/unmount는 popstate 핸들러가
   // 스택 최상단인지 확인한 뒤에 처리한다.
