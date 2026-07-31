@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { MissionCard } from "@/components/mission/MissionCard";
 import { getMissionStatus, type Mission } from "@/types";
@@ -41,6 +41,7 @@ export function MissionList({
   // 미션 상세에서 뒤로가기했을 때 원래 보고 있던 탭으로 돌아가야 해서 —
   // MissionCard가 현재 탭을 ?from=으로 넘기고, 상세 페이지가 그걸 다시 ?tab=으로
   // 돌려준다 (src/components/mission/MissionCard.tsx, MissionDetailClient.tsx 참고).
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [tab, setTab] = useState<Tab>(
@@ -48,6 +49,18 @@ export function MissionList({
       ? (tabParam as Tab)
       : "active",
   );
+
+  // 탭 전환을 URL에도 즉시 반영해둔다 — 안 그러면 이 페이지 자체의 history entry엔
+  // 탭 정보가 없어서, 실제 브라우저 뒤로가기(제스처/버튼)로 돌아왔을 때 위 ?from=/?tab=
+  // 우회로를 안 거치고 이 entry로 바로 복원되며 항상 "active"로 리셋돼버린다.
+  // push가 아니라 replace라 history는 안 쌓인다.
+  function selectTab(t: Tab) {
+    setTab(t);
+    const base = `/markets/${marketId}/missions`;
+    router.replace(t === "active" ? base : `${base}?tab=${t}`, {
+      scroll: false,
+    });
+  }
 
   const byTab: Record<Tab, Mission[]> = {
     completed: missions.filter((m) => isCompleted(m)),
@@ -67,7 +80,7 @@ export function MissionList({
           <button
             key={t}
             type="button"
-            onClick={() => setTab(t)}
+            onClick={() => selectTab(t)}
             className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               tab === t
                 ? "bg-emerald-500 text-white"
