@@ -29,7 +29,12 @@ export async function generateMetadata(
     description,
     // 이 세그먼트가 openGraph/twitter를 직접 지정하면 루트의 opengraph-image.png가
     // 상속되지 않아 이미지를 명시해야 한다.
-    openGraph: { title, description, images: ["/opengraph-image.png"] },
+    openGraph: {
+      title,
+      description,
+      images: ["/opengraph-image.png"],
+      url: `/markets/${id}`,
+    },
     twitter: {
       card: "summary_large_image",
       title,

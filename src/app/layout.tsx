@@ -26,6 +26,7 @@ export const metadata: Metadata = {
     siteName: title,
     locale: "ko_KR",
     type: "website",
+    url: "/",
   },
   twitter: {
     card: "summary_large_image",

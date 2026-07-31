@@ -11,21 +11,22 @@ import { MarketsListClient } from "./MarketsListClient";
 export default async function MarketsPage() {
   const qc = getQueryClient();
   const userId = await getCurrentUserId();
-  let canCreate = false;
 
-  await prefetchIfFirstVisit(async () => {
-    if (!userId) return;
-    const supabase = await createClient();
-    await hydrate(qc, {
-      queryKey: marketsQuery.list.queryKey(),
-      queryFn: () => listMarkets(supabase, userId),
-    });
-  });
-
-  if (userId) {
-    const supabase = await createClient();
-    canCreate = await canCreateMarket(supabase, userId);
-  }
+  // ponytail: 마켓 목록 prefetch와 canCreateMarket 조회는 서로 무관한 별도 쿼리라
+  // Promise.all로 동시에 왕복시킨다 — 직렬로 두 번 기다릴 이유가 없다.
+  const [, canCreate] = await Promise.all([
+    prefetchIfFirstVisit(async () => {
+      if (!userId) return;
+      const supabase = await createClient();
+      await hydrate(qc, {
+        queryKey: marketsQuery.list.queryKey(),
+        queryFn: () => listMarkets(supabase, userId),
+      });
+    }),
+    userId
+      ? createClient().then((supabase) => canCreateMarket(supabase, userId))
+      : Promise.resolve(false),
+  ]);
 
   return (
     <Hydrated qc={qc}>

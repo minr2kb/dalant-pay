@@ -1,6 +1,6 @@
 "use client";
 
-import jsQR from "jsqr";
+import type jsQRType from "jsqr";
 import { ChevronLeft, QrCode } from "lucide-react";
 import { Children, type ReactNode, useEffect, useRef, useState } from "react";
 
@@ -123,9 +123,13 @@ export function QRScanner({
 
     let active = true;
     let resumeTimer: ReturnType<typeof setTimeout> | undefined;
+    // ponytail: jsqr(~250KB)를 모듈 top-level에서 정적 import하면 스캐너를 한 번도
+    // 안 여는 방문자의 홈 화면 초기 번들에도 실린다 — 실제로 스캔을 시작할 때만
+    // 카메라 권한 요청과 동시에 동적 import해서 초기 로드 비용에서 뺀다.
+    let jsQR: typeof jsQRType | undefined;
 
     function scanFrame() {
-      if (!active) return;
+      if (!active || !jsQR) return;
       const video = videoRef.current;
       const canvas = canvasRef.current;
       if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -162,12 +166,16 @@ export function QRScanner({
 
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-          },
-        });
+        const [{ default: decode }, stream] = await Promise.all([
+          import("jsqr"),
+          navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+            },
+          }),
+        ]);
+        jsQR = decode;
         if (!active) {
           stream.getTracks().forEach((t) => {
             t.stop();
