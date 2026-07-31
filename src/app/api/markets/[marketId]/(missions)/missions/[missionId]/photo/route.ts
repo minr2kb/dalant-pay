@@ -21,7 +21,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     });
     if (parsed instanceof Response) return parsed;
     const { missionId } = params;
-    const { photoUrl } = parsed.body;
+    const photoUrl = parsed.body.photoUrl ?? null;
 
     const { data: mission } = await supabase
       .from("missions")

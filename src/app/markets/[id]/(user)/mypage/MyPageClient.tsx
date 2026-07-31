@@ -1,11 +1,13 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Camera, LayoutGrid, LogOut, Monitor, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useRef } from "react";
+import { toast } from "sonner";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MarketShareButton } from "@/components/market/MarketShareButton";
 import { NotificationToggle } from "@/components/NotificationToggle";
@@ -53,6 +55,13 @@ export function MyPageClient({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: participantsQuery.$key });
+    },
+    // 기존엔 onError가 없어서 실패해도 유저 피드백도, Sentry 리포트도 없이 조용히 묻혔다
+    onError: (e) => {
+      Sentry.captureException(e);
+      toast.error("프로필 사진 변경에 실패했어요", {
+        description: "네트워크 상태를 확인하고 다시 시도해주세요",
+      });
     },
   });
 

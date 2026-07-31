@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useMutation, useSuspenseQueries } from "@tanstack/react-query";
 import {
   Camera,
@@ -73,6 +74,9 @@ export function MissionDetailClient({
   const isLocked = isPast || isUserDone;
   const canVerify = isUnlimited || !!nextPendingSlot;
   const pendingPhotoUrl = nextPendingSlot?.photoUrl ?? null;
+  // upload형 미션은 사진 없이도(사진 없이 인증 요청) 대기 상태로 들어갈 수 있어서,
+  // "제출은 됐다"는 pendingPhotoUrl(사진 유무)이 아니라 slot 존재 여부로 판단한다
+  const isAwaitingReview = mission.type === "upload" && !!nextPendingSlot;
   // 무제한 미션에서 아직 미인증 로그가 없을 때의 다음 slot 번호 예측 (서버의 resolveNextSlot과 동일한 규칙)
   const predictedSlot =
     nextPendingSlot?.slot ?? (mission.slots?.length ?? 0) + 1;
@@ -92,8 +96,11 @@ export function MissionDetailClient({
         userId,
         predictedSlot,
       );
-    } catch {
+    } catch (e) {
       setUploadError(true);
+      // 압축/스토리지 업로드 실패는 그동안 여기서 조용히 삼켜져서 Sentry에 하나도
+      // 안 잡혔다 — try/catch로 잡은 예외는 자동 계측 대상이 아니라 직접 보내야 한다.
+      Sentry.captureException(e);
       toast.error("사진 업로드에 실패했어요", {
         description: "네트워크 상태를 확인하고 다시 시도해주세요",
       });
@@ -104,10 +111,28 @@ export function MissionDetailClient({
       await uploadPhotoMutation.mutateAsync({ marketId, missionId, photoUrl });
     } catch (e) {
       setUploadError(true);
+      Sentry.captureException(e);
       const msg = getApiErrorMessage(e, "다시 시도해주세요");
       toast.error("미션 등록에 실패했어요", { description: msg });
     } finally {
       setUploading(false);
+    }
+  }
+
+  // 사진 업로드가 계속 실패할 때(압축/네트워크/브라우저 문제)의 탈출구 — 사진 없이
+  // 인증 대기 상태로 등록해서 관리자가 다른 방식으로 확인 후 승인할 수 있게 한다
+  async function handleManualRequest() {
+    try {
+      await uploadPhotoMutation.mutateAsync({
+        marketId,
+        missionId,
+        photoUrl: undefined,
+      });
+      setUploadError(false);
+    } catch (e) {
+      Sentry.captureException(e);
+      const msg = getApiErrorMessage(e, "다시 시도해주세요");
+      toast.error("인증 요청에 실패했어요", { description: msg });
     }
   }
 
@@ -199,6 +224,13 @@ export function MissionDetailClient({
                   >
                     {uploading ? (
                       <Loader2 className="h-6 w-6 animate-spin" />
+                    ) : isAwaitingReview && !pendingPhotoUrl ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <CheckCircle2 className="h-6 w-6" />
+                        <span className="text-xs font-medium">
+                          인증 대기 중
+                        </span>
+                      </div>
                     ) : (
                       <div className="flex flex-col items-center gap-1">
                         <Camera className="h-6 w-6" />
@@ -217,16 +249,35 @@ export function MissionDetailClient({
                   />
                 </label>
                 {uploadError && (
-                  <p className="text-center text-xs text-red-500">
-                    업로드 실패. 다시 시도해주세요
-                  </p>
+                  <div className="space-y-1.5 text-center">
+                    <p className="text-xs text-red-500">
+                      업로드 실패. 다시 시도해주세요
+                    </p>
+                    {!isAwaitingReview && (
+                      <button
+                        type="button"
+                        onClick={handleManualRequest}
+                        disabled={uploadPhotoMutation.isPending}
+                        className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600 disabled:opacity-40 dark:text-gray-500"
+                      >
+                        {uploadPhotoMutation.isPending
+                          ? "요청 중…"
+                          : "사진 없이 인증 요청"}
+                      </button>
+                    )}
+                  </div>
                 )}
-                {!pendingPhotoUrl && !uploadError && (
+                {!isAwaitingReview && !uploadError && (
                   <p className="text-center text-xs text-gray-400 dark:text-gray-500">
                     사진을 업로드해야 QR을 생성할 수 있어요
                   </p>
                 )}
-                {pendingPhotoUrl && (
+                {isAwaitingReview && !pendingPhotoUrl && (
+                  <p className="text-center text-xs text-gray-400 dark:text-gray-500">
+                    사진 없이 인증 요청했어요. 관리자 확인을 기다려주세요
+                  </p>
+                )}
+                {isAwaitingReview && (
                   <button
                     type="button"
                     onClick={() =>
@@ -235,7 +286,11 @@ export function MissionDetailClient({
                     disabled={deletePhotoMutation.isPending || uploading}
                     className="mx-auto block text-center text-xs text-gray-400 underline underline-offset-2 hover:text-rose-400 disabled:opacity-40 dark:text-gray-500"
                   >
-                    {deletePhotoMutation.isPending ? "삭제 중…" : "사진 삭제"}
+                    {deletePhotoMutation.isPending
+                      ? "취소 중…"
+                      : pendingPhotoUrl
+                        ? "사진 삭제"
+                        : "인증 요청 취소"}
                   </button>
                 )}
               </div>
@@ -248,7 +303,7 @@ export function MissionDetailClient({
                 missionTitle={mission.title}
                 slot={predictedSlot}
                 hint={QR_HINT[mission.type]}
-                disabled={mission.type === "upload" && !pendingPhotoUrl}
+                disabled={mission.type === "upload" && !isAwaitingReview}
                 buttonText={
                   nextPendingSlot
                     ? `${nextPendingSlot.slot}회차 인증하기`

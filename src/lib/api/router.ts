@@ -232,9 +232,11 @@ export const missionsRouter = defineRouter("/markets", {
     path: "/:marketId/missions/:missionId/photo",
     request: {
       path: marketAndMission,
-      body: z.object({ photoUrl: z.string() }),
+      // photoUrl 없이 호출 가능 — 사진 업로드가 계속 실패할 때 유저가 사진 없이
+      // 인증 대기 상태로만 넘어갈 수 있는 탈출구
+      body: z.object({ photoUrl: z.string().optional() }),
     },
-    response: z.object({ slot: z.number(), photoUrl: z.string() }),
+    response: z.object({ slot: z.number(), photoUrl: z.string().nullable() }),
   }),
   deletePhoto: endpoint({
     method: "DELETE",

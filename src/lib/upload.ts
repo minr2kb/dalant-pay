@@ -1,5 +1,17 @@
+import * as Sentry from "@sentry/nextjs";
 import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
+
+function isHeic(file: File): boolean {
+  const type = file.type.toLowerCase();
+  // iOS Safari는 갤러리에서 고른 HEIC의 file.type을 빈 문자열로 주는 경우가 있어
+  // 확장자도 같이 본다
+  return (
+    type === "image/heic" ||
+    type === "image/heif" ||
+    /\.hei[cf]$/i.test(file.name)
+  );
+}
 
 // 두 버킷(미션 사진/아바타) 공통 업로드 경로 — 압축 옵션과 upsert 전략이 동일하다.
 async function compressAndUpload(
@@ -7,14 +19,48 @@ async function compressAndUpload(
   bucket: string,
   path: string,
 ): Promise<string> {
+  // HEIC/HEIF는 캔버스로 디코딩 못 하는 브라우저(사파리 계열 제외 대부분)가 많아
+  // 압축 라이브러리에 넘기기 전에 먼저 JPEG로 변환한다. 실패하면 원본 그대로
+  // 다음 단계(압축)로 넘어가고, 거기서도 못 버티면 아래 압축 fallback이 받는다.
+  let source: File | Blob = file;
+  if (isHeic(file)) {
+    try {
+      const heic2any = (await import("heic2any")).default;
+      const converted = await heic2any({
+        blob: file,
+        toType: "image/jpeg",
+        quality: 0.9,
+      });
+      const blob = Array.isArray(converted) ? converted[0] : converted;
+      source = new File([blob], file.name.replace(/\.hei[cf]$/i, ".jpg"), {
+        type: "image/jpeg",
+        lastModified: file.lastModified,
+      });
+    } catch (e) {
+      Sentry.captureException(e);
+      console.error("[compressAndUpload] HEIC conversion failed", e);
+    }
+  }
+
   // fileType을 고정해 원본이 png/heic 등이어도 항상 jpg로 나온다 — 확장자가 바뀌면
   // 위 path도 바뀌어서 upsert가 옛 파일을 못 덮어쓰고 고아로 남기기 때문
-  const compressed = await imageCompression(file, {
-    maxSizeMB: 0.5,
-    maxWidthOrHeight: 1200,
-    useWebWorker: true,
-    fileType: "image/jpeg",
-  });
+  let uploadFile: File | Blob = source;
+  try {
+    uploadFile = await imageCompression(source as File, {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1200,
+      useWebWorker: true,
+      fileType: "image/jpeg",
+    });
+  } catch (e) {
+    // ponytail: 워커 생성 차단, 캔버스 메모리 한도 등으로 압축이 실패할 수 있다 —
+    // 용량이 크더라도 (HEIC면 변환된) 원본 그대로 올려서 인증 자체는 막지 않는다
+    Sentry.captureException(e);
+    console.error(
+      "[compressAndUpload] compression failed, using source as-is",
+      e,
+    );
+  }
 
   const supabase = createClient();
   // getSession()은 만료된(또는 곧 만료될) 세션이면 자동으로 refresh까지 해준다 —
@@ -24,8 +70,8 @@ async function compressAndUpload(
 
   const { error } = await supabase.storage
     .from(bucket)
-    .upload(path, compressed, {
-      contentType: compressed.type || "image/jpeg",
+    .upload(path, uploadFile, {
+      contentType: uploadFile.type || "image/jpeg",
       upsert: true,
     });
   if (error) throw error;
