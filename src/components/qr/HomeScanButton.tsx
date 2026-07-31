@@ -12,7 +12,11 @@ import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/executor";
 import { openModal } from "@/lib/overlay";
 import { parseQR } from "@/lib/qr";
-import { missionsQuery, participantsQuery } from "@/lib/query/queries";
+import {
+  missionsQuery,
+  participantsQuery,
+  pointLogsQuery,
+} from "@/lib/query/queries";
 import type { MarketParticipant } from "@/types";
 
 type ScanTarget = {
@@ -49,7 +53,7 @@ function ConfirmModal({
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const verifyMutation = useMutation(
     missionsQuery.verify({
-      invalidates: [missionsQuery.$key],
+      invalidates: [missionsQuery.$key, pointLogsQuery.$key],
       headers: { "Idempotency-Key": idempotencyKey },
     }),
   );

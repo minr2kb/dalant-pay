@@ -13,6 +13,7 @@ import {
   marketsQuery,
   ordersQuery,
   participantsQuery,
+  pointLogsQuery,
 } from "@/lib/query/queries";
 import type { MarketItem, MarketParticipant } from "@/types";
 
@@ -285,7 +286,9 @@ function PosInner({ marketId }: { marketId: string }) {
   const pointLabel = market.pointLabel;
 
   const orderMutation = useMutation(
-    ordersQuery.create({ invalidates: [participantsQuery.$key] }),
+    ordersQuery.create({
+      invalidates: [participantsQuery.$key, pointLogsQuery.$key],
+    }),
   );
 
   const [cart, setCart] = useState<CartEntry[]>([]);

@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/executor";
-import { participantsQuery } from "@/lib/query/queries";
+import { participantsQuery, pointLogsQuery } from "@/lib/query/queries";
 
 function AdminPointsHeader({ marketId }: { marketId: string }) {
   return (
@@ -33,7 +33,9 @@ function AdminPointsBody({ marketId }: { marketId: string }) {
   );
 
   const adjustMutation = useMutation(
-    participantsQuery.adjustPoints({ invalidates: [participantsQuery.$key] }),
+    participantsQuery.adjustPoints({
+      invalidates: [participantsQuery.$key, pointLogsQuery.$key],
+    }),
   );
 
   const [selected, setSelected] = useState<Set<string>>(new Set());

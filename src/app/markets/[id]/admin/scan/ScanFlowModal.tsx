@@ -9,7 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMissionVerify } from "@/hooks/use-mission-verify";
-import { missionsQuery, participantsQuery } from "@/lib/query/queries";
+import {
+  missionsQuery,
+  participantsQuery,
+  pointLogsQuery,
+} from "@/lib/query/queries";
 import {
   formatReward,
   hasRewardRange,
@@ -53,7 +57,11 @@ export function ScanFlowModal({
   );
   const [awardedReward, setAwardedReward] = useState(0);
   const { verifyGroup, isPending } = useMissionVerify({
-    invalidates: [missionsQuery.$key, participantsQuery.$key],
+    invalidates: [
+      missionsQuery.$key,
+      participantsQuery.$key,
+      pointLogsQuery.$key,
+    ],
   });
 
   // react-query를 타야 참여자가 confirm 화면이 떠 있는 동안 재업로드해도

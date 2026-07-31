@@ -12,6 +12,7 @@ import { parseQR } from "@/lib/qr";
 import {
   marketsQuery,
   participantsQuery,
+  pointLogsQuery,
   transferQuery,
 } from "@/lib/query/queries";
 import type { MarketParticipant } from "@/types";
@@ -60,7 +61,7 @@ export function TransferModal({
 
   const { mutate: doTransfer, isPending } = useMutation(
     transferQuery.transfer({
-      invalidates: [participantsQuery.$key],
+      invalidates: [participantsQuery.$key, pointLogsQuery.$key],
       headers: { "Idempotency-Key": idempotencyKey },
       onSuccess: () => {
         onClose();
