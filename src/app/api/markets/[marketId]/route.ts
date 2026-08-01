@@ -51,3 +51,16 @@ export const PATCH = marketRoleRoute<{ marketId: string }>(
     return ok(mapMarket(data as Record<string, unknown>));
   },
 );
+
+export const DELETE = marketRoleRoute<{ marketId: string }>(
+  ["owner"],
+  async (_req, { supabase, params }) => {
+    const { error } = await supabase
+      .from("markets")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", params.marketId);
+    if (error) return err(error.message);
+
+    return ok({ deleted: true });
+  },
+);

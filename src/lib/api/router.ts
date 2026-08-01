@@ -65,6 +65,12 @@ export const marketsRouter = defineRouter("/markets", {
     },
     response: MarketSchema,
   }),
+  delete: endpoint({
+    method: "DELETE",
+    path: "/:marketId",
+    request: { path: marketId },
+    response: z.object({ deleted: z.boolean() }),
+  }),
 });
 
 export const participantsRouter = defineRouter("/markets", {
