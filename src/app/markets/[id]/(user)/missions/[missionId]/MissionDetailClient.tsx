@@ -94,7 +94,6 @@ export function MissionDetailClient({
         file,
         marketId,
         missionId,
-        userId,
         predictedSlot,
       );
     } catch (e) {

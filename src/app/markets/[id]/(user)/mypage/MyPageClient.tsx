@@ -45,7 +45,7 @@ export function MyPageClient({
   const { mutate: changeAvatar, isPending: isUploadingAvatar } = useMutation({
     mutationFn: async (file: File) => {
       if (!userId) throw new Error("로그인이 필요해요");
-      const avatarUrl = await uploadAvatar(file, userId);
+      const avatarUrl = await uploadAvatar(file);
       const supabase = createClient();
       const { error } = await supabase
         .from("users")
