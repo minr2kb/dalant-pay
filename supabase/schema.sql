@@ -410,6 +410,7 @@ CREATE TABLE IF NOT EXISTS "public"."markets" (
     "ends_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "id" "text" DEFAULT "public"."nanoid"() NOT NULL,
+    "deleted_at" timestamp with time zone,
     CONSTRAINT "markets_admin_code_four_digits" CHECK (("admin_code" ~ '^[0-9]{4}$'::"text"))
 );
 
@@ -504,7 +505,6 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "gender" "text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "avatar_url" "text",
-    "can_create_market" boolean DEFAULT false NOT NULL,
     CONSTRAINT "users_gender_check" CHECK (("gender" = ANY (ARRAY['male'::"text", 'female'::"text"])))
 );
 
