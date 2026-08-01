@@ -39,6 +39,8 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     pathname === "/login" ||
     pathname.startsWith("/auth") ||
+    // 샘플 마켓 — 로그인 없이 체험하는 게 목적인 완전 정적 목업 라우트.
+    pathname.startsWith("/sample") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname === "/robots.txt" ||
