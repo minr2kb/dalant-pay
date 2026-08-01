@@ -59,6 +59,7 @@ export function MissionDetailClient({
   const deletePhotoMutation = useMutation(
     missionsQuery.deletePhoto({
       invalidates: [missionsQuery.$key],
+      onSuccess: () => toast.success("취소됐어요"),
       onError: () =>
         toast.error("삭제에 실패했어요", { description: "다시 시도해주세요" }),
     }),

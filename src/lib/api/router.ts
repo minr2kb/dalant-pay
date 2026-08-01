@@ -249,7 +249,9 @@ export const missionsRouter = defineRouter("/markets", {
     path: "/:marketId/missions/:missionId/photo",
     request: {
       path: marketAndMission,
-      body: z.object({ userId: z.string().optional() }),
+      // 본인 취소 호출은 userId를 아예 안 보낸다 — body 전체가 optional이어야
+      // 요청에 body가 통째로 빠졌을 때도 통과한다 (필드만 optional이면 안 됨)
+      body: z.object({ userId: z.string().optional() }).optional(),
     },
     response: z.object({ deleted: z.boolean() }),
   }),

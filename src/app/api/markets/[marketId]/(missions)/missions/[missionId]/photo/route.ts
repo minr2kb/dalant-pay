@@ -92,13 +92,15 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
 // 본인은 항상 자기 사진을 지울 수 있고, 다른 유저 걸 지우려면(관리자 반려) staff 권한 필요.
 export const DELETE = authRoute<{ marketId: string; missionId: string }>(
   async (req, { supabase, params, userId: callerId }) => {
+    // body가 아예 안 왔을 수 있다(본인 취소 호출) — req.json()은 빈 본문에 에러를 던진다
+    const rawBody = await req.text();
     const parsed = await parseRequest(deletePhotoParser.parseRequest, {
       path: params,
-      body: await req.json(),
+      body: rawBody ? JSON.parse(rawBody) : undefined,
     });
     if (parsed instanceof Response) return parsed;
     const { marketId, missionId } = params;
-    const targetUserId = parsed.body.userId ?? callerId;
+    const targetUserId = parsed.body?.userId ?? callerId;
 
     if (targetUserId !== callerId) {
       const { data: caller } = await supabase
