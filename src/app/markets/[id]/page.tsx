@@ -59,7 +59,22 @@ export default async function MarketJoinPage(
   // 로그인 전 방문자(QR 랜딩)도 봐야 하는 공개 화면이라 세션 클라이언트 대신 서비스롤로 조회한다.
   const result = await getMarketWithParticipantCount(supabase, id);
   if (!result) return null;
-  const { market, participantCount: count } = result;
+  const { market, participantCount: count, isDeleted } = result;
+
+  if (isDeleted) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center bg-white dark:bg-gray-900 px-6">
+        <div className="w-full max-w-sm space-y-3 text-center">
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white">
+            {market.title}
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            삭제된 마켓이에요. 더 이상 참여할 수 없어요.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const startDate = formatKST(market.startsAt, {
     month: "long",

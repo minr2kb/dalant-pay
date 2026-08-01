@@ -48,6 +48,7 @@ export async function getMarketWithParticipantCount(
   return {
     market: mapMarket(marketRow as Record<string, unknown>),
     participantCount: count ?? 0,
+    isDeleted: marketRow.deleted_at !== null,
   };
 }
 
@@ -57,6 +58,7 @@ export async function listMarkets(supabase: SupabaseClient, userId: string) {
       supabase
         .from("markets")
         .select("*, market_participants(count)")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false }),
       supabase
         .from("market_participants")
