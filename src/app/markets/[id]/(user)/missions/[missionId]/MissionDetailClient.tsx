@@ -10,7 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MissionSlot } from "@/components/mission/MissionSlot";
@@ -18,7 +18,7 @@ import { QRModal } from "@/components/qr/QRModal";
 import { getApiErrorMessage } from "@/lib/api/executor";
 import { formatKST } from "@/lib/format-date";
 import { marketsQuery, missionsQuery } from "@/lib/query/queries";
-import { uploadMissionPhoto } from "@/lib/upload";
+import { SessionExpiredError, uploadMissionPhoto } from "@/lib/upload";
 import { formatReward, getMissionStatus, MISSION_TYPE_LABEL } from "@/types";
 
 const QR_HINT: Record<string, string> = {
@@ -36,6 +36,7 @@ export function MissionDetailClient({
   missionId: string;
   userId: string;
 }) {
+  const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(false);
   const fromTab = useSearchParams().get("from");
@@ -101,9 +102,16 @@ export function MissionDetailClient({
       // 압축/스토리지 업로드 실패는 그동안 여기서 조용히 삼켜져서 Sentry에 하나도
       // 안 잡혔다 — try/catch로 잡은 예외는 자동 계측 대상이 아니라 직접 보내야 한다.
       Sentry.captureException(e);
-      toast.error("사진 업로드에 실패했어요", {
-        description: "네트워크 상태를 확인하고 다시 시도해주세요",
-      });
+      if (e instanceof SessionExpiredError) {
+        toast.error(e.message);
+        router.replace(
+          `/login?next=${encodeURIComponent(window.location.pathname)}`,
+        );
+      } else {
+        toast.error("사진 업로드에 실패했어요", {
+          description: "네트워크 상태를 확인하고 다시 시도해주세요",
+        });
+      }
       setUploading(false);
       return;
     }

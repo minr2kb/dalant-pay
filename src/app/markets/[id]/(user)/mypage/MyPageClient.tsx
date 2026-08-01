@@ -17,7 +17,7 @@ import { signOut } from "@/lib/auth/sign-out";
 import { formatKST } from "@/lib/format-date";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
-import { uploadAvatar } from "@/lib/upload";
+import { SessionExpiredError, uploadAvatar } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 import { MyPageSkeleton } from "./MyPageSkeleton";
 
@@ -59,6 +59,13 @@ export function MyPageClient({
     // 기존엔 onError가 없어서 실패해도 유저 피드백도, Sentry 리포트도 없이 조용히 묻혔다
     onError: (e) => {
       Sentry.captureException(e);
+      if (e instanceof SessionExpiredError) {
+        toast.error(e.message);
+        router.replace(
+          `/login?next=${encodeURIComponent(window.location.pathname)}`,
+        );
+        return;
+      }
       toast.error("프로필 사진 변경에 실패했어요", {
         description: "네트워크 상태를 확인하고 다시 시도해주세요",
       });
