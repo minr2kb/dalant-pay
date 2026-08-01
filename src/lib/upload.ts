@@ -65,14 +65,14 @@ async function compressAndUpload(
   }
 
   const supabase = createClient();
-  // getSession()은 만료된(또는 곧 만료될) 세션이면 자동으로 refresh까지 해준다 —
-  // 백그라운드에 오래 있던 모바일 브라우저에서 만료된 토큰으로 업로드하면 storage RLS의
-  // authenticated 조건에 걸려 400이 나기 때문에, 업로드 직전에 세션을 확실히 살려둔다.
-  // refresh token 자체가 없어졌으면(다른 기기 로그아웃, 토큰 회전 등) session이 null로
-  // 돌아오는데, 이때 그대로 업로드하면 anon 권한이라 storage RLS가 막아서 알아보기 힘든
-  // "row-level security policy" 에러만 남는다 — 여기서 먼저 걸러 로그인 만료를 알려준다
-  const { data } = await supabase.auth.getSession();
-  if (!data.session)
+  // getSession()은 쿠키에 있는 값을 서버 검증 없이 그대로 돌려준다 — access token이
+  // 이미 storage 쪽에서 거부될 상태(만료/서명 불일치 등)여도 세션은 "있음"으로 보여서
+  // 그대로 업로드하면 storage RLS의 authenticated 조건에 걸려 알아보기 힘든
+  // "row-level security policy" 에러만 남는다. refreshSession()으로 refresh token을
+  // 실제로 서버에 검증시켜 새 access token을 발급받아야 업로드가 안전하게 통과한다 —
+  // refresh token 자체가 죽었으면 여기서 에러가 나므로 로그인 만료를 바로 알려준다
+  const { data, error: refreshError } = await supabase.auth.refreshSession();
+  if (refreshError || !data.session)
     throw new SessionExpiredError("로그인이 만료됐어요. 다시 로그인해주세요");
 
   const { error } = await supabase.storage
