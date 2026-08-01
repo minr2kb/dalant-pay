@@ -76,16 +76,19 @@ export async function listMarkets(supabase: SupabaseClient, userId: string) {
     }));
 }
 
+const MAX_OWNED_MARKETS = 3;
+
 export async function canCreateMarket(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<boolean> {
-  const { data } = await supabase
-    .from("users")
-    .select("can_create_market")
-    .eq("id", userId)
-    .maybeSingle();
-  return data?.can_create_market === true;
+  const { count } = await supabase
+    .from("market_participants")
+    .select("id, markets!inner(deleted_at)", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("role", "owner")
+    .is("markets.deleted_at", null);
+  return (count ?? 0) < MAX_OWNED_MARKETS;
 }
 
 // 마켓 수정 화면(owner 전용) 전용 — admin_code를 포함하므로 공개 getMarket과
