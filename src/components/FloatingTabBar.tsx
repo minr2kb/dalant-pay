@@ -115,7 +115,7 @@ export function FloatingTabBar({ tabs }: FloatingTabBarProps) {
               <Icon className="h-5 w-5" strokeWidth={isActive ? 2.2 : 1.8} />
               <span
                 className={cn(
-                  "text-[10px] leading-tight",
+                  "whitespace-nowrap text-[10px] leading-tight",
                   isActive ? "font-semibold" : "font-medium",
                 )}
               >

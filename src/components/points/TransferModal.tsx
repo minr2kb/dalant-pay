@@ -170,7 +170,7 @@ export function TransferModal({
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 h-9 rounded-full text-sm font-medium transition-colors ${
+                  className={`flex-1 h-9 whitespace-nowrap rounded-full text-sm font-medium transition-colors ${
                     activeTab === tab
                       ? "bg-emerald-500 text-white"
                       : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"

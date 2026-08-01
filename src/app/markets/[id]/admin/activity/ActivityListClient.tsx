@@ -106,7 +106,7 @@ export function ActivityListClient({
               key={label}
               type="button"
               onClick={() => setScope(type)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 scope === type
                   ? "bg-emerald-500 text-white"
                   : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"

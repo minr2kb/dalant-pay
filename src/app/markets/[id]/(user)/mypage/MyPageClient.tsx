@@ -179,7 +179,7 @@ export function MyPageClient({
               type="button"
               onClick={() => setTheme(value)}
               className={cn(
-                "flex flex-1 flex-col items-center gap-1.5 rounded-xl py-3 text-xs font-medium transition-colors",
+                "flex flex-1 flex-col items-center gap-1.5 whitespace-nowrap rounded-xl py-3 text-xs font-medium transition-colors",
                 theme === value
                   ? "bg-emerald-500 text-white"
                   : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700",

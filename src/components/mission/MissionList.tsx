@@ -81,7 +81,7 @@ export function MissionList({
             key={t}
             type="button"
             onClick={() => selectTab(t)}
-            className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               tab === t
                 ? "bg-emerald-500 text-white"
                 : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
