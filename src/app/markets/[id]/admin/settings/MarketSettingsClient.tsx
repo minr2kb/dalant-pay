@@ -10,8 +10,10 @@ import {
   type MarketFormValues,
 } from "@/components/market/MarketFormFields";
 import { Button } from "@/components/ui/button";
+import { openModal } from "@/lib/overlay";
 import { marketsQuery } from "@/lib/query/queries";
 import type { Market } from "@/types";
+import { DeleteMarketModal } from "./DeleteMarketModal";
 
 function toLocalInput(iso: string): string {
   const d = new Date(iso);
@@ -109,6 +111,31 @@ export function MarketSettingsClient({
           className="h-10 w-full rounded-full border-rose-300 text-rose-600 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30"
         >
           지금 종료
+        </Button>
+      </div>
+
+      <div className="rounded-2xl border border-rose-300 dark:border-rose-800 bg-rose-100 dark:bg-rose-950/50 p-5 space-y-3">
+        <p className="text-sm font-bold text-rose-800 dark:text-rose-300">
+          마켓 완전 삭제
+        </p>
+        <p className="text-xs text-rose-600 dark:text-rose-400">
+          되돌릴 수 없어요. 신중하게 결정해주세요.
+        </p>
+        <Button
+          variant="outline"
+          onClick={() =>
+            openModal((close) => (
+              <DeleteMarketModal
+                marketId={marketId}
+                marketTitle={initialMarket.title}
+                onClose={close}
+              />
+            ))
+          }
+          disabled={isPending}
+          className="h-10 w-full rounded-full border-rose-400 text-rose-700 hover:bg-rose-200 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/50"
+        >
+          완전 삭제
         </Button>
       </div>
     </div>
