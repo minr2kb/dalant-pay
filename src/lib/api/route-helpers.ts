@@ -113,11 +113,12 @@ export async function assertMarketActive(
 ): Promise<Response | null> {
   const { data: market, error } = await supabase
     .from("markets")
-    .select("starts_at, ends_at")
+    .select("starts_at, ends_at, deleted_at")
     .eq("id", marketId)
     .single();
   // 없는 마켓/조회 실패는 fail-closed — 통과시키면 종료된 마켓에서 거래가 열린다.
   if (error || !market) return err("마켓을 찾을 수 없습니다", 404);
+  if (market.deleted_at) return err("삭제된 마켓입니다", 403);
   const now = new Date();
   if (market.starts_at && new Date(market.starts_at as string) > now)
     return err("마켓이 아직 시작되지 않았습니다", 403);
