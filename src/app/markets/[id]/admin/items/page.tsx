@@ -9,17 +9,22 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
-  rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { ChevronLeft, GripVertical, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Suspense, use } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { useOptimisticReorder } from "@/hooks/use-optimistic-reorder";
 import { openModal } from "@/lib/overlay";
 import { itemsQuery } from "@/lib/query/queries";
@@ -30,11 +35,13 @@ function SortableItemCard({
   item,
   onEdit,
   onDelete,
+  onToggleActive,
   deleting,
 }: {
   item: MarketItem;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleActive: () => void;
   deleting: boolean;
 }) {
   const {
@@ -50,7 +57,7 @@ function SortableItemCard({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`relative flex items-center gap-1.5 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 ${isDragging ? "relative z-10 opacity-90 shadow-lg" : ""}`}
+      className={`flex items-center gap-2 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 ${isDragging ? "relative z-10 opacity-90 shadow-lg" : ""}`}
     >
       <button
         type="button"
@@ -64,21 +71,30 @@ function SortableItemCard({
       <button
         type="button"
         onClick={onEdit}
-        className="flex min-w-0 flex-1 flex-col items-start pr-5 text-left"
+        className="flex min-w-0 flex-1 items-baseline gap-2 text-left"
       >
-        <p className="w-full truncate text-sm font-semibold text-gray-800 dark:text-gray-200">
+        <p
+          className={`truncate text-sm font-semibold ${item.isActive ? "text-gray-800 dark:text-gray-200" : "text-gray-400 dark:text-gray-500"}`}
+        >
           {item.name}
         </p>
-        <p className="text-base font-bold tabular-nums text-emerald-500">
+        <p className="shrink-0 text-sm font-bold tabular-nums text-emerald-500">
           {item.price}
         </p>
       </button>
+
+      <Switch
+        checked={item.isActive}
+        onCheckedChange={onToggleActive}
+        size="sm"
+        className="shrink-0 data-[state=checked]:bg-emerald-500"
+      />
 
       <button
         type="button"
         onClick={onDelete}
         disabled={deleting}
-        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-gray-300 dark:text-gray-600 hover:bg-rose-50 hover:text-rose-400 disabled:opacity-40"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-300 dark:text-gray-600 hover:bg-rose-50 hover:text-rose-400 disabled:opacity-40"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
@@ -88,12 +104,34 @@ function SortableItemCard({
 
 function AdminItemsGrid({ marketId }: { marketId: string }) {
   const { data: items } = useSuspenseQuery(itemsQuery.list({ marketId }));
+  const queryClient = useQueryClient();
   const deleteMutation = useMutation(
     itemsQuery.delete({ invalidates: [itemsQuery.$key] }),
   );
   const reorderMutation = useMutation(
     itemsQuery.reorder({ invalidates: [itemsQuery.$key] }),
   );
+  const updateMutation = useMutation(
+    itemsQuery.update({ invalidates: [itemsQuery.$key] }),
+  );
+
+  async function toggleActive(itemId: string, current: boolean) {
+    const { queryKey } = itemsQuery.list({ marketId });
+    const previous = queryClient.getQueryData<MarketItem[]>(queryKey);
+    queryClient.setQueryData<MarketItem[]>(queryKey, (old) =>
+      old?.map((i) => (i.id === itemId ? { ...i, isActive: !current } : i)),
+    );
+    try {
+      await updateMutation.mutateAsync({
+        marketId,
+        itemId,
+        isActive: !current,
+      });
+    } catch (e) {
+      queryClient.setQueryData(queryKey, previous);
+      throw e;
+    }
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -128,9 +166,9 @@ function AdminItemsGrid({ marketId }: { marketId: string }) {
     >
       <SortableContext
         items={items.map((i) => i.id)}
-        strategy={rectSortingStrategy}
+        strategy={verticalListSortingStrategy}
       >
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="flex flex-col gap-2">
           {items.map((item) => (
             <SortableItemCard
               key={item.id}
@@ -139,6 +177,7 @@ function AdminItemsGrid({ marketId }: { marketId: string }) {
               onDelete={() =>
                 deleteMutation.mutate({ marketId, itemId: item.id })
               }
+              onToggleActive={() => toggleActive(item.id, item.isActive)}
               deleting={deleteMutation.isPending}
             />
           ))}
@@ -146,7 +185,7 @@ function AdminItemsGrid({ marketId }: { marketId: string }) {
           <button
             type="button"
             onClick={openAdd}
-            className="flex min-h-[76px] flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4 text-gray-400 dark:text-gray-500 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
+            className="flex items-center justify-center gap-1 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-4 text-gray-400 dark:text-gray-500 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-900/20"
           >
             <Plus className="h-5 w-5" />
             <span className="text-xs font-medium">물품 추가</span>
@@ -159,9 +198,9 @@ function AdminItemsGrid({ marketId }: { marketId: string }) {
 
 function GridSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div className="flex flex-col gap-2">
       {[1, 2, 3, 4].map((i) => (
-        <Skeleton key={i} className="h-[76px] rounded-2xl" />
+        <Skeleton key={i} className="h-[52px] rounded-2xl" />
       ))}
     </div>
   );

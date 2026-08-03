@@ -378,7 +378,8 @@ CREATE TABLE IF NOT EXISTS "public"."market_items" (
     "price" integer NOT NULL,
     "id" "text" DEFAULT "public"."nanoid"() NOT NULL,
     "market_id" "text" NOT NULL,
-    "sort_order" integer DEFAULT 0 NOT NULL
+    "sort_order" integer DEFAULT 0 NOT NULL,
+    "is_active" boolean DEFAULT true NOT NULL
 );
 
 

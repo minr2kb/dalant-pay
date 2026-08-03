@@ -25,6 +25,7 @@ export const PATCH = marketRoleRoute<{ marketId: string; itemId: string }>(
     if ("name" in body) update.name = body.name;
     if ("price" in body) update.price = body.price;
     if ("sortOrder" in body) update.sort_order = body.sortOrder;
+    if ("isActive" in body) update.is_active = body.isActive;
 
     const { data, error } = await supabase
       .from("market_items")

@@ -1,6 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Gift } from "lucide-react";
+import Link from "next/link";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MissionList } from "@/components/mission/MissionList";
 import { missionsQuery } from "@/lib/query/queries";
@@ -28,9 +30,18 @@ export function MissionListClient({
 
   return (
     <div className="px-4 pb-4 max-w-lg mx-auto space-y-5">
-      <h1 className="sticky-header -mx-4 px-4 pt-4 pb-3 text-xl font-bold text-gray-900 dark:text-white">
-        미션
-      </h1>
+      <div className="sticky-header -mx-4 flex items-center justify-between px-4 pt-4 pb-3">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          미션
+        </h1>
+        <Link
+          href={`/markets/${marketId}/rewards`}
+          className="flex items-center gap-1 rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+        >
+          <Gift className="h-3.5 w-3.5" />
+          보상목록
+        </Link>
+      </div>
       <MissionList
         missions={missions.filter((m) => m.isActive)}
         marketId={marketId}

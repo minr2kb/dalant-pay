@@ -361,6 +361,7 @@ export const itemsRouter = defineRouter("/markets", {
         name: z.string().optional(),
         price: z.number().int().min(0).optional(),
         sortOrder: z.number().int().optional(),
+        isActive: z.boolean().optional(),
       }),
     },
     response: MarketItemSchema,

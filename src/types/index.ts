@@ -146,6 +146,7 @@ export interface MarketItem {
   name: string;
   price: number;
   sortOrder: number;
+  isActive: boolean;
 }
 
 export function getPointLogLabel(log: PointLog): string {
