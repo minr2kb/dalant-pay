@@ -18,7 +18,7 @@ import { formatKST } from "@/lib/format-date";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/client";
 import { SessionExpiredError, uploadAvatar } from "@/lib/upload";
-import { cn } from "@/lib/utils";
+import { cn, firstChar } from "@/lib/utils";
 import { MyPageSkeleton } from "./MyPageSkeleton";
 
 const THEME_OPTIONS = [
@@ -120,7 +120,7 @@ export function MyPageClient({
           <Avatar className="size-28">
             <AvatarImage src={user.avatarUrl ?? undefined} alt="" />
             <AvatarFallback className="text-4xl">
-              {user.realName.slice(0, 1)}
+              {firstChar(user.realName)}
             </AvatarFallback>
           </Avatar>
           <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white ring-4 ring-white dark:ring-gray-950">

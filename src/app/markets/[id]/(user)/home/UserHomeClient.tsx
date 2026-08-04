@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { openModal } from "@/lib/overlay";
 import { marketsQuery, participantsQuery } from "@/lib/query/queries";
+import { firstChar } from "@/lib/utils";
 import { HomeSkeleton } from "./HomeSkeleton";
 
 export function UserHomeClient({
@@ -79,7 +80,7 @@ export function UserHomeClient({
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage src={user.user.avatarUrl ?? undefined} alt="" />
-            <AvatarFallback>{user.user.realName.slice(0, 1)}</AvatarFallback>
+            <AvatarFallback>{firstChar(user.user.realName)}</AvatarFallback>
           </Avatar>
           <div>
             <p className="text-xs text-gray-400 dark:text-gray-500">

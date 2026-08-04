@@ -9,6 +9,7 @@ import { getQueryClient } from "@/lib/query/get-query-client";
 import { Hydrated } from "@/lib/query/hydrate";
 import { missionsQuery, participantsQuery } from "@/lib/query/queries";
 import { createClient } from "@/lib/supabase/server";
+import { firstChar } from "@/lib/utils";
 import { AdminUserDetailClient } from "./AdminUserDetailClient";
 
 export default async function AdminUserDetailPage(
@@ -54,7 +55,7 @@ export default async function AdminUserDetailPage(
               alt=""
             />
             <AvatarFallback>
-              {participant.participant.user.realName.slice(0, 1)}
+              {firstChar(participant.participant.user.realName)}
             </AvatarFallback>
           </Avatar>
           <h1 className="text-lg font-bold text-gray-900 dark:text-white">

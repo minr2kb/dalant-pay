@@ -15,6 +15,7 @@ import {
   participantsQuery,
   pointLogsQuery,
 } from "@/lib/query/queries";
+import { firstChar } from "@/lib/utils";
 import type { MarketItem, MarketParticipant } from "@/types";
 
 type CartEntry = { item: MarketItem; qty: number };
@@ -155,7 +156,7 @@ function PickUserSheet({
               className="flex h-14 w-full items-center gap-3 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 text-left hover:bg-rose-50 hover:border-rose-200 transition-colors"
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-bold text-gray-600 dark:text-gray-300">
-                {p.user.realName[0]}
+                {firstChar(p.user.realName)}
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
@@ -194,7 +195,7 @@ function ConfirmSheet({
         <div className="mx-auto h-1 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-base font-bold text-gray-600 dark:text-gray-300">
-            {user.user.realName[0]}
+            {firstChar(user.user.realName)}
           </div>
           <div>
             <p className="font-bold text-gray-900 dark:text-white">

@@ -17,6 +17,7 @@ import {
   participantsQuery,
   pointLogsQuery,
 } from "@/lib/query/queries";
+import { firstChar } from "@/lib/utils";
 import type { MarketParticipant } from "@/types";
 
 type ScanTarget = {
@@ -126,7 +127,7 @@ function ConfirmModal({
             </div>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                {scanTarget.participant.displayName[0]}
+                {firstChar(scanTarget.participant.displayName)}
               </div>
               <p className="font-medium text-gray-800 dark:text-gray-200">
                 {scanTarget.participant.displayName}님의 QR
