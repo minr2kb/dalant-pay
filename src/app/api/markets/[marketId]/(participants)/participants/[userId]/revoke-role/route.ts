@@ -33,7 +33,7 @@ export const POST = marketRoleRoute<{ marketId: string; userId: string }>(
       .update({ role: "user" })
       .eq("market_id", marketId)
       .eq("user_id", userId)
-      .select("*, user:users!user_id(*)")
+      .select("*, user:users!user_id(*), group:groups(name)")
       .maybeSingle();
 
     if (error) return err("권한 박탈에 실패했어요", 500);

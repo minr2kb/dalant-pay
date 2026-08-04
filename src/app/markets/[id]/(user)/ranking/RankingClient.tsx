@@ -3,35 +3,48 @@
 import { useQueries } from "@tanstack/react-query";
 import { keyBy, orderBy } from "es-toolkit";
 import { HelpCircle } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSessionUserId } from "@/components/AuthGate";
 import { openPointLogDetail } from "@/components/points/PointLogDetailModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelative } from "@/lib/format-date";
 import {
+  groupsQuery,
   marketsQuery,
   participantsQuery,
   pointLogsQuery,
 } from "@/lib/query/queries";
-import { cn } from "@/lib/utils";
+import { cn, firstChar } from "@/lib/utils";
 import { openRankingHelp } from "./RankingHelpModal";
 import { RankingSkeleton } from "./RankingSkeleton";
 
+interface RankEntry {
+  id: string;
+  name: string;
+  subtitle?: string;
+  earned: number;
+  avatarUrl?: string | null;
+  isMe: boolean;
+}
+
 export function RankingClient({ marketId }: { marketId: string }) {
   const userId = useSessionUserId();
+  const [tab, setTab] = useState<"individual" | "team">("individual");
 
   const [
     { data: market },
     { data: participants },
     { data: recentMissions },
     { data: earnedTotals },
+    { data: groups },
   ] = useQueries({
     queries: [
       { ...marketsQuery.get({ marketId }), enabled: !!userId },
       { ...participantsQuery.list({ marketId }), enabled: !!userId },
       { ...pointLogsQuery.recentMissions({ marketId }), enabled: !!userId },
       { ...pointLogsQuery.earnedTotals({ marketId }), enabled: !!userId },
+      { ...groupsQuery.list({ marketId }), enabled: !!userId },
     ],
   });
 
@@ -50,14 +63,56 @@ export function RankingClient({ marketId }: { marketId: string }) {
     [participants, earnedMap],
   );
 
-  const ranked = useMemo(
-    () => orderBy(withEarned, [(p) => p.earned], ["desc"]),
-    [withEarned],
-  );
-
   const participantMap = useMemo(
     () => keyBy(participants ?? [], (p) => p.user.id),
     [participants],
+  );
+
+  const myGroupId = participantMap[userId ?? ""]?.groupId ?? null;
+
+  const individualEntries: RankEntry[] = useMemo(
+    () =>
+      withEarned.map((p) => ({
+        id: p.id,
+        name: p.displayName,
+        subtitle: p.groupName ?? undefined,
+        earned: p.earned,
+        avatarUrl: p.user.avatarUrl,
+        isMe: p.user.id === userId,
+      })),
+    [withEarned, userId],
+  );
+
+  const teamEntries: RankEntry[] = useMemo(() => {
+    if (!groups) return [];
+    const totals = new Map<string, number>();
+    const counts = new Map<string, number>();
+    for (const p of withEarned) {
+      if (!p.groupId) continue;
+      totals.set(p.groupId, (totals.get(p.groupId) ?? 0) + p.earned);
+      counts.set(p.groupId, (counts.get(p.groupId) ?? 0) + 1);
+    }
+    return groups.map((g) => ({
+      id: g.id,
+      name: g.name,
+      subtitle: `${counts.get(g.id) ?? 0}명`,
+      earned: totals.get(g.id) ?? 0,
+      isMe: g.id === myGroupId,
+    }));
+  }, [groups, withEarned, myGroupId]);
+
+  const hasTeams = (groups?.length ?? 0) > 0;
+  const effectiveTab = hasTeams ? tab : "individual";
+  const meLabel = effectiveTab === "team" ? "내 팀" : "나";
+
+  const ranked = useMemo(
+    () =>
+      orderBy(
+        effectiveTab === "team" ? teamEntries : individualEntries,
+        [(e) => e.earned],
+        ["desc"],
+      ),
+    [effectiveTab, teamEntries, individualEntries],
   );
 
   // 동점자는 같은 순위를 받고 다음 순위는 그만큼 건너뛴다 (표준 경쟁 순위, 1-2-2-4)
@@ -83,7 +138,8 @@ export function RankingClient({ marketId }: { marketId: string }) {
 
   // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
   // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
-  if (!market || !participants || !earnedTotals) return <RankingSkeleton />;
+  if (!market || !participants || !earnedTotals || !groups)
+    return <RankingSkeleton />;
   const maxEarned = ranked[0]?.earned ?? 0;
   const pct = (earned: number) =>
     maxEarned > 0 ? Math.round((earned / maxEarned) * 100) : 0;
@@ -124,8 +180,8 @@ export function RankingClient({ marketId }: { marketId: string }) {
         <button
           type="button"
           onClick={() => openRankingHelp({ pointLabel: market.pointLabel })}
-          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           aria-label="랭킹 계산 방식 안내"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
         >
           <HelpCircle className="h-5 w-5" />
         </button>
@@ -204,6 +260,30 @@ export function RankingClient({ marketId }: { marketId: string }) {
         )
       )}
 
+      {hasTeams && (
+        <div className="flex gap-2">
+          {(
+            [
+              { key: "individual", label: "개인" },
+              { key: "team", label: "팀" },
+            ] as const
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setTab(key)}
+              className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                effectiveTab === key
+                  ? "bg-emerald-500 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Podium */}
       {top3.length > 0 && (
         <div className="flex items-end justify-center gap-3 pb-1">
@@ -211,15 +291,14 @@ export function RankingClient({ marketId }: { marketId: string }) {
             // biome-ignore lint/suspicious/noArrayIndexKey: podiumOrder is a fixed-length (3) array with a static position order (2nd/1st/3rd) that never reorders/inserts/deletes at runtime
             if (!p) return <div key={i} className="flex-1" />;
             const cfg = podiumConfig[i];
-            const isMe = p.user.id === userId;
             return (
               <div
                 key={p.id}
                 className="flex flex-1 flex-col items-center gap-1"
               >
                 <Avatar size="sm">
-                  <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
-                  <AvatarFallback>{p.user.realName.slice(0, 1)}</AvatarFallback>
+                  <AvatarImage src={p.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{firstChar(p.name)}</AvatarFallback>
                 </Avatar>
                 <p
                   className={cn(
@@ -227,15 +306,20 @@ export function RankingClient({ marketId }: { marketId: string }) {
                     cfg.labelColor,
                   )}
                 >
-                  {p.displayName}
-                  {isMe && (
+                  {p.name}
+                  {p.isMe && (
                     <span className="ml-1 text-[10px] font-normal text-emerald-500">
-                      나
+                      {meLabel}
                     </span>
                   )}
                   {tiedRanks.has(ranks.get(p.id) as number) && (
                     <span className="block text-[10px] font-normal text-gray-400 dark:text-gray-500">
                       공동 {ranks.get(p.id)}위
+                    </span>
+                  )}
+                  {p.subtitle && (
+                    <span className="block truncate text-[10px] font-normal text-gray-400 dark:text-gray-500">
+                      {p.subtitle}
                     </span>
                   )}
                 </p>
@@ -248,7 +332,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
                     cfg.blockH,
                     cfg.blockBg,
                   )}
-                  style={{ transitionDelay: `${[150, 0, 300][i]}ms` }}
+                  style={{ animationDelay: `${[150, 0, 300][i]}ms` }}
                 >
                   <span className="text-2xl">{cfg.medal}</span>
                 </div>
@@ -263,14 +347,13 @@ export function RankingClient({ marketId }: { marketId: string }) {
         <div className="space-y-2">
           {rest.map((p, i) => {
             const rank = ranks.get(p.id) as number;
-            const isMe = p.user.id === userId;
             const barPct = pct(p.earned);
             return (
               <div
                 key={p.id}
                 className={cn(
                   "flex items-center gap-3 rounded-2xl border px-4 py-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-400 fill-mode-both",
-                  isMe
+                  p.isMe
                     ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20"
                     : "border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900",
                 )}
@@ -280,22 +363,27 @@ export function RankingClient({ marketId }: { marketId: string }) {
                   {rank}
                 </span>
                 <Avatar size="sm">
-                  <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
-                  <AvatarFallback>{p.user.realName.slice(0, 1)}</AvatarFallback>
+                  <AvatarImage src={p.avatarUrl ?? undefined} alt="" />
+                  <AvatarFallback>{firstChar(p.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <p
                     className={cn(
                       "truncate text-sm font-semibold",
-                      isMe
+                      p.isMe
                         ? "text-emerald-700 dark:text-emerald-400"
                         : "text-gray-900 dark:text-white",
                     )}
                   >
-                    {p.displayName}
-                    {isMe && (
+                    {p.name}
+                    {p.subtitle && (
+                      <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-gray-500">
+                        {p.subtitle}
+                      </span>
+                    )}
+                    {p.isMe && (
                       <span className="ml-1 text-xs font-normal text-emerald-500">
-                        (나)
+                        ({meLabel})
                       </span>
                     )}
                   </p>
@@ -303,7 +391,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
                     <div
                       className={cn(
                         "ranking-bar h-full rounded-full",
-                        isMe ? "bg-emerald-400" : "bg-emerald-300",
+                        p.isMe ? "bg-emerald-400" : "bg-emerald-300",
                       )}
                       style={{ width: `${barPct}%` }}
                     />
@@ -312,7 +400,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
                 <span
                   className={cn(
                     "shrink-0 text-sm font-bold tabular-nums",
-                    isMe
+                    p.isMe
                       ? "text-emerald-600 dark:text-emerald-400"
                       : "text-gray-700 dark:text-gray-300",
                   )}

@@ -57,6 +57,14 @@ export const MarketParticipantSchema = z.object({
   role: z.enum(["admin", "user", "owner"]),
   balance: z.number(),
   displayName: z.string(),
+  groupId: z.string().nullable(),
+  groupName: z.string().nullable(),
+});
+
+export const GroupSchema = z.object({
+  id: z.string(),
+  marketId: z.string(),
+  name: z.string(),
 });
 
 export const OrderItemSchema = z.object({

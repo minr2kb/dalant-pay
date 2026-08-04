@@ -1,13 +1,21 @@
 "use client";
 
-import { useMutation, useSuspenseQueries } from "@tanstack/react-query";
-import { Crown, ShieldOff } from "lucide-react";
+import {
+  useMutation,
+  useQuery,
+  useSuspenseQueries,
+} from "@tanstack/react-query";
+import { CheckCircle2, Circle, Crown, ShieldOff, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/lib/api/executor";
 import { openModal } from "@/lib/overlay";
-import { missionsQuery, participantsQuery } from "@/lib/query/queries";
+import {
+  groupsQuery,
+  missionsQuery,
+  participantsQuery,
+} from "@/lib/query/queries";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 
@@ -130,6 +138,79 @@ function RevokeRoleConfirm({
   );
 }
 
+function GroupPickerModal({
+  marketId,
+  userId,
+  currentGroupId,
+  onClose,
+}: {
+  marketId: string;
+  userId: string;
+  currentGroupId: string | null;
+  onClose: () => void;
+}) {
+  const { data: groups } = useQuery(groupsQuery.list({ marketId }));
+  const { mutate, isPending } = useMutation(
+    participantsQuery.assignGroup({
+      invalidates: [participantsQuery.$key],
+      onSuccess: onClose,
+      onError: () => toast.error("그룹 배정에 실패했어요"),
+    }),
+  );
+
+  function optionClass() {
+    return "flex h-12 w-full items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-800 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 disabled:opacity-40";
+  }
+
+  return (
+    <Modal onClose={onClose}>
+      <div className="p-6 space-y-4 text-gray-900 dark:text-white">
+        <h3 className="font-bold">그룹 선택</h3>
+        {!groups ? (
+          <p className="py-4 text-center text-sm text-gray-400">불러오는 중…</p>
+        ) : (
+          <div className="max-h-64 space-y-2 overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => mutate({ marketId, userId, groupId: null })}
+              disabled={isPending}
+              className={optionClass()}
+            >
+              <span>그룹 없음</span>
+              {currentGroupId === null ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              ) : (
+                <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" />
+              )}
+            </button>
+            {groups.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => mutate({ marketId, userId, groupId: g.id })}
+                disabled={isPending}
+                className={optionClass()}
+              >
+                <span>{g.name}</span>
+                {currentGroupId === g.id ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                ) : (
+                  <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" />
+                )}
+              </button>
+            ))}
+            {groups.length === 0 && (
+              <p className="py-4 text-center text-sm text-gray-400">
+                아직 그룹이 없어요
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 export function AdminUserDetailClient({
   marketId,
   userId,
@@ -232,6 +313,41 @@ export function AdminUserDetailClient({
             </Button>
           </div>
         )}
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-gray-100 dark:border-gray-800 p-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-700 dark:text-gray-300">그룹</span>
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-1 text-xs font-semibold",
+              participant.groupName
+                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
+                : "bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500",
+            )}
+          >
+            {participant.groupName ?? "없음"}
+          </span>
+        </div>
+        <div className="border-t border-gray-100 pt-3 dark:border-gray-800">
+          <Button
+            variant="outline"
+            className="h-10 w-full gap-1.5"
+            onClick={() =>
+              openModal((close) => (
+                <GroupPickerModal
+                  marketId={marketId}
+                  userId={userId}
+                  currentGroupId={participant.groupId}
+                  onClose={close}
+                />
+              ))
+            }
+          >
+            <Users className="h-4 w-4" />
+            그룹 변경
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-3">

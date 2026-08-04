@@ -1,6 +1,7 @@
 import { createQueries } from "@routar/react-query";
 import {
   adminApi,
+  groupsApi,
   itemsApi,
   marketsApi,
   missionsApi,
@@ -15,6 +16,7 @@ export const marketsQuery = createQueries(marketsApi, { flatten: true });
 export const participantsQuery = createQueries(participantsApi, {
   flatten: true,
 });
+export const groupsQuery = createQueries(groupsApi, { flatten: true });
 export const missionsQuery = createQueries(missionsApi, { flatten: true });
 
 export const POINT_LOGS_PAGE_SIZE = 20;

@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { participantsQuery } from "@/lib/query/queries";
+import { firstChar } from "@/lib/utils";
 
 export function AdminUsersClient({ marketId }: { marketId: string }) {
   const { data: participants } = useSuspenseQuery(
@@ -55,7 +56,7 @@ export function AdminUsersClient({ marketId }: { marketId: string }) {
               <div className="flex items-center gap-3">
                 <Avatar size="lg">
                   <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
-                  <AvatarFallback>{p.user.realName.slice(0, 1)}</AvatarFallback>
+                  <AvatarFallback>{firstChar(p.user.realName)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center gap-2">
@@ -75,6 +76,11 @@ export function AdminUsersClient({ marketId }: { marketId: string }) {
                     {p.role === "admin" && (
                       <span className="rounded-full bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 text-[10px] font-medium text-purple-600">
                         관리자
+                      </span>
+                    )}
+                    {p.groupName && (
+                      <span className="rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+                        {p.groupName}
                       </span>
                     )}
                   </div>

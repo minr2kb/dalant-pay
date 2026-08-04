@@ -42,6 +42,14 @@ export interface MarketParticipant {
   role: Role;
   balance: number;
   displayName: string;
+  groupId: string | null;
+  groupName: string | null;
+}
+
+export interface Group {
+  id: string;
+  marketId: string;
+  name: string;
 }
 
 export interface MissionSlotData {

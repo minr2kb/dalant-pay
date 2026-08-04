@@ -72,7 +72,7 @@ export async function listParticipants(
 ) {
   const { data, error } = await supabase
     .from("market_participants")
-    .select("*, user:users!user_id(*)")
+    .select("*, user:users!user_id(*), group:groups(name)")
     .eq("market_id", marketId)
     .order("real_name", { foreignTable: "users" });
   if (error) throw new Error(error.message);
@@ -88,7 +88,7 @@ export async function getParticipant(
     await Promise.all([
       supabase
         .from("market_participants")
-        .select("*, user:users!user_id(*)")
+        .select("*, user:users!user_id(*), group:groups(name)")
         .eq("market_id", marketId)
         .eq("user_id", userId)
         .single(),

@@ -14,6 +14,7 @@ import {
   participantsQuery,
   pointLogsQuery,
 } from "@/lib/query/queries";
+import { firstChar } from "@/lib/utils";
 import {
   formatReward,
   hasRewardRange,
@@ -124,6 +125,9 @@ export function ScanFlowModal({
   const otherParticipants = participants.filter(
     (p) => p.user.id !== selectedUser?.user.id,
   );
+  const teammates = selectedUser?.groupId
+    ? otherParticipants.filter((p) => p.groupId === selectedUser.groupId)
+    : [];
 
   if (step === "picking_mission") {
     return (
@@ -183,7 +187,7 @@ export function ScanFlowModal({
               >
                 <Avatar>
                   <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
-                  <AvatarFallback>{p.user.realName[0]}</AvatarFallback>
+                  <AvatarFallback>{firstChar(p.user.realName)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
@@ -211,6 +215,16 @@ export function ScanFlowModal({
               단체 미션: 함께한 참여자
             </h3>
           </div>
+          {teammates.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setGroupUsers(teammates.map((p) => p.user.id))}
+              className="flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50"
+            >
+              <UserPlus className="h-3 w-3" /> {selectedUser.groupName} 팀 전체
+              선택
+            </button>
+          )}
           <GroupParticipantPicker
             participants={otherParticipants}
             selected={groupUsers}

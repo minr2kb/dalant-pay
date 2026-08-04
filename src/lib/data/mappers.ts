@@ -1,5 +1,6 @@
 import { keyBy } from "es-toolkit";
 import type {
+  Group,
   Market,
   MarketItem,
   MarketParticipant,
@@ -40,6 +41,15 @@ export function mapParticipant(
   row: Record<string, unknown>,
 ): MarketParticipant {
   const user = mapUser(row.user as Record<string, unknown>);
+  // group:groups(name) — supabase-js's array-vs-object cardinality inference for
+  // FK embeds isn't consistent without generated Database types (same caveat as
+  // the `user` join above), so accept either shape instead of guessing one.
+  const groupField = row.group as
+    | { name: string }
+    | { name: string }[]
+    | null
+    | undefined;
+  const groupRow = Array.isArray(groupField) ? groupField[0] : groupField;
   return {
     id: row.id as string,
     marketId: row.market_id as string,
@@ -47,6 +57,16 @@ export function mapParticipant(
     role: row.role as Role,
     balance: row.balance as number,
     displayName: (row.display_name as string | null) ?? user.realName,
+    groupId: (row.group_id as string | null) ?? null,
+    groupName: groupRow?.name ?? null,
+  };
+}
+
+export function mapGroup(row: Record<string, unknown>): Group {
+  return {
+    id: row.id as string,
+    marketId: row.market_id as string,
+    name: row.name as string,
   };
 }
 

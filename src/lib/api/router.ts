@@ -2,6 +2,7 @@ import { defineRouter, endpoint } from "@routar/core";
 import { z } from "zod";
 import {
   EarnedTotalSchema,
+  GroupSchema,
   MarketItemSchema,
   MarketListItemSchema,
   MarketParticipantSchema,
@@ -21,6 +22,7 @@ const marketAndMission = z.object({
   missionId: z.string(),
 });
 const marketAndItem = z.object({ marketId: z.string(), itemId: z.string() });
+const marketAndGroup = z.object({ marketId: z.string(), groupId: z.string() });
 
 export const marketsRouter = defineRouter("/markets", {
   list: endpoint({
@@ -128,6 +130,48 @@ export const participantsRouter = defineRouter("/markets", {
     path: "/:marketId/participants/:userId/revoke-role",
     request: { path: marketAndUser },
     response: MarketParticipantSchema,
+  }),
+  assignGroup: endpoint({
+    method: "PATCH",
+    path: "/:marketId/participants/:userId/group",
+    request: {
+      path: marketAndUser,
+      body: z.object({ groupId: z.string().nullable() }),
+    },
+    response: MarketParticipantSchema,
+  }),
+});
+
+export const groupsRouter = defineRouter("/markets", {
+  list: endpoint({
+    method: "GET",
+    path: "/:marketId/groups",
+    request: { path: marketId },
+    response: z.array(GroupSchema),
+  }),
+  create: endpoint({
+    method: "POST",
+    path: "/:marketId/groups",
+    request: {
+      path: marketId,
+      body: z.object({ name: z.string().min(1) }),
+    },
+    response: GroupSchema,
+  }),
+  update: endpoint({
+    method: "PATCH",
+    path: "/:marketId/groups/:groupId",
+    request: {
+      path: marketAndGroup,
+      body: z.object({ name: z.string().min(1) }),
+    },
+    response: GroupSchema,
+  }),
+  delete: endpoint({
+    method: "DELETE",
+    path: "/:marketId/groups/:groupId",
+    request: { path: marketAndGroup },
+    response: z.object({ id: z.string() }),
   }),
 });
 

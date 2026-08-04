@@ -9,7 +9,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api/executor";
-import { participantsQuery, pointLogsQuery } from "@/lib/query/queries";
+import {
+  groupsQuery,
+  participantsQuery,
+  pointLogsQuery,
+} from "@/lib/query/queries";
+import { firstChar } from "@/lib/utils";
 
 function AdminPointsHeader({ marketId }: { marketId: string }) {
   return (
@@ -31,6 +36,7 @@ function AdminPointsBody({ marketId }: { marketId: string }) {
   const { data: participants } = useSuspenseQuery(
     participantsQuery.list({ marketId }),
   );
+  const { data: groups } = useSuspenseQuery(groupsQuery.list({ marketId }));
 
   const adjustMutation = useMutation(
     participantsQuery.adjustPoints({
@@ -58,6 +64,20 @@ function AdminPointsBody({ marketId }: { marketId: string }) {
     setSelected((prev) => {
       const next = new Set(prev);
       next.has(uid) ? next.delete(uid) : next.add(uid);
+      return next;
+    });
+  }
+
+  function toggleGroup(groupId: string) {
+    const memberIds = participants
+      .filter((p) => p.groupId === groupId)
+      .map((p) => p.user.id);
+    const allSelected = memberIds.every((uid) => selected.has(uid));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const uid of memberIds) {
+        allSelected ? next.delete(uid) : next.add(uid);
+      }
       return next;
     });
   }
@@ -139,6 +159,33 @@ function AdminPointsBody({ marketId }: { marketId: string }) {
         )}
       </div>
 
+      {groups.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
+          {groups.map((g) => {
+            const memberIds = participants
+              .filter((p) => p.groupId === g.id)
+              .map((p) => p.user.id);
+            const active =
+              memberIds.length > 0 &&
+              memberIds.every((uid) => selected.has(uid));
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => toggleGroup(g.id)}
+                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                {g.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <button
         type="button"
         onClick={toggleAll}
@@ -177,7 +224,9 @@ function AdminPointsBody({ marketId }: { marketId: string }) {
                 <div className="flex items-center gap-2 min-w-0">
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage src={p.user.avatarUrl ?? undefined} alt="" />
-                    <AvatarFallback>{p.user.realName[0]}</AvatarFallback>
+                    <AvatarFallback>
+                      {firstChar(p.user.realName)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
