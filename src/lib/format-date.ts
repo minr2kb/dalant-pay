@@ -11,6 +11,23 @@ export function formatKST(
   });
 }
 
+// <input type="date"> 값(YYYY-MM-DD, KST 캘린더 날짜) ↔ timestamptz 변환.
+// 한국은 DST가 없어 UTC+9 고정이라 오프셋을 문자열에 그대로 붙이면 된다.
+export function kstDateToStartOfDayISO(dateStr: string) {
+  return `${dateStr}T00:00:00+09:00`;
+}
+
+export function kstDateToEndOfDayISO(dateStr: string) {
+  return `${dateStr}T23:59:59+09:00`;
+}
+
+// timestamptz -> KST 기준 YYYY-MM-DD (en-CA 로케일이 ISO 형식을 출력하는 걸 이용)
+export function toKSTDateInputValue(date: Date | string) {
+  return new Date(date).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Seoul",
+  });
+}
+
 const relativeTimeFormatter = new Intl.RelativeTimeFormat("ko", {
   numeric: "always",
 });

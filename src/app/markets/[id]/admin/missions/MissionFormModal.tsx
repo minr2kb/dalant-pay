@@ -9,6 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { getApiErrorMessage } from "@/lib/api/executor";
+import {
+  kstDateToEndOfDayISO,
+  kstDateToStartOfDayISO,
+  toKSTDateInputValue,
+} from "@/lib/format-date";
 import { missionsQuery } from "@/lib/query/queries";
 import { MISSION_TYPE_LABEL, type Mission, type MissionType } from "@/types";
 import { ActivateConfirmModal } from "./ActivateConfirmModal";
@@ -39,8 +44,10 @@ function toForm(mission: Mission) {
     limitCount: mission.limitCount !== null ? String(mission.limitCount) : "",
     type: mission.type,
     isGroup: mission.isGroup,
-    activeFrom: mission.activeFrom ? mission.activeFrom.slice(0, 10) : "",
-    activeUntil: mission.activeUntil ? mission.activeUntil.slice(0, 10) : "",
+    activeFrom: mission.activeFrom ? toKSTDateInputValue(mission.activeFrom) : "",
+    activeUntil: mission.activeUntil
+      ? toKSTDateInputValue(mission.activeUntil)
+      : "",
   };
 }
 
@@ -87,8 +94,12 @@ export function MissionFormModal({
       limitCount: form.limitCount.trim() ? Number(form.limitCount) : null,
       type: form.type,
       isGroup: form.isGroup,
-      activeFrom: form.activeFrom || null,
-      activeUntil: form.activeUntil || null,
+      activeFrom: form.activeFrom
+        ? kstDateToStartOfDayISO(form.activeFrom)
+        : null,
+      activeUntil: form.activeUntil
+        ? kstDateToEndOfDayISO(form.activeUntil)
+        : null,
     };
     try {
       if (mission) {
