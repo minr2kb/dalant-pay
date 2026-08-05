@@ -36,6 +36,7 @@ export const SAMPLE_MISSIONS: Mission[] = [
         verifiedByName: "김민수",
         verifiedAt: "2026-08-01T02:00:00.000Z",
         photoUrl: null,
+        requested: true,
       },
     ],
   },

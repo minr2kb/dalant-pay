@@ -77,8 +77,11 @@ export function MissionDetailClient({
   const canVerify = isUnlimited || !!nextPendingSlot;
   const pendingPhotoUrl = nextPendingSlot?.photoUrl ?? null;
   // upload형 미션은 사진 없이도(사진 없이 인증 요청) 대기 상태로 들어갈 수 있어서,
-  // "제출은 됐다"는 pendingPhotoUrl(사진 유무)이 아니라 slot 존재 여부로 판단한다
-  const isAwaitingReview = mission.type === "upload" && !!nextPendingSlot;
+  // "제출은 됐다"는 pendingPhotoUrl(사진 유무)이 아니라 requested(로그 존재 여부)로
+  // 판단한다 — limitCount가 있는 미션은 아직 안 건드린 슬롯도 자리만 채워서 내려오므로
+  // nextPendingSlot 존재만으로는 "실제로 요청함"과 "아직 시도 안 함"을 구분 못 한다
+  const isAwaitingReview =
+    mission.type === "upload" && !!nextPendingSlot?.requested;
   // 무제한 미션에서 아직 미인증 로그가 없을 때의 다음 slot 번호 예측 (서버의 resolveNextSlot과 동일한 규칙)
   const predictedSlot =
     nextPendingSlot?.slot ?? (mission.slots?.length ?? 0) + 1;

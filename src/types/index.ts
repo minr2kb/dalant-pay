@@ -57,6 +57,9 @@ export interface MissionSlotData {
   verifiedByName: string | null;
   verifiedAt: string | null;
   photoUrl: string | null;
+  // limitCount가 있는 미션은 아직 아무도 시도 안 한 슬롯도 자리만 채워서 내려온다.
+  // mission_logs row가 실제로 있는지는 이 필드로만 구분할 수 있다.
+  requested: boolean;
 }
 
 export type MissionStatus = "active" | "upcoming" | "past";

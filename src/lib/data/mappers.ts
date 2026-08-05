@@ -87,6 +87,7 @@ export function mapMission(
         verifiedByName: log ? (log.verified_by_name as string | null) : null,
         verifiedAt: log ? (log.verified_at as string | null) : null,
         photoUrl: log ? (log.photo_url as string | null) : null,
+        requested: !!log,
       };
     });
   } else if (logsForMission.length > 0) {
@@ -95,6 +96,7 @@ export function mapMission(
       verifiedByName: (log.verified_by_name as string | null) ?? null,
       verifiedAt: (log.verified_at as string | null) ?? null,
       photoUrl: (log.photo_url as string | null) ?? null,
+      requested: true,
     }));
   }
 

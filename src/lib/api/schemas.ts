@@ -30,6 +30,7 @@ export const MissionSlotSchema = z.object({
   verifiedByName: z.string().nullable(),
   verifiedAt: z.string().nullable(),
   photoUrl: z.string().nullable(),
+  requested: z.boolean(),
 });
 
 export const MissionSchema = z.object({
