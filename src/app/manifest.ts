@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "달란트페이",
     short_name: "달란트페이",
     description: "오프라인 모임을 위한 미션 인증 기반 달란트 결제 서비스",
-    start_url: "/",
+    start_url: "/markets",
     display: "standalone",
     background_color: "#f9fafb",
     theme_color: "#f9fafb",
