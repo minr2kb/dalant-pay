@@ -5,7 +5,7 @@ import { ChevronLeft, QrCode } from "lucide-react";
 import { Children, type ReactNode, useEffect, useRef, useState } from "react";
 
 // 삼성 인터넷 강제 다크모드 등으로 촬영본의 흑백 대비가 좁은 회색 대역으로
-// 눌린 경우, 관측된 밝기 범위를 0~255로 다시 늘려 펴준다 — 대비가 거의 없는
+// 눌린 경우, 관측된 밝기 범위를 0~255로 다시 늘려 펴준다 - 대비가 거의 없는
 // 프레임(진짜 빈 화면 등)은 range가 작아 나눗셈이 튀므로 그대로 둔다.
 function stretchContrast(imageData: ImageData) {
   const { data } = imageData;
@@ -104,7 +104,7 @@ export function QRScanner({
     onScanRef.current = onScan;
   }, [onScan]);
 
-  // Children.toArray filters out null/undefined/boolean — {false}{false} → []
+  // Children.toArray filters out null/undefined/boolean - {false}{false} → []
   // Children.count does NOT filter them (false counts as 1), so use toArray here
   const hasOverlay = Children.toArray(children).length > 0;
   const shouldScan = open && !hasOverlay;
@@ -124,7 +124,7 @@ export function QRScanner({
     let active = true;
     let resumeTimer: ReturnType<typeof setTimeout> | undefined;
     // ponytail: jsqr(~250KB)를 모듈 top-level에서 정적 import하면 스캐너를 한 번도
-    // 안 여는 방문자의 홈 화면 초기 번들에도 실린다 — 실제로 스캔을 시작할 때만
+    // 안 여는 방문자의 홈 화면 초기 번들에도 실린다 - 실제로 스캔을 시작할 때만
     // 카메라 권한 요청과 동시에 동적 import해서 초기 로드 비용에서 뺀다.
     let jsQR: typeof jsQRType | undefined;
 
@@ -152,7 +152,7 @@ export function QRScanner({
             onScanRef.current(code.data);
             // If onScan led to an overlay/close, this effect's cleanup runs
             // (deps change) and clears this timer before it fires. Otherwise
-            // (invalid QR, rejected user, etc.) scanning resumes on its own —
+            // (invalid QR, rejected user, etc.) scanning resumes on its own -
             // the camera must never appear to "freeze" after a rejected scan.
             resumeTimer = setTimeout(() => {
               if (active) scanFrame();

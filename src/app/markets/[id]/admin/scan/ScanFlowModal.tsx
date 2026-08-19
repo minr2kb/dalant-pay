@@ -66,7 +66,7 @@ export function ScanFlowModal({
   });
 
   // react-query를 타야 참여자가 confirm 화면이 떠 있는 동안 재업로드해도
-  // uploadPhoto mutation의 invalidates(missionsQuery.$key)로 최신 사진을 다시 받아온다 —
+  // uploadPhoto mutation의 invalidates(missionsQuery.$key)로 최신 사진을 다시 받아온다 -
   // 이전 raw fetch는 이 캐시 시스템 밖에 있어 재업로드를 감지하지 못했다.
   const { data: pendingMission } = useQuery({
     ...missionsQuery.get({

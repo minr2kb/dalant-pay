@@ -5,7 +5,7 @@ import { withIdempotencyKey } from "./idempotency.ts";
 
 // route-helpers의 service_role 클라이언트를 실제로 띄우지 않고, withIdempotencyKey가
 // 쓰는 from().insert()/.select().eq().maybeSingle()/.update().eq() 체인만 흉내낸
-// 인메모리 더블 — insert는 이미 있는 key면 postgres unique_violation(23505)을 낸다.
+// 인메모리 더블 - insert는 이미 있는 key면 postgres unique_violation(23505)을 낸다.
 function makeFakeSupabase(
   seed: Record<string, { status: number | null; response: unknown }> = {},
 ) {

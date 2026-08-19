@@ -282,7 +282,7 @@ export const missionsRouter = defineRouter("/markets", {
     path: "/:marketId/missions/:missionId/photo",
     request: {
       path: marketAndMission,
-      // photoUrl 없이 호출 가능 — 사진 업로드가 계속 실패할 때 유저가 사진 없이
+      // photoUrl 없이 호출 가능 - 사진 업로드가 계속 실패할 때 유저가 사진 없이
       // 인증 대기 상태로만 넘어갈 수 있는 탈출구
       body: z.object({ photoUrl: z.string().optional() }),
     },
@@ -293,7 +293,7 @@ export const missionsRouter = defineRouter("/markets", {
     path: "/:marketId/missions/:missionId/photo",
     request: {
       path: marketAndMission,
-      // 본인 취소 호출은 userId를 아예 안 보낸다 — body 전체가 optional이어야
+      // 본인 취소 호출은 userId를 아예 안 보낸다 - body 전체가 optional이어야
       // 요청에 body가 통째로 빠졌을 때도 통과한다 (필드만 optional이면 안 됨)
       body: z.object({ userId: z.string().optional() }).optional(),
     },
@@ -454,7 +454,7 @@ export const transferRouter = defineRouter("/markets", {
   }),
 });
 
-// 마켓에 속하지 않는 리소스 — 푸시 구독은 유저·디바이스 단위라 /markets 밖에 둔다.
+// 마켓에 속하지 않는 리소스 - 푸시 구독은 유저·디바이스 단위라 /markets 밖에 둔다.
 export const pushRouter = defineRouter("/push", {
   subscribe: endpoint({
     method: "POST",

@@ -2,7 +2,7 @@ import type { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useQueryClient } from "@tanstack/react-query";
 
-// DnD 순서 변경의 공통 패턴 — 로컬 순서를 먼저 낙관적으로 반영한 뒤 전체 순서를
+// DnD 순서 변경의 공통 패턴 - 로컬 순서를 먼저 낙관적으로 반영한 뒤 전체 순서를
 // 통째로 서버에 덮어쓴다(항목별 부분 업데이트가 겹치며 나는 오류를 없애기 위해).
 // 실패하면 이전 캐시로 롤백한다.
 export function useOptimisticReorder<

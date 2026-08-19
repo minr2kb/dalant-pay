@@ -36,7 +36,7 @@ export function TransferModal({
   const [search, setSearch] = useState("");
   const [recipient, setRecipient] = useState<MarketParticipant | null>(null);
   const [amount, setAmount] = useState("");
-  // 모달 하나(= 한 번의 전송 시도) 수명 동안 고정 — 재시도가 같은 키를 재사용해
+  // 모달 하나(= 한 번의 전송 시도) 수명 동안 고정 - 재시도가 같은 키를 재사용해
   // 서버가 이체를 다시 안 태우고 첫 실행 결과를 그대로 돌려주게 한다.
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 

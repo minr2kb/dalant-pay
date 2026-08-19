@@ -48,7 +48,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
     ],
   });
 
-  // 랭킹은 잔액(구매하면 줄어듦)이 아니라 누적 획득량 기준 — 참여자마다
+  // 랭킹은 잔액(구매하면 줄어듦)이 아니라 누적 획득량 기준 - 참여자마다
   // earned-totals에 없을 수 있어(미션 이력 없음) 0으로 채운다.
   const earnedMap = useMemo(
     () => keyBy(earnedTotals ?? [], (e) => e.userId),
@@ -136,7 +136,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
     return new Set([...counts].filter(([, c]) => c > 1).map(([r]) => r));
   }, [ranks]);
 
-  // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
+  // isRestoring은 IndexedDB 복원 완료 여부만 본다 - 서버 prefetch(HydrationBoundary)로
   // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다 (home/missions와 동일).
   if (!market || !participants || !earnedTotals || !groups)
     return <RankingSkeleton />;
@@ -187,7 +187,7 @@ export function RankingClient({ marketId }: { marketId: string }) {
         </button>
       </div>
 
-      {/* 최근 미션 인증 — 참가자가 많으면 아래 순위 리스트가 길어 스크롤에 묻히므로 최상단에 배치.
+      {/* 최근 미션 인증 - 참가자가 많으면 아래 순위 리스트가 길어 스크롤에 묻히므로 최상단에 배치.
           가로 스크롤 칩으로: 세로 카드 스택은 랭킹 페이지를 과하게 길어 보이게 했다 */}
       {recentMissions === undefined ? (
         <div className="space-y-2">

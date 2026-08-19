@@ -16,7 +16,7 @@ export async function joinMarket(
 
   if (existing) {
     // supabase-js infers `user:users!user_id(...)` as a to-many array (it can't see the
-    // FK's one-to-one cardinality without generated Database types) — it's actually a
+    // FK's one-to-one cardinality without generated Database types) - it's actually a
     // single row at runtime, so index [0] instead of casting past the inferred type.
     const realName = existing.user?.[0]?.real_name ?? "";
     return {

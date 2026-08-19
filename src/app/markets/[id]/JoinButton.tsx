@@ -20,7 +20,7 @@ export function JoinButton({ marketId }: { marketId: string }) {
         }
         router.push(`/markets/${marketId}/home`);
       },
-      // 로그인 안 한 방문자가 공유 링크로 들어와 눌렀을 때 — 로그인/온보딩 후 이 마켓으로 되돌아온다
+      // 로그인 안 한 방문자가 공유 링크로 들어와 눌렀을 때 - 로그인/온보딩 후 이 마켓으로 되돌아온다
       onError: () =>
         router.push(
           `/login?next=${encodeURIComponent(`/markets/${marketId}`)}`,

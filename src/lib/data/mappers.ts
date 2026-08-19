@@ -41,7 +41,7 @@ export function mapParticipant(
   row: Record<string, unknown>,
 ): MarketParticipant {
   const user = mapUser(row.user as Record<string, unknown>);
-  // group:groups(name) — supabase-js's array-vs-object cardinality inference for
+  // group:groups(name) - supabase-js's array-vs-object cardinality inference for
   // FK embeds isn't consistent without generated Database types (same caveat as
   // the `user` join above), so accept either shape instead of guessing one.
   const groupField = row.group as

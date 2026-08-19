@@ -7,7 +7,7 @@ type FetchEntry<T = unknown> = {
   queryFn: () => Promise<T>;
 };
 
-// 쿼리 하나만 프리페치해서 캐시에 채워 넣는다 — 페이지에 쿼리가 하나뿐이면 배열로
+// 쿼리 하나만 프리페치해서 캐시에 채워 넣는다 - 페이지에 쿼리가 하나뿐이면 배열로
 // 안 감싸도 되게 hydrateAll과 분리했다.
 export async function hydrate(
   qc: QueryClient,
@@ -17,7 +17,7 @@ export async function hydrate(
   return qc;
 }
 
-// 여러 쿼리를 병렬로 프리페치해서 한 번에 채워 넣는다 — queryKey와 queryFn을 한
+// 여러 쿼리를 병렬로 프리페치해서 한 번에 채워 넣는다 - queryKey와 queryFn을 한
 // 객체로 묶어서, "fetch 배열"과 "queryKey 배열"을 따로 들고 있다가 순서가
 // 어긋나는 사고를 원천 차단한다.
 export async function hydrateAll(

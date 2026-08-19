@@ -109,7 +109,7 @@ function ScanInner({ marketId }: { marketId: string }) {
       }
     >
       {/* ponytail: QRScanner only restarts its camera stream when this
-          children/hasOverlay flag toggles — an empty placeholder while
+          children/hasOverlay flag toggles - an empty placeholder while
           locked forces that toggle so scanning resumes once the flow modal closes */}
       {locked && <div />}
     </QRScanner>

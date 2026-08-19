@@ -42,7 +42,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       .eq("mission_id", missionId)
       .eq("user_id", userId);
 
-    // 철회된 인증은 슬롯/횟수 집계에서 제외 — 아래 upsert가 voided 슬롯을 재사용한다
+    // 철회된 인증은 슬롯/횟수 집계에서 제외 - 아래 upsert가 voided 슬롯을 재사용한다
     const logs = (existingLogs ?? [])
       .filter((l) => l.voided_at === null)
       .map((l) => ({
@@ -67,7 +67,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       return err("이미 완료한 미션이에요", 422);
 
     const slot = resolveNextSlot(logs, mission.limit_count);
-    // upsert — voided 슬롯은 물리적으로 이미 존재하는 row라 plain insert면 unique 제약 충돌
+    // upsert - voided 슬롯은 물리적으로 이미 존재하는 row라 plain insert면 unique 제약 충돌
     const { error } = await supabase.from("mission_logs").upsert(
       {
         mission_id: missionId,
@@ -87,12 +87,12 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
   },
 );
 
-// 아직 승인되지 않은(verified_at null) 업로드만 삭제 대상 — 리워드가 나간 적
+// 아직 승인되지 않은(verified_at null) 업로드만 삭제 대상 - 리워드가 나간 적
 // 없으니 point_logs revoke처럼 voided_at으로 남길 필요 없이 그냥 지운다.
 // 본인은 항상 자기 사진을 지울 수 있고, 다른 유저 걸 지우려면(관리자 반려) staff 권한 필요.
 export const DELETE = authRoute<{ marketId: string; missionId: string }>(
   async (req, { supabase, params, userId: callerId }) => {
-    // body가 아예 안 왔을 수 있다(본인 취소 호출) — req.json()은 빈 본문에 에러를 던진다
+    // body가 아예 안 왔을 수 있다(본인 취소 호출) - req.json()은 빈 본문에 에러를 던진다
     const rawBody = await req.text();
     const parsed = await parseRequest(deletePhotoParser.parseRequest, {
       path: params,
@@ -122,7 +122,7 @@ export const DELETE = authRoute<{ marketId: string; missionId: string }>(
     if (error) return err("삭제에 실패했어요", 500);
     if (!data || data.length === 0) return err("삭제할 사진이 없어요", 404);
 
-    // ponytail: 알림은 부가 기능 — 실패해도 반려 자체는 이미 성공했으니 무시
+    // ponytail: 알림은 부가 기능 - 실패해도 반려 자체는 이미 성공했으니 무시
     if (targetUserId !== callerId) {
       try {
         const { data: mission } = await supabase

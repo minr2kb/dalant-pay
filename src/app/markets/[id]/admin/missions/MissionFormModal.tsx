@@ -44,7 +44,9 @@ function toForm(mission: Mission) {
     limitCount: mission.limitCount !== null ? String(mission.limitCount) : "",
     type: mission.type,
     isGroup: mission.isGroup,
-    activeFrom: mission.activeFrom ? toKSTDateInputValue(mission.activeFrom) : "",
+    activeFrom: mission.activeFrom
+      ? toKSTDateInputValue(mission.activeFrom)
+      : "",
     activeUntil: mission.activeUntil
       ? toKSTDateInputValue(mission.activeUntil)
       : "",
@@ -111,7 +113,7 @@ export function MissionFormModal({
         onClose();
         return;
       }
-      // 새 openModal을 여는 대신 같은 모달 안에서 내용만 확인 화면으로 바꾼다 —
+      // 새 openModal을 여는 대신 같은 모달 안에서 내용만 확인 화면으로 바꾼다 -
       // onClose()(history.back())를 부른 직후 곧바로 새 모달을 열면 back()과
       // 그 모달의 pushState가 경쟁해서, 방금 연 확인 모달이 열리자마자
       // 도로 닫혀버리는 문제가 있었다 (미션은 생성되는데 화면은 그대로).

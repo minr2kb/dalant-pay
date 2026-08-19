@@ -78,7 +78,7 @@ export function MissionDetailClient({
   const pendingPhotoUrl = nextPendingSlot?.photoUrl ?? null;
   // upload형 미션은 사진 없이도(사진 없이 인증 요청) 대기 상태로 들어갈 수 있어서,
   // "제출은 됐다"는 pendingPhotoUrl(사진 유무)이 아니라 requested(로그 존재 여부)로
-  // 판단한다 — limitCount가 있는 미션은 아직 안 건드린 슬롯도 자리만 채워서 내려오므로
+  // 판단한다 - limitCount가 있는 미션은 아직 안 건드린 슬롯도 자리만 채워서 내려오므로
   // nextPendingSlot 존재만으로는 "실제로 요청함"과 "아직 시도 안 함"을 구분 못 한다
   const isAwaitingReview =
     mission.type === "upload" && !!nextPendingSlot?.requested;
@@ -103,7 +103,7 @@ export function MissionDetailClient({
     } catch (e) {
       setUploadError(true);
       // 압축/스토리지 업로드 실패는 그동안 여기서 조용히 삼켜져서 Sentry에 하나도
-      // 안 잡혔다 — try/catch로 잡은 예외는 자동 계측 대상이 아니라 직접 보내야 한다.
+      // 안 잡혔다 - try/catch로 잡은 예외는 자동 계측 대상이 아니라 직접 보내야 한다.
       Sentry.captureException(e);
       if (e instanceof SessionExpiredError) {
         toast.error(e.message);
@@ -130,7 +130,7 @@ export function MissionDetailClient({
     }
   }
 
-  // 사진 업로드가 계속 실패할 때(압축/네트워크/브라우저 문제)의 탈출구 — 사진 없이
+  // 사진 업로드가 계속 실패할 때(압축/네트워크/브라우저 문제)의 탈출구 - 사진 없이
   // 인증 대기 상태로 등록해서 관리자가 다른 방식으로 확인 후 승인할 수 있게 한다
   async function handleManualRequest() {
     try {

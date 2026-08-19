@@ -1001,7 +1001,7 @@ GRANT ALL ON FUNCTION "public"."transfer_points"("p_market_id" "text", "p_from_u
 
 
 
--- 서버 전용 테이블 — 새로 만들 때부터 anon/authenticated 기본 GRANT를 주지 않는다.
+-- 서버 전용 테이블 - 새로 만들 때부터 anon/authenticated 기본 GRANT를 주지 않는다.
 GRANT ALL ON TABLE "public"."idempotency_keys" TO "service_role";
 
 

@@ -14,7 +14,7 @@ function isHeic(file: File): boolean {
   );
 }
 
-// HEIC/HEIF 변환 + 압축 — 두 업로드 경로(미션 사진/아바타) 공통.
+// HEIC/HEIF 변환 + 압축 - 두 업로드 경로(미션 사진/아바타) 공통.
 async function compress(file: File): Promise<File | Blob> {
   // HEIC/HEIF는 캔버스로 디코딩 못 하는 브라우저(사파리 계열 제외 대부분)가 많아
   // 압축 라이브러리에 넘기기 전에 먼저 JPEG로 변환한다. 실패하면 원본 그대로
@@ -39,7 +39,7 @@ async function compress(file: File): Promise<File | Blob> {
     }
   }
 
-  // fileType을 고정해 원본이 png/heic 등이어도 항상 jpg로 나온다 — 확장자가 바뀌면
+  // fileType을 고정해 원본이 png/heic 등이어도 항상 jpg로 나온다 - 확장자가 바뀌면
   // 서버 쪽 경로도 바뀌어서 upsert가 옛 파일을 못 덮어쓰고 고아로 남기기 때문
   try {
     return await imageCompression(source as File, {
@@ -49,7 +49,7 @@ async function compress(file: File): Promise<File | Blob> {
       fileType: "image/jpeg",
     });
   } catch (e) {
-    // ponytail: 워커 생성 차단, 캔버스 메모리 한도 등으로 압축이 실패할 수 있다 —
+    // ponytail: 워커 생성 차단, 캔버스 메모리 한도 등으로 압축이 실패할 수 있다 -
     // 용량이 크더라도 (HEIC면 변환된) 원본 그대로 올려서 인증 자체는 막지 않는다
     Sentry.captureException(e);
     console.error("[compress] compression failed, using source as-is", e);
@@ -59,7 +59,7 @@ async function compress(file: File): Promise<File | Blob> {
 
 // 브라우저에서 Supabase Storage에 직접 업로드하면 storage RLS(authenticated 롤 +
 // auth.uid() 매칭)를 타는데, Storage API 쪽 문제로 유효한 세션에서도 산발적으로 거부돼서
-// (row-level security policy 에러) 서버 라우트를 거치도록 바꿨다 — 서버는 service-role로
+// (row-level security policy 에러) 서버 라우트를 거치도록 바꿨다 - 서버는 service-role로
 // 업로드해 RLS를 아예 타지 않는다. 인증은 라우트의 authRoute(쿠키 세션)가 담당.
 async function uploadViaRoute(
   url: string,

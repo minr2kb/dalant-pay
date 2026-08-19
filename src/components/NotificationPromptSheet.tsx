@@ -64,7 +64,7 @@ function NotificationPromptSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-// PWA로 설치해 실행 중인 유저에게 딱 한 번만 노출 — 거절/수락 여부와 무관하게
+// PWA로 설치해 실행 중인 유저에게 딱 한 번만 노출 - 거절/수락 여부와 무관하게
 // localStorage에 표시 이력을 남겨서 다시는 띄우지 않는다.
 export function maybeShowNotificationPrompt() {
   if (localStorage.getItem(NOTIF_PROMPT_KEY)) return;

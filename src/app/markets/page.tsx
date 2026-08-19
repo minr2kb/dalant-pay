@@ -13,7 +13,7 @@ export default async function MarketsPage() {
   const userId = await getCurrentUserId();
 
   // ponytail: 마켓 목록 prefetch와 canCreateMarket 조회는 서로 무관한 별도 쿼리라
-  // Promise.all로 동시에 왕복시킨다 — 직렬로 두 번 기다릴 이유가 없다.
+  // Promise.all로 동시에 왕복시킨다 - 직렬로 두 번 기다릴 이유가 없다.
   const [, canCreate] = await Promise.all([
     prefetchIfFirstVisit(async () => {
       if (!userId) return;

@@ -10,7 +10,7 @@ import { OfflineError } from "@/lib/api/executor";
 // 메시지를 보여주고 있으니 여기서는 건드리지 않는다.
 //
 // 나머지(OfflineError/TimeoutError 이외)를 전부 "인터넷 연결을 확인해주세요"로
-// 뭉뚱그리면 안 된다 — 실제로 ValidationError(응답이 zod 스키마와 안 맞음, 서버 버그)가
+// 뭉뚱그리면 안 된다 - 실제로 ValidationError(응답이 zod 스키마와 안 맞음, 서버 버그)가
 // 이 케이스로 잘못 분류되어 정상 응답인데도 오프라인 토스트가 뜬 적이 있었다.
 function notifyMutationNetworkError(error: unknown) {
   if (typeof window === "undefined") return;
@@ -60,6 +60,6 @@ const getServerQueryClient = cache(makeQueryClient);
 
 export function getQueryClient() {
   if (isServer) return getServerQueryClient();
-  // biome-ignore lint/suspicious/noAssignInExpressions: idiomatic lazy-init memoized singleton — creates browserQC once per browser session and reuses it on subsequent calls
+  // biome-ignore lint/suspicious/noAssignInExpressions: idiomatic lazy-init memoized singleton - creates browserQC once per browser session and reuses it on subsequent calls
   return (browserQC ??= makeQueryClient());
 }

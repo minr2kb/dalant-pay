@@ -44,7 +44,7 @@ export const POST = authRoute<{ marketId: string }>(
     const memo = `${fromUser.real_name} -> ${toUser.real_name}`;
 
     // idempotencyKey가 있으면 같은 키의 재시도(네트워크 재시도, 더블탭)는 RPC를 다시
-    // 안 태우고 첫 실행 결과를 그대로 재생한다 — 푸시 발송도 이 안에 있어서 재전송 안 됨.
+    // 안 태우고 첫 실행 결과를 그대로 재생한다 - 푸시 발송도 이 안에 있어서 재전송 안 됨.
     const { status, json } = await withIdempotencyKey(
       supabase,
       {
@@ -80,7 +80,7 @@ export const POST = authRoute<{ marketId: string }>(
 
         const newBalance = (data as { new_balance: number }).new_balance;
 
-        // ponytail: 알림은 부가 기능 — 실패해도 전송 자체는 이미 성공했으니 무시
+        // ponytail: 알림은 부가 기능 - 실패해도 전송 자체는 이미 성공했으니 무시
         try {
           const { data: marketRow } = await supabase
             .from("markets")

@@ -2,7 +2,7 @@ import { err, marketRoleRoute, ok } from "@/lib/api/route-helpers";
 import { mapParticipant } from "@/lib/data/mappers";
 
 // 소유자만 호출 가능, admin/owner 구분 없이 role을 'user'로 되돌린다.
-// 마지막 남은 소유자는 스스로도 못 내려놓게 막는다 — 그러면 이 마켓을 아무도
+// 마지막 남은 소유자는 스스로도 못 내려놓게 막는다 - 그러면 이 마켓을 아무도
 // 설정할 수 없는 상태(소유자 지정 권한 자체가 소유자 전용)로 굳어버린다.
 export const POST = marketRoleRoute<{ marketId: string; userId: string }>(
   ["owner"],

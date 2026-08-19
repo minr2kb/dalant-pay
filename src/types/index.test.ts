@@ -55,7 +55,7 @@ test("activeFrom~activeUntil 사이면 active", () => {
   assert.strictEqual(getMissionStatus(mission), "active");
 });
 
-test("rewardMin/Max 둘 다 있어야 range로 취급 — 하나만 있으면 고정 reward", () => {
+test("rewardMin/Max 둘 다 있어야 range로 취급 - 하나만 있으면 고정 reward", () => {
   assert.strictEqual(hasRewardRange(makeMission({ rewardMin: 5 })), false);
   assert.strictEqual(
     hasRewardRange(makeMission({ rewardMin: 5, rewardMax: 20 })),

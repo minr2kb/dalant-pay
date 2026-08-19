@@ -33,7 +33,7 @@ export default async function AdminActivityPage(
       },
       {
         // useSuspenseInfiniteQuery가 기대하는 { pages, pageParams } 캐시 모양을
-        // 직접 채운다 — 첫 페이지만 프리페치하고 나머지는 "더 보기"로 받는다.
+        // 직접 채운다 - 첫 페이지만 프리페치하고 나머지는 "더 보기"로 받는다.
         queryKey: pointLogsQuery.list.infinite.queryKey({
           marketId,
         }),

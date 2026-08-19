@@ -2,7 +2,7 @@ import type { RequestShape } from "@routar/core";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createClient as createSsrClient } from "@/lib/supabase/server"; // session auth only
-import { supabase } from "@/lib/supabase/service"; // service role — bypasses RLS for trusted server code
+import { supabase } from "@/lib/supabase/service"; // service role - bypasses RLS for trusted server code
 import { isStaffRole, type Role } from "@/types";
 
 export { isStaffRole };
@@ -45,7 +45,7 @@ export function route<P = Record<string, string>>(
   };
 }
 
-// 세 라우트 래퍼(authRoute/marketParticipantRoute/marketRoleRoute) 공통 부분 —
+// 세 라우트 래퍼(authRoute/marketParticipantRoute/marketRoleRoute) 공통 부분 -
 // params와 세션 클라이언트를 병렬로 받아온 뒤 claims를 확인한다. 실패 시 401 Response를 돌려준다.
 async function authenticate<P>(props: { params: Promise<P> }) {
   const [params, ssrClient] = await Promise.all([
@@ -106,7 +106,7 @@ export function marketRoleRoute<P extends { marketId: string }>(
 }
 
 // transfer/orders/미션 인증/포인트 지급/참여(join) 라우트가 공통으로 쓰는 마켓
-// 활성기간 체크 — 예전엔 transfer 라우트에만 있었다. 마켓 종료(ends_at을
+// 활성기간 체크 - 예전엔 transfer 라우트에만 있었다. 마켓 종료(ends_at을
 // 현재로 설정)가 모든 거래를 막으려면 이 체크가 해당 라우트 전부에 있어야 한다.
 export async function assertMarketActive(
   marketId: string,
@@ -116,7 +116,7 @@ export async function assertMarketActive(
     .select("starts_at, ends_at, deleted_at")
     .eq("id", marketId)
     .single();
-  // 없는 마켓/조회 실패는 fail-closed — 통과시키면 종료된 마켓에서 거래가 열린다.
+  // 없는 마켓/조회 실패는 fail-closed - 통과시키면 종료된 마켓에서 거래가 열린다.
   if (error || !market) return err("마켓을 찾을 수 없습니다", 404);
   if (market.deleted_at) return err("삭제된 마켓입니다", 403);
   const now = new Date();

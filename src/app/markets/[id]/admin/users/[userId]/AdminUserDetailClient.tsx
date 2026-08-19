@@ -25,7 +25,7 @@ const ROLE_LABEL: Record<Role, string> = {
   user: "참여자",
 };
 
-// 유저 리스트 뱃지(AdminUsersClient)와 같은 톤 — 오너=amber, 관리자=purple.
+// 유저 리스트 뱃지(AdminUsersClient)와 같은 톤 - 오너=amber, 관리자=purple.
 const ROLE_BADGE_STYLE: Record<Role, string> = {
   owner: "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400",
   admin:

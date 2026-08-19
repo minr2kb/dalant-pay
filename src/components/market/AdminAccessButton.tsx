@@ -40,7 +40,7 @@ function AdminCodeForm({
           if (result.granted) {
             localStorage.setItem(STORAGE_KEY, "true");
             // onClose()(=history.back())를 부르면 뒤이은 router.push와
-            // 내비게이션이 경쟁해서 뒤로가기가 이겨버릴 수 있다 — 페이지를
+            // 내비게이션이 경쟁해서 뒤로가기가 이겨버릴 수 있다 - 페이지를
             // 아예 떠나므로 히스토리 조작 없이 즉시 언마운트만 한다.
             unmount();
             router.push(`/markets/${marketId}/admin/home`);

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { CLIENT_CACHE_COOKIE } from "@/lib/query/persist";
 
-// 서버 prefetch는 "되면 좋고 안 되면 마는" 부가 기능이다 — 실패(마켓 미참여, 네트워크 등)를
+// 서버 prefetch는 "되면 좋고 안 되면 마는" 부가 기능이다 - 실패(마켓 미참여, 네트워크 등)를
 // 조용히 삼킨다. 클라이언트가 기존처럼 직접 받아오면 되니까.
 export async function prefetchQuietly(
   fill: () => Promise<void>,

@@ -27,7 +27,7 @@ export async function verifySessionRemote(
   return !error && data ? "valid" : "invalid";
 }
 
-// 온보딩 폼 제출 전에는 auth.users만 생기고 public.users row는 없다 — 그 상태로
+// 온보딩 폼 제출 전에는 auth.users만 생기고 public.users row는 없다 - 그 상태로
 // 이탈했다 재접속하면 세션은 여전히 유효해서 계속 반쪽짜리 프로필로 앱에 들어오게 된다.
 export async function hasOnboarded(
   supabase: SupabaseClient,

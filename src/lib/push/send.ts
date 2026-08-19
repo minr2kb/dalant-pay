@@ -13,7 +13,7 @@ export type PushPayload = {
   url: string;
 };
 
-// 실패해도 호출부의 본 작업(미션 인증, 전송 등)은 이미 끝난 뒤라 절대 throw하지 않는다 —
+// 실패해도 호출부의 본 작업(미션 인증, 전송 등)은 이미 끝난 뒤라 절대 throw하지 않는다 -
 // 알림은 부가 기능이지 그 실패로 본 작업 응답을 막으면 안 된다.
 export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
   if (!publicKey || !privateKey || userIds.length === 0) return;
@@ -39,7 +39,7 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
           JSON.stringify(payload),
         );
       } catch (e) {
-        // 브라우저에서 구독이 만료/취소된 경우 — 다음 발송에서 또 실패하지 않게 정리한다.
+        // 브라우저에서 구독이 만료/취소된 경우 - 다음 발송에서 또 실패하지 않게 정리한다.
         const status = (e as { statusCode?: number } | null)?.statusCode;
         if (status === 404 || status === 410) staleIds.push(sub.id as string);
       }

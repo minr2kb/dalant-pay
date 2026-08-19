@@ -5,7 +5,7 @@ import { z } from "zod";
 import { executor } from "./executor.ts";
 
 // router.ts는 "./schemas"를 확장자 없이 import해서 node --experimental-strip-types의
-// 네이티브 ESM 로더로는 못 읽는다(Next.js 번들러 모드 전용 관례) — 그래서 실제
+// 네이티브 ESM 로더로는 못 읽는다(Next.js 번들러 모드 전용 관례) - 그래서 실제
 // router.ts를 그대로 끌어오는 대신, 검증에 필요한 만큼만 로컬로 정의한다. executor는
 // 프로덕션과 동일한 싱글턴을 그대로 쓰므로 fetch executor 자체는 진짜로 검증된다.
 const testRouter = defineRouter("/markets", {
@@ -30,7 +30,7 @@ const testRouter = defineRouter("/markets", {
 });
 const testApi = createApi(executor, testRouter);
 
-// @routar/core 1.11 업데이트로 생긴 진짜 per-call 헤더 지원을 검증한다 — 이 테스트가
+// @routar/core 1.11 업데이트로 생긴 진짜 per-call 헤더 지원을 검증한다 - 이 테스트가
 // 실패하면 idempotencyKey를 헤더로 옮긴 게 실제로는 요청에 안 실리고 있다는 뜻이다.
 // executor.ts의 fetch executor는 free variable `fetch`를 호출 시점에 조회하므로,
 // 모듈이 이미 로드돼 있어도 여기서 globalThis.fetch를 바꿔치기하면 그대로 먹힌다.

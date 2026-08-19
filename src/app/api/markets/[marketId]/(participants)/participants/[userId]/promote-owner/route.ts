@@ -1,7 +1,7 @@
 import { err, marketRoleRoute, ok } from "@/lib/api/route-helpers";
 import { mapParticipant } from "@/lib/data/mappers";
 
-// 소유자만 다른 참여자를 소유자로 지정할 수 있다 — 위임이 아니라 추가 지정이라
+// 소유자만 다른 참여자를 소유자로 지정할 수 있다 - 위임이 아니라 추가 지정이라
 // 여러 명이 동시에 소유자일 수 있다(admin이 여러 명일 수 있는 것과 동일한 모델).
 export const POST = marketRoleRoute<{ marketId: string; userId: string }>(
   ["owner"],

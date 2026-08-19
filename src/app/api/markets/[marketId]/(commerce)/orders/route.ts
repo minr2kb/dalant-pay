@@ -99,7 +99,7 @@ export const POST = marketRoleRoute<{ marketId: string }>(
 
     const r = result as { orderId: string; newBalance: number };
 
-    // ponytail: 알림은 부가 기능 — 실패해도 구매 자체는 이미 성공했으니 무시
+    // ponytail: 알림은 부가 기능 - 실패해도 구매 자체는 이미 성공했으니 무시
     try {
       const { data: marketRow } = await supabase
         .from("markets")

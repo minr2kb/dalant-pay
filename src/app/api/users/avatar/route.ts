@@ -1,7 +1,7 @@
 import { authRoute, err, ok } from "@/lib/api/route-helpers";
 import { supabase as serviceClient } from "@/lib/supabase/service";
 
-// mission-photos 업로드 라우트와 동일한 이유로 service-role 업로드를 씀 — 자세한 내용은
+// mission-photos 업로드 라우트와 동일한 이유로 service-role 업로드를 씀 - 자세한 내용은
 // 그쪽 route.ts 주석 참고.
 export const POST = authRoute(async (req, { userId }) => {
   const formData = await req.formData();

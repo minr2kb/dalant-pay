@@ -9,9 +9,9 @@ import { createClient } from "@/lib/supabase/server";
 import { UserHomeClient } from "./UserHomeClient";
 
 // cold 방문(스킵된 서버 prefetch 탓에 클라이언트가 데이터를 별도 왕복으로 받아오던 것)이
-// 느린 네트워크에서 크게 불리했다 — userId를 getClaims()로 로컬 검증만 하고(네트워크 없음),
+// 느린 네트워크에서 크게 불리했다 - userId를 getClaims()로 로컬 검증만 하고(네트워크 없음),
 // 있으면 서버에서 한 번에 데이터까지 실어 보낸다. 세션이 없거나 조회 실패하면 조용히
-// 빈 셸만 반환 — AuthGate가 클라이언트에서 낙관적 렌더링/재검증을 그대로 이어받는다.
+// 빈 셸만 반환 - AuthGate가 클라이언트에서 낙관적 렌더링/재검증을 그대로 이어받는다.
 export default async function UserHomePage(
   props: PageProps<"/markets/[id]/home">,
 ) {

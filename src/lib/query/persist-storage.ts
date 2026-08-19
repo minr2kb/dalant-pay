@@ -17,7 +17,7 @@ export function createSafeStorage(backend: KVBackend) {
       try {
         await backend.set(key, value);
       } catch {
-        // ponytail: IndexedDB 차단 환경(사파리 프라이빗 모드 등) — 영속화 실패는
+        // ponytail: IndexedDB 차단 환경(사파리 프라이빗 모드 등) - 영속화 실패는
         // 무시하고 인메모리 QueryClient로만 계속 동작한다.
       }
     },

@@ -25,7 +25,7 @@ export const POST = marketRoleRoute<{ marketId: string; logId: string }>(
 
     const newBalance = (data as { newBalance: number }).newBalance;
 
-    // ponytail: 알림은 부가 기능 — 실패해도 철회 자체는 이미 성공했으니 무시
+    // ponytail: 알림은 부가 기능 - 실패해도 철회 자체는 이미 성공했으니 무시
     try {
       const [{ data: log }, { data: market }] = await Promise.all([
         supabase

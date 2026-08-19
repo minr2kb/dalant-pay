@@ -16,7 +16,7 @@ export function BottomSheet({ open, onClose, children }: BottomSheetProps) {
       onOpenChange={(o) => {
         if (!o) onClose();
       }}
-      // vaul renders into a portal at document.body — always above nav (z-50)
+      // vaul renders into a portal at document.body - always above nav (z-50)
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-[70] bg-black/40" />

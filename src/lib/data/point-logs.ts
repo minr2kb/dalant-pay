@@ -13,7 +13,7 @@ export async function listPointLogs(
     .eq("market_id", marketId)
     .order("created_at", { ascending: false });
   if (opts?.userId) query = query.eq("user_id", opts.userId);
-  // page/pageSize 둘 다 있을 때만 자르고, 없으면 기존처럼 전체 반환 — admin/home
+  // page/pageSize 둘 다 있을 때만 자르고, 없으면 기존처럼 전체 반환 - admin/home
   // 대시보드의 합계 계산은 여전히 전체 목록이 필요해서 그 호출부는 그대로 둔다.
   if (opts?.page !== undefined && opts?.pageSize !== undefined) {
     const from = opts.page * opts.pageSize;
@@ -24,7 +24,7 @@ export async function listPointLogs(
   return (data ?? []).map((r) => mapPointLog(r as Record<string, unknown>));
 }
 
-// 랭킹용 누적 획득량 — 미션 보상 + 수동 지급(관리자 차감 포함)만 합산.
+// 랭킹용 누적 획득량 - 미션 보상 + 수동 지급(관리자 차감 포함)만 합산.
 // 구매/전송은 성취와 무관해 제외하고, 철회된(voided_at) 내역은 반영된 적 없는 셈 치고 뺀다.
 export async function listEarnedTotals(
   supabase: SupabaseClient,

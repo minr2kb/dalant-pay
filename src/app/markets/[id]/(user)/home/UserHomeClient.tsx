@@ -66,7 +66,7 @@ export function UserHomeClient({
     [participants],
   );
 
-  // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
+  // isRestoring은 IndexedDB 복원 완료 여부만 본다 - 서버 prefetch(HydrationBoundary)로
   // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다.
   if (!market || !participants) return <HomeSkeleton />;
 

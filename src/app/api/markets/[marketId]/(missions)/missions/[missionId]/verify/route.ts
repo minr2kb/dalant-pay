@@ -99,7 +99,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
       .eq("mission_id", missionId)
       .eq("user_id", targetUserId);
 
-    // 철회된 인증은 슬롯/횟수 집계에서 제외 — award_mission이 voided 슬롯을 재사용한다
+    // 철회된 인증은 슬롯/횟수 집계에서 제외 - award_mission이 voided 슬롯을 재사용한다
     const logs = (existingLogs ?? [])
       .filter((l) => l.voided_at === null)
       .map((l) => ({
@@ -133,7 +133,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
     }
 
     // idempotencyKey가 있으면 같은 키의 재시도는 award_mission을 다시 안 태우고
-    // 첫 실행 결과를 그대로 재생한다 — 네트워크 문제로 응답을 못 받은 클라이언트가
+    // 첫 실행 결과를 그대로 재생한다 - 네트워크 문제로 응답을 못 받은 클라이언트가
     // 재시도할 때 "이미 인증된 미션이에요" 에러 대신 원래 성공 응답을 그대로 받는다.
     const { status, json } = await withIdempotencyKey(
       supabase,
@@ -171,7 +171,7 @@ export const POST = authRoute<{ marketId: string; missionId: string }>(
           return { status: 500, json: { error: "적립에 실패했어요" } };
         }
 
-        // ponytail: 알림은 부가 기능 — 실패해도 인증 자체는 이미 성공했으니 무시
+        // ponytail: 알림은 부가 기능 - 실패해도 인증 자체는 이미 성공했으니 무시
         try {
           const { data: marketRow } = await supabase
             .from("markets")

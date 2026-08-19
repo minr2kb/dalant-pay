@@ -50,7 +50,7 @@ export default async function MarketJoinPage(
   const { id } = await props.params;
 
   // 이미 참여 중인 유저(특히 PWA start_url로 매번 여기부터 여는 경우)는
-  // 참여 화면을 거칠 필요 없이 바로 홈으로 — 안 그러면 페이지 로드가 두 번 겹친다.
+  // 참여 화면을 거칠 필요 없이 바로 홈으로 - 안 그러면 페이지 로드가 두 번 겹친다.
   const userId = await getCurrentUserId();
   if (userId && (await isMarketParticipant(supabase, id, userId))) {
     redirect(`/markets/${id}/home`);

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { mapMarket } from "@/lib/data/mappers";
 
-// ponytail: PWA 오프라인 QA용 "DEV TEST" 마켓 — 개발 계정에만 보이면 되는 일회성
+// ponytail: PWA 오프라인 QA용 "DEV TEST" 마켓 - 개발 계정에만 보이면 되는 일회성
 // 케이스라 별도 visibility 컬럼/기능 없이 하드코딩으로 막는다. 나중에 실제로
 // 마켓별 노출 제어가 필요해지면 그때 제대로 된 컬럼을 추가할 것.
 const DEV_ONLY_MARKET_ID = "oxzO6tplee";
@@ -31,7 +31,7 @@ export async function isMarketParticipant(
   return data !== null;
 }
 
-// 로그인 전 방문자(QR 랜딩)도 봐야 하는 공개 화면용 — getMarket과 달리 없으면
+// 로그인 전 방문자(QR 랜딩)도 봐야 하는 공개 화면용 - getMarket과 달리 없으면
 // throw 대신 null을 돌려줘서 페이지가 조용히 처리할 수 있게 한다.
 export async function getMarketWithParticipantCount(
   supabase: SupabaseClient,
@@ -93,7 +93,7 @@ export async function canCreateMarket(
   return (count ?? 0) < MAX_OWNED_MARKETS;
 }
 
-// 마켓 수정 화면(owner 전용) 전용 — admin_code를 포함하므로 공개 getMarket과
+// 마켓 수정 화면(owner 전용) 전용 - admin_code를 포함하므로 공개 getMarket과
 // 분리한다. GET /api/markets/:marketId는 인증 없는 QR 랜딩 페이지도 호출하는
 // 공개 라우트라 admin_code를 여기 섞으면 안 된다.
 export async function getMarketForOwner(

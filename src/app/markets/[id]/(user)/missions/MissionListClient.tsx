@@ -16,7 +16,7 @@ export function MissionListClient({
   initialUserId: string | null;
 }) {
   // useSessionUserId()가 비동기로 채워지기 전엔 서버가 이미 검증한 initialUserId로 쿼리 키를
-  // 맞춰서 SSR prefetch 캐시를 첫 렌더부터 바로 쓴다 — UserHomeClient와 동일한 이유.
+  // 맞춰서 SSR prefetch 캐시를 첫 렌더부터 바로 쓴다 - UserHomeClient와 동일한 이유.
   const userId = useSessionUserId() ?? initialUserId;
 
   const { data: missions } = useQuery({
@@ -24,7 +24,7 @@ export function MissionListClient({
     enabled: !!userId,
   });
 
-  // isRestoring은 IndexedDB 복원 완료 여부만 본다 — 서버 prefetch(HydrationBoundary)로
+  // isRestoring은 IndexedDB 복원 완료 여부만 본다 - 서버 prefetch(HydrationBoundary)로
   // 이미 데이터가 있으면 복원을 기다릴 이유가 없어 게이트에서 뺐다.
   if (!missions) return <MissionsSkeleton />;
 

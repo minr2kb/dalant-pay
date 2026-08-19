@@ -35,7 +35,7 @@ export function useOptimisticSession() {
       setUserId(local?.userId ?? null);
 
       // 로그아웃 버튼을 거치지 않고 이 기기의 로그인 계정이 바뀐 경우(세션 강제
-      // 교체 등) — 이전 계정의 유저별 캐시(마켓 목록 등)가 남아있지 않도록 지운다.
+      // 교체 등) - 이전 계정의 유저별 캐시(마켓 목록 등)가 남아있지 않도록 지운다.
       if (local && didUserChange(local.userId)) {
         getQueryClient().clear();
         const { clearPersistedQueryCache } = await import(
@@ -57,7 +57,7 @@ export function useOptimisticSession() {
         return;
       }
 
-      // 세션은 유효한데 온보딩 전에 이탈해 public.users가 없는 경우 —
+      // 세션은 유효한데 온보딩 전에 이탈해 public.users가 없는 경우 -
       // 반쪽짜리 프로필로 계속 들어오게 두지 않고 세션을 지워 로그인부터 다시 타게 한다.
       if (local && !(await hasOnboarded(supabase, local.userId))) {
         if (cancelled) return;

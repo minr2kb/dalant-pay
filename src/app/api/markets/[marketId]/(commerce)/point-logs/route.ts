@@ -2,7 +2,7 @@ import { authRoute, err, isStaffRole, ok } from "@/lib/api/route-helpers";
 import { listPointLogs } from "@/lib/data/point-logs";
 
 // 마켓 전체 내역 조회는 admin/owner 전용, 본인 내역만 조회하는 건 일반 유저도
-// 허용 — history 페이지가 자기 userId로 페이지네이션 요청을 보낸다.
+// 허용 - history 페이지가 자기 userId로 페이지네이션 요청을 보낸다.
 export const GET = authRoute<{ marketId: string }>(
   async (req, { supabase, params, userId: callerId }) => {
     const { marketId } = params;
