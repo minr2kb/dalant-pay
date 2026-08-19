@@ -1,6 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { mapOrder, mapParticipant, mapPointLog } from "@/lib/data/mappers";
+import { getMarketOwnerPlan } from "@/lib/data/plans";
 import { resolveDisplayName } from "@/lib/resolve-display-name";
+
+export async function getMarketParticipantUsage(
+  supabase: SupabaseClient,
+  marketId: string,
+) {
+  const [plan, { count }] = await Promise.all([
+    getMarketOwnerPlan(supabase, marketId),
+    supabase
+      .from("market_participants")
+      .select("id", { count: "exact", head: true })
+      .eq("market_id", marketId),
+  ]);
+  return { count: count ?? 0, limit: plan.participantLimit };
+}
 
 export async function joinMarket(
   supabase: SupabaseClient,
@@ -34,6 +49,11 @@ export async function joinMarket(
 
   if (!userRow) throw new Error("User not found");
   const realName = userRow.real_name as string;
+
+  const usage = await getMarketParticipantUsage(supabase, marketId);
+  if (usage.limit !== null && usage.count >= usage.limit) {
+    throw new Error("마켓 참가자 정원이 가득 찼어요");
+  }
 
   const { data: others } = await supabase
     .from("market_participants")

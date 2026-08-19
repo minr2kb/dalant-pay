@@ -498,6 +498,19 @@ CREATE TABLE IF NOT EXISTS "public"."point_logs" (
 ALTER TABLE "public"."point_logs" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."plans" (
+    "id" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "market_limit" integer,
+    "participant_limit" integer,
+    "group_feature" boolean DEFAULT false NOT NULL,
+    "sort_order" integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE "public"."plans" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."users" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "name" "text" NOT NULL,
@@ -506,11 +519,17 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "gender" "text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "avatar_url" "text",
+    "plan_id" "text" DEFAULT 'free'::"text" NOT NULL,
     CONSTRAINT "users_gender_check" CHECK (("gender" = ANY (ARRAY['male'::"text", 'female'::"text"])))
 );
 
 
 ALTER TABLE "public"."users" OWNER TO "postgres";
+
+
+ALTER TABLE ONLY "public"."plans"
+    ADD CONSTRAINT "plans_pkey" PRIMARY KEY ("id");
+
 
 
 ALTER TABLE ONLY "public"."idempotency_keys"
@@ -565,6 +584,11 @@ ALTER TABLE ONLY "public"."point_logs"
 
 ALTER TABLE ONLY "public"."users"
     ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."users"
+    ADD CONSTRAINT "users_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES "public"."plans"("id");
 
 
 
@@ -751,6 +775,12 @@ CREATE POLICY "plogs_select" ON "public"."point_logs" FOR SELECT USING ((("user_
 
 
 ALTER TABLE "public"."point_logs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."plans" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "plans_select" ON "public"."plans" FOR SELECT TO "authenticated" USING (true);
 
 
 ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
@@ -1044,6 +1074,12 @@ GRANT ALL ON TABLE "public"."orders" TO "service_role";
 GRANT ALL ON TABLE "public"."point_logs" TO "anon";
 GRANT ALL ON TABLE "public"."point_logs" TO "authenticated";
 GRANT ALL ON TABLE "public"."point_logs" TO "service_role";
+
+
+
+GRANT SELECT ON TABLE "public"."plans" TO "anon";
+GRANT SELECT ON TABLE "public"."plans" TO "authenticated";
+GRANT ALL ON TABLE "public"."plans" TO "service_role";
 
 
 

@@ -1,9 +1,12 @@
 "use client";
 
+import { HttpError } from "@routar/core";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/lib/api/executor";
 import { participantsQuery } from "@/lib/query/queries";
 
 export function JoinButton({ marketId }: { marketId: string }) {
@@ -20,11 +23,16 @@ export function JoinButton({ marketId }: { marketId: string }) {
         }
         router.push(`/markets/${marketId}/home`);
       },
-      // 로그인 안 한 방문자가 공유 링크로 들어와 눌렀을 때 - 로그인/온보딩 후 이 마켓으로 되돌아온다
-      onError: () =>
-        router.push(
-          `/login?next=${encodeURIComponent(`/markets/${marketId}`)}`,
-        ),
+      onError: (e) => {
+        // 로그인 안 한 방문자가 공유 링크로 들어와 눌렀을 때 - 로그인/온보딩 후 이 마켓으로 되돌아온다
+        if (e instanceof HttpError && e.status === 401) {
+          router.push(
+            `/login?next=${encodeURIComponent(`/markets/${marketId}`)}`,
+          );
+          return;
+        }
+        toast.error(getApiErrorMessage(e, "참여에 실패했어요"));
+      },
     }),
   );
 

@@ -3,9 +3,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Modal } from "@/components/Modal";
+import { UpgradeModal } from "@/components/plan/UpgradeModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getApiErrorMessage } from "@/lib/api/executor";
+import { openModal } from "@/lib/overlay";
 import { groupsQuery } from "@/lib/query/queries";
 import type { Group } from "@/types";
 
@@ -32,16 +36,24 @@ export function GroupFormModal({
 
   async function submitForm() {
     if (!name.trim()) return;
-    if (group) {
-      await updateMutation.mutateAsync({
-        marketId,
-        groupId: group.id,
-        name: name.trim(),
-      });
-    } else {
-      await createMutation.mutateAsync({ marketId, name: name.trim() });
+    try {
+      if (group) {
+        await updateMutation.mutateAsync({
+          marketId,
+          groupId: group.id,
+          name: name.trim(),
+        });
+      } else {
+        await createMutation.mutateAsync({ marketId, name: name.trim() });
+      }
+      onClose();
+    } catch (e) {
+      const message = getApiErrorMessage(e, "저장에 실패했어요");
+      toast.error(message);
+      if (message.includes("플랜")) {
+        openModal((close) => <UpgradeModal reason={message} onClose={close} />);
+      }
     }
-    onClose();
   }
 
   return (

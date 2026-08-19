@@ -17,7 +17,8 @@ export const GET = authRoute(async (_req, { supabase, userId }) => {
 const createMarketParser = createParser(marketsRouter.endpoints.create);
 
 export const POST = authRoute(async (req, { supabase, userId }) => {
-  const allowed = await canCreateMarket(supabase, userId);
+  // fail-closed: 플랜 조회가 실패해도 생성을 통과시키면 안 되니 false로 처리
+  const allowed = await canCreateMarket(supabase, userId).catch(() => false);
   if (!allowed) return err("마켓을 생성할 권한이 없어요", 403);
 
   const parsed = await parseRequest(createMarketParser.parseRequest, {

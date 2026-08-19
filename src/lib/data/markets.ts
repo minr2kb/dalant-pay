@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { mapMarket } from "@/lib/data/mappers";
+import { getUserPlan } from "@/lib/data/plans";
 
 // ponytail: PWA 오프라인 QA용 "DEV TEST" 마켓 - 개발 계정에만 보이면 되는 일회성
 // 케이스라 별도 visibility 컬럼/기능 없이 하드코딩으로 막는다. 나중에 실제로
@@ -78,19 +79,28 @@ export async function listMarkets(supabase: SupabaseClient, userId: string) {
     }));
 }
 
-const MAX_OWNED_MARKETS = 3;
+export async function getOwnedMarketUsage(
+  supabase: SupabaseClient,
+  userId: string,
+) {
+  const [plan, { count }] = await Promise.all([
+    getUserPlan(supabase, userId),
+    supabase
+      .from("market_participants")
+      .select("id, markets!inner(deleted_at)", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("role", "owner")
+      .is("markets.deleted_at", null),
+  ]);
+  return { owned: count ?? 0, limit: plan.marketLimit };
+}
 
 export async function canCreateMarket(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<boolean> {
-  const { count } = await supabase
-    .from("market_participants")
-    .select("id, markets!inner(deleted_at)", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .eq("role", "owner")
-    .is("markets.deleted_at", null);
-  return (count ?? 0) < MAX_OWNED_MARKETS;
+  const { owned, limit } = await getOwnedMarketUsage(supabase, userId);
+  return limit === null || owned < limit;
 }
 
 // 마켓 수정 화면(owner 전용) 전용 - admin_code를 포함하므로 공개 getMarket과

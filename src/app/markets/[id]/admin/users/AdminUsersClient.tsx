@@ -5,12 +5,21 @@ import { orderBy } from "es-toolkit";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { UpgradeModal } from "@/components/plan/UpgradeModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { openModal } from "@/lib/overlay";
 import { participantsQuery } from "@/lib/query/queries";
 import { firstChar } from "@/lib/utils";
 
-export function AdminUsersClient({ marketId }: { marketId: string }) {
+export function AdminUsersClient({
+  marketId,
+  participantLimit,
+}: {
+  marketId: string;
+  participantLimit: number | null;
+}) {
   const { data: participants } = useSuspenseQuery(
     participantsQuery.list({ marketId }),
   );
@@ -31,8 +40,48 @@ export function AdminUsersClient({ marketId }: { marketId: string }) {
     [sorted, search],
   );
 
+  const participantRatio =
+    participantLimit !== null ? participants.length / participantLimit : 0;
+
   return (
     <>
+      {participantLimit !== null && (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <span>참가자 정원</span>
+            <span>
+              {participants.length} / {participantLimit}
+            </span>
+          </div>
+          <Progress
+            value={Math.min(participants.length, participantLimit)}
+            max={participantLimit}
+          />
+          {participantRatio >= 0.8 && (
+            <button
+              type="button"
+              onClick={() =>
+                openModal((close) => (
+                  <UpgradeModal
+                    reason="마켓 참가자 정원이 거의 다 찼어요"
+                    onClose={close}
+                  />
+                ))
+              }
+              className={`text-xs font-medium underline ${
+                participantRatio >= 0.95
+                  ? "text-red-500"
+                  : "text-amber-500 dark:text-amber-400"
+              }`}
+            >
+              {participantRatio >= 0.95
+                ? "참가자 정원이 거의 다 찼어요 - 업그레이드하기"
+                : "참가자 정원이 얼마 안 남았어요 - 업그레이드하기"}
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input

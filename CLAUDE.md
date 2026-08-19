@@ -148,7 +148,8 @@ useModalHistory(open, close)      // 열릴 때 pushState, popstate로 close 연
 ## DB 스키마 요약
 
 ```sql
-users          (id uuid PK, name, real_name, birth_date, gender, created_at)
+users          (id uuid PK, name, real_name, birth_date, gender, created_at, plan_id text FK->plans, default 'free')
+plans          (id text PK 'free'|'standard'|'pro', name, market_limit int|null, participant_limit int|null, group_feature bool, sort_order int)
 markets        (id text PK, title, description, point_label, admin_code, starts_at, ends_at, created_at)
 market_participants (id text PK, market_id text, user_id uuid, role 'admin'|'user', balance int, UNIQUE(market_id,user_id))
 market_items   (id text PK, market_id text, name, price int)
@@ -159,6 +160,13 @@ orders         (id text PK, market_id text, user_id uuid, verified_by uuid, item
 ```
 
 `reason_type`: `'mission' | 'purchase' | 'manual' | 'transfer'`
+
+## 플랜 게이팅
+
+`src/lib/data/plans.ts` — `getUserPlan`(유저 본인 plan_id 기준), `getMarketOwnerPlan`(마켓 owner의 plan_id 기준, 참가자 정원·그룹 기능처럼 마켓 단위 게이트에 사용).
+- 마켓 생성 개수 제한: `canCreateMarket`(`src/lib/data/markets.ts`)
+- 마켓당 참가자 정원: `joinMarket`(`src/lib/data/participants.ts`)
+- 참여자 그룹 관리(스탠다드 이상): `POST /api/markets/:marketId/groups`
 
 ## QR 데이터 포맷
 

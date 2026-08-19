@@ -1,7 +1,12 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { ChevronLeft } from "lucide-react";
+import {
+  ChevronLeft,
+  OctagonAlert,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +14,7 @@ import {
   MarketFormFields,
   type MarketFormValues,
 } from "@/components/market/MarketFormFields";
+import { UpgradeModal } from "@/components/plan/UpgradeModal";
 import { Button } from "@/components/ui/button";
 import { openModal } from "@/lib/overlay";
 import { marketsQuery } from "@/lib/query/queries";
@@ -96,47 +102,83 @@ export function MarketSettingsClient({
         </Button>
       </div>
 
-      <div className="rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/30 p-5 space-y-3">
-        <p className="text-sm font-medium text-rose-700 dark:text-rose-400">
-          마켓 종료
-        </p>
-        <p className="text-xs text-rose-500 dark:text-rose-400">
-          종료하면 모든 거래·미션 인증·신규 참여가 즉시 차단돼요. 조회는 계속
-          가능해요.
-        </p>
-        <Button
-          variant="outline"
-          onClick={handleEndNow}
-          disabled={isPending}
-          className="h-10 w-full rounded-full border-rose-300 text-rose-600 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-900/30"
-        >
-          지금 종료
-        </Button>
-      </div>
-
-      <div className="rounded-2xl border border-rose-300 dark:border-rose-800 bg-rose-100 dark:bg-rose-950/50 p-5 space-y-3">
-        <p className="text-sm font-bold text-rose-800 dark:text-rose-300">
-          마켓 완전 삭제
-        </p>
-        <p className="text-xs text-rose-600 dark:text-rose-400">
-          되돌릴 수 없어요. 신중하게 결정해주세요.
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <p className="text-sm font-medium text-primary">요금제</p>
+        </div>
+        <p className="text-xs text-gray-600 dark:text-gray-400">
+          마켓·참가자 정원이 부족하거나 그룹 관리 기능이 필요하면 플랜을
+          업그레이드해보세요.
         </p>
         <Button
           variant="outline"
           onClick={() =>
             openModal((close) => (
-              <DeleteMarketModal
-                marketId={marketId}
-                marketTitle={initialMarket.title}
+              <UpgradeModal
+                reason="더 큰 규모의 행사를 준비하고 계신가요?"
                 onClose={close}
               />
             ))
           }
-          disabled={isPending}
-          className="h-10 w-full rounded-full border-rose-400 text-rose-700 hover:bg-rose-200 dark:border-rose-700 dark:text-rose-300 dark:hover:bg-rose-900/50"
+          className="h-10 w-full rounded-full"
         >
-          완전 삭제
+          요금제 업그레이드
         </Button>
+      </div>
+
+      <div className="space-y-3">
+        <p className="px-1 text-xs font-semibold tracking-wide text-gray-400 dark:text-gray-500">
+          위험 구역
+        </p>
+
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <TriangleAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+              마켓 종료
+            </p>
+          </div>
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            종료하면 모든 거래·미션 인증·신규 참여가 즉시 차단돼요. 조회는 계속
+            가능해요.
+          </p>
+          <Button
+            variant="outline"
+            onClick={handleEndNow}
+            disabled={isPending}
+            className="h-10 w-full rounded-full border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/30"
+          >
+            지금 종료
+          </Button>
+        </div>
+
+        <div className="rounded-2xl border-2 border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/40 p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <OctagonAlert className="h-4 w-4 text-rose-700 dark:text-rose-400" />
+            <p className="text-sm font-bold text-rose-800 dark:text-rose-300">
+              마켓 완전 삭제
+            </p>
+          </div>
+          <p className="text-xs font-medium text-rose-700 dark:text-rose-400">
+            되돌릴 수 없어요. 신중하게 결정해주세요.
+          </p>
+          <Button
+            onClick={() =>
+              openModal((close) => (
+                <DeleteMarketModal
+                  marketId={marketId}
+                  marketTitle={initialMarket.title}
+                  onClose={close}
+                />
+              ))
+            }
+            disabled={isPending}
+            className="h-10 w-full rounded-full bg-rose-600 text-white hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-600"
+          >
+            완전 삭제
+          </Button>
+        </div>
       </div>
     </div>
   );
