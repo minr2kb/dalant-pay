@@ -1,13 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { LogOut, Plus } from "lucide-react";
+import { KeyRound, LogOut, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSessionUserId } from "@/components/AuthGate";
 import { MarketCard } from "@/components/market/MarketCard";
 import { signOut } from "@/lib/auth/sign-out";
+import { openModal } from "@/lib/overlay";
 import { marketsQuery } from "@/lib/query/queries";
+import { JoinByCodeModal } from "./JoinByCodeModal";
 import { MarketsSkeleton } from "./MarketsSkeleton";
 
 export function MarketsListClient({
@@ -52,15 +54,27 @@ export function MarketsListClient({
           </button>
         </div>
 
-        {canCreateMarket && (
-          <Link
-            href="/markets/new"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-300 dark:border-emerald-800 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+        <div className="flex gap-2">
+          {canCreateMarket && (
+            <Link
+              href="/markets/new"
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-300 dark:border-emerald-800 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+            >
+              <Plus className="h-4 w-4" />
+              마켓 만들기
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() =>
+              openModal((close) => <JoinByCodeModal onClose={close} />)
+            }
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            <Plus className="h-4 w-4" />
-            마켓 추가
-          </Link>
-        )}
+            <KeyRound className="h-4 w-4" />
+            코드로 참여하기
+          </button>
+        </div>
 
         {items.length > 0 ? (
           <section className="space-y-3">
