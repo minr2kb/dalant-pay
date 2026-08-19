@@ -5,7 +5,7 @@ import {
   useSuspenseQueries,
 } from "@tanstack/react-query";
 import { keyBy } from "es-toolkit";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Download } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -66,7 +66,7 @@ export function ActivityListClient({
     hasNextPage,
     isFetchingNextPage,
   } = useSuspenseInfiniteQuery(pointLogsQuery.list.infinite({ marketId }));
-  // scope/typeFilter는 지금까지 불러온 페이지 안에서만 걸러진다 — 필터를 걸어둔
+  // scope/typeFilter는 지금까지 불러온 페이지 안에서만 걸러진다 - 필터를 걸어둔
   // 채로 "더 보기"를 여러 번 눌러야 다음 매치가 나올 수 있음(서버단 필터링은 아직 없음).
   const logs = logPages.pages.flat();
 
@@ -91,6 +91,13 @@ export function ActivityListClient({
         <h1 className="text-lg font-bold text-gray-900 dark:text-white">
           전체 활동
         </h1>
+        <a
+          href={`/api/markets/${marketId}/point-logs/export`}
+          className="ml-auto flex h-9 w-9 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          aria-label="정산 내역 CSV 다운로드"
+        >
+          <Download className="h-4 w-4" />
+        </a>
       </div>
 
       <div className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-none [&::-webkit-scrollbar]:hidden">
