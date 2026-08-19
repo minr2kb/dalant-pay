@@ -1,19 +1,12 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import localFont from "next/font/local";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { gmarketSans } from "@/fonts/gmarket-sans";
 import { createClient } from "@/lib/supabase/client";
 
 const LAST_PROVIDER_KEY = "dalant-last-login-provider";
-
-const gmarketSans = localFont({
-  src: [
-    { path: "../../fonts/GmarketSansMedium.woff", weight: "500" },
-    { path: "../../fonts/GmarketSansBold.woff", weight: "700" },
-  ],
-});
 
 export default function LoginPage() {
   const [pending, setPending] = useState(false);

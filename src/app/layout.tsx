@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_KR } from "next/font/google";
+import localFont from "next/font/local";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
-const notoSansKR = Noto_Sans_KR({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-noto-sans-kr",
+const pretendard = localFont({
+  src: "../../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
+  display: "swap",
+  weight: "45 920",
+  variable: "--font-pretendard",
 });
 
 const title = "달란트페이";
@@ -49,7 +50,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className={notoSansKR.className} suppressHydrationWarning>
+    <html
+      lang="ko"
+      className={`${pretendard.className} scroll-smooth`}
+      suppressHydrationWarning
+    >
       <body className="bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-white">
         <NextTopLoader
           color="oklch(0.696 0.17 162.48)"

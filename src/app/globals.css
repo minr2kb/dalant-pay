@@ -2,19 +2,19 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* navigation: auto였다가 none으로 껐다 — 같은 문서 내 내비게이션마다 브라우저가
+/* navigation: auto였다가 none으로 껐다 - 같은 문서 내 내비게이션마다 브라우저가
    자동으로 거는 크로스페이드(기본 250ms)가, 그 순간 삽입되는 요소의 @starting-style
    트랜지션(.podium-block/.ranking-bar 등)을 스냅샷으로만 캡처하고 스킵해버려서
    포디움/랭킹바 진입 애니메이션이 재생되지 않는 문제가 있었다. JS로 트랜지션
    시점을 크로스페이드 뒤로 미루는 시도(rAF, :active-view-transition 폴링, setTimeout)를
-   전부 해봤지만 타이밍 레이스라 신뢰할 수 없었다 — 이 기능 자체를 끄는 게 유일하게
+   전부 해봤지만 타이밍 레이스라 신뢰할 수 없었다 - 이 기능 자체를 끄는 게 유일하게
    확실한 해결책. */
 @view-transition {
   /* biome-ignore lint/correctness/noUnknownProperty: `navigation` is a valid @view-transition descriptor per the View Transitions spec, not yet recognized by biome's known-properties list */
   navigation: none;
 }
 
-/* transition + @starting-style 대신 @keyframes로 바꿨다 — keyframe 애니메이션은
+/* transition + @starting-style 대신 @keyframes로 바꿨다 - keyframe 애니메이션은
    엘리먼트가 생성되는 순간 브라우저가 조건 없이 그냥 재생을 시작한다(오래된 표준
    동작이라 최신 CSS 기능의 지원/타이밍 이슈에 기댈 필요가 없다). "to"를 안 정하면
    애니메이션이 끝난 뒤 인라인/캐스케이드된 실제 값(예: JS가 넣은 width)으로 자연히
@@ -36,6 +36,24 @@
 .podium-block {
   clip-path: inset(0% 0 0% 0 round 1rem 1rem 0 0);
   animation: podium-block-grow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 22s linear infinite;
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 .sticky-header {
@@ -169,7 +187,7 @@
     @apply font-sans;
   }
   /* iOS Safari sizes <input type="date"> by its internal date segments and
-     calendar icon, ignoring width:100% when that content needs more room —
+     calendar icon, ignoring width:100% when that content needs more room -
      cap it explicitly so it can't push past its container. */
   input[type="date"] {
     max-width: 100%;
