@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { gmarketSans } from "@/fonts/gmarket-sans";
 import { NAV_LINKS } from "./SiteHeader";
+import { BETA_APPLY_URL } from "@/lib/pricing-plans";
 
 const CONTACT_EMAIL = "kbmin1129@gmail.com";
 
@@ -42,6 +43,14 @@ export function SiteFooter() {
                   로그인
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/sample/home"
+                  className="text-gray-600 hover:text-foreground dark:text-gray-400"
+                >
+                  샘플 체험하기
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -55,6 +64,14 @@ export function SiteFooter() {
                   className="text-gray-600 hover:text-foreground dark:text-gray-400"
                 >
                   이메일로 문의
+                </a>
+              </li>
+              <li>
+                <a
+                  href={BETA_APPLY_URL}
+                  className="text-gray-600 hover:text-foreground dark:text-gray-400"
+                >
+                  베타테스트 신청
                 </a>
               </li>
             </ul>
