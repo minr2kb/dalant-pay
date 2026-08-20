@@ -13,8 +13,8 @@ export function PricingSection() {
           행사 규모에 맞게 선택하세요
         </h2>
         <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          결제 연동은 준비 중입니다. 베타 신청 후 상담을 통해 플랜을
-          적용해드려요.
+          현재 베타테스트 진행 기간입니다.
+          <br />폼 작성 후 상담을 통해 플랜을 적용해드려요.
         </p>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-3">

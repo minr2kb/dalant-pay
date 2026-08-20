@@ -63,7 +63,7 @@ export function HeroSection() {
             </div>
 
             <div
-              className="absolute -right-2 top-[18%] animate-float sm:-right-4 sm:top-[20%]"
+              className="absolute -right-2 top-[25%] animate-float sm:-right-4 sm:top-[25%]"
               style={{ animationDelay: "0.2s" }}
             >
               <div className="flex animate-in items-center gap-1.5 rounded-2xl border border-border bg-white px-3 py-2 shadow-lg delay-300 fade-in-0 slide-in-from-right-4 fill-mode-both duration-700 sm:px-4 sm:py-3 dark:bg-gray-900">
