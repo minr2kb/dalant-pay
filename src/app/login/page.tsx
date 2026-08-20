@@ -142,16 +142,14 @@ export default function LoginPage() {
         >
           샘플 마켓 둘러보기
         </a>
-        <a
-          href="/api/dev/login"
-          className={`block text-center text-xs underline ${
-            process.env.NODE_ENV === "development"
-              ? "text-white/50"
-              : "text-transparent"
-          }`}
-        >
-          개발자 로그인 (로컬 전용)
-        </a>
+        {process.env.NODE_ENV === "development" && (
+          <a
+            href="/api/dev/login"
+            className="block text-center text-xs text-white/50 underline"
+          >
+            개발자 로그인 (로컬 전용)
+          </a>
+        )}
       </div>
     </div>
   );
