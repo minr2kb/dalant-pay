@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const REVIEW_CASES = [
   {
@@ -27,11 +28,20 @@ const REVIEW_CASES = [
   },
 ];
 
+// ponytail: 진짜 무작위(Math.random)는 SSR 하이드레이션 mismatch를 일으키니,
+// 카드마다 고정된 회전/오프셋 값으로 "제어된 무작위" 느낌만 낸다.
+const CARD_TILT = [
+  "rotate-[-1.5deg] sm:-translate-y-3",
+  "rotate-[1deg] sm:translate-y-4",
+  "rotate-[1.5deg] sm:-translate-y-2",
+  "rotate-[-1deg] sm:translate-y-5",
+];
+
 export function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="scroll-mt-24 bg-gray-950 py-24 text-white"
+      className="scroll-mt-24 bg-white py-24 dark:bg-gray-950"
     >
       <div className="mx-auto max-w-5xl px-6">
         <p className="text-center text-sm font-medium text-primary">
@@ -40,18 +50,21 @@ export function TestimonialsSection() {
         <h2 className="mt-2 text-balance text-center text-2xl font-bold sm:text-3xl">
           실제 4박 5일 수련회 사용 후기
         </h2>
-        <p className="mt-4 text-center text-sm text-white/50 break-keep">
+        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400 break-keep">
           물 빼고 전부 포인트로 구매하게 설계한 마켓의 실제 기록
         </p>
 
-        <div className="mt-14 grid gap-6 sm:grid-cols-2">
+        <div className="mt-16 grid gap-x-6 gap-y-10 sm:grid-cols-2">
           {REVIEW_CASES.map(({ title, description, shot }, i) => (
             <div
               key={title}
               style={{ animationDelay: `${i * 150}ms` }}
-              className="flex animate-in flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 fade-in-0 slide-in-from-bottom-4 fill-mode-both duration-700 sm:flex-row"
+              className={cn(
+                "flex animate-in flex-col gap-4 rounded-2xl border border-border bg-white p-6 shadow-sm transition-all fade-in-0 slide-in-from-bottom-4 fill-mode-both duration-700 hover:translate-y-0 hover:rotate-0 hover:shadow-lg dark:bg-gray-900 sm:flex-row",
+                CARD_TILT[i],
+              )}
             >
-              <div className="relative aspect-3/4 w-full shrink-0 overflow-hidden rounded-xl bg-white/5 sm:w-32">
+              <div className="relative aspect-3/4 w-full shrink-0 overflow-hidden rounded-xl bg-muted sm:w-32">
                 <Image
                   src={shot}
                   alt=""
@@ -62,7 +75,7 @@ export function TestimonialsSection() {
               </div>
               <div>
                 <h3 className="font-semibold">{title}</h3>
-                <p className="mt-2 text-sm text-white/60 break-keep">
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 break-keep">
                   {description}
                 </p>
               </div>
@@ -70,7 +83,7 @@ export function TestimonialsSection() {
           ))}
         </div>
 
-        <p className="mt-10 text-center text-sm text-white/40">
+        <p className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
           참가자 27명 · 등록 미션 18개 · 포인트 로그 531건
         </p>
       </div>
