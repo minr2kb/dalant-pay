@@ -13,40 +13,19 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 
+CREATE SCHEMA IF NOT EXISTS "public";
+
+
+ALTER SCHEMA "public" OWNER TO "pg_database_owner";
+
+
 COMMENT ON SCHEMA "public" IS 'standard public schema';
-
-
-
-CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA "extensions";
-
-
-
-
-
-
-CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "extensions";
-
-
-
-
-
-
-CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
-
-
-
-
-
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
-
-
-
 
 
 
 CREATE OR REPLACE FUNCTION "public"."award_mission"("p_market_id" "text", "p_mission_id" "text", "p_user_id" "uuid", "p_verified_by" "uuid", "p_slot" integer, "p_verified_by_name" "text", "p_verified_at" "text", "p_reward" integer, "p_mission_title" "text", "p_allow_self" boolean DEFAULT false) RETURNS json
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
 DECLARE
   v_log_id      text;
@@ -103,6 +82,7 @@ ALTER FUNCTION "public"."award_mission"("p_market_id" "text", "p_mission_id" "te
 
 CREATE OR REPLACE FUNCTION "public"."create_market_with_owner"("p_title" "text", "p_description" "text", "p_point_label" "text", "p_admin_code" "text", "p_starts_at" timestamp with time zone, "p_ends_at" timestamp with time zone, "p_owner_user_id" "uuid", "p_owner_display_name" "text") RETURNS json
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
 DECLARE
   v_market_id text;
@@ -124,6 +104,7 @@ ALTER FUNCTION "public"."create_market_with_owner"("p_title" "text", "p_descript
 
 CREATE OR REPLACE FUNCTION "public"."grant_manual_points"("p_market_id" "text", "p_user_id" "uuid", "p_amount" integer, "p_memo" "text") RETURNS json
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
 DECLARE
   v_new_balance int;
@@ -160,6 +141,7 @@ ALTER FUNCTION "public"."grant_manual_points"("p_market_id" "text", "p_user_id" 
 
 CREATE OR REPLACE FUNCTION "public"."is_market_admin"("p_market_id" "text") RETURNS boolean
     LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.market_participants
@@ -173,6 +155,7 @@ ALTER FUNCTION "public"."is_market_admin"("p_market_id" "text") OWNER TO "postgr
 
 CREATE OR REPLACE FUNCTION "public"."is_market_participant"("p_market_id" "text") RETURNS boolean
     LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.market_participants
@@ -186,6 +169,7 @@ ALTER FUNCTION "public"."is_market_participant"("p_market_id" "text") OWNER TO "
 
 CREATE OR REPLACE FUNCTION "public"."nanoid"("size" integer DEFAULT 10, "alphabet" "text" DEFAULT '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'::"text") RETURNS "text"
     LANGUAGE "plpgsql"
+    SET "search_path" TO 'extensions'
     AS $$
 DECLARE
   idBuilder     text := '';
@@ -217,6 +201,7 @@ ALTER FUNCTION "public"."nanoid"("size" integer, "alphabet" "text") OWNER TO "po
 
 CREATE OR REPLACE FUNCTION "public"."process_order"("p_market_id" "text", "p_user_id" "uuid", "p_verified_by" "uuid", "p_verified_by_name" "text", "p_items" "jsonb", "p_total" integer, "p_item_name" "text") RETURNS json
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
 DECLARE
   v_order_id    text;
@@ -254,6 +239,7 @@ ALTER FUNCTION "public"."process_order"("p_market_id" "text", "p_user_id" "uuid"
 
 CREATE OR REPLACE FUNCTION "public"."revoke_point_log"("p_market_id" "text", "p_log_id" "text", "p_voided_by" "uuid") RETURNS json
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
 DECLARE
   v_log         record;
@@ -305,6 +291,7 @@ ALTER FUNCTION "public"."revoke_point_log"("p_market_id" "text", "p_log_id" "tex
 
 CREATE OR REPLACE FUNCTION "public"."transfer_points"("p_market_id" "text", "p_from_user_id" "uuid", "p_to_user_id" "uuid", "p_amount" integer, "p_memo" "text") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
   v_from_balance integer;
@@ -359,6 +346,17 @@ SET default_tablespace = '';
 SET default_table_access_method = "heap";
 
 
+CREATE TABLE IF NOT EXISTS "public"."groups" (
+    "id" "text" DEFAULT "public"."nanoid"() NOT NULL,
+    "market_id" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."groups" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."idempotency_keys" (
     "key" "text" NOT NULL,
     "market_id" "text" NOT NULL,
@@ -393,6 +391,7 @@ CREATE TABLE IF NOT EXISTS "public"."market_participants" (
     "id" "text" DEFAULT "public"."nanoid"() NOT NULL,
     "market_id" "text" NOT NULL,
     "display_name" "text",
+    "group_id" "text",
     CONSTRAINT "market_participants_role_check" CHECK (("role" = ANY (ARRAY['admin'::"text", 'user'::"text", 'owner'::"text"])))
 );
 
@@ -474,6 +473,19 @@ CREATE TABLE IF NOT EXISTS "public"."orders" (
 ALTER TABLE "public"."orders" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."plans" (
+    "id" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "market_limit" integer,
+    "participant_limit" integer,
+    "group_feature" boolean DEFAULT false NOT NULL,
+    "sort_order" integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE "public"."plans" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."point_logs" (
     "user_id" "uuid" NOT NULL,
     "amount" integer NOT NULL,
@@ -498,17 +510,17 @@ CREATE TABLE IF NOT EXISTS "public"."point_logs" (
 ALTER TABLE "public"."point_logs" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."plans" (
-    "id" "text" NOT NULL,
-    "name" "text" NOT NULL,
-    "market_limit" integer,
-    "participant_limit" integer,
-    "group_feature" boolean DEFAULT false NOT NULL,
-    "sort_order" integer DEFAULT 0 NOT NULL
+CREATE TABLE IF NOT EXISTS "public"."push_subscriptions" (
+    "id" "text" DEFAULT "public"."nanoid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "endpoint" "text" NOT NULL,
+    "p256dh" "text" NOT NULL,
+    "auth" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
 
-ALTER TABLE "public"."plans" OWNER TO "postgres";
+ALTER TABLE "public"."push_subscriptions" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."users" (
@@ -527,8 +539,8 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
 ALTER TABLE "public"."users" OWNER TO "postgres";
 
 
-ALTER TABLE ONLY "public"."plans"
-    ADD CONSTRAINT "plans_pkey" PRIMARY KEY ("id");
+ALTER TABLE ONLY "public"."groups"
+    ADD CONSTRAINT "groups_pkey" PRIMARY KEY ("id");
 
 
 
@@ -577,8 +589,23 @@ ALTER TABLE ONLY "public"."orders"
 
 
 
+ALTER TABLE ONLY "public"."plans"
+    ADD CONSTRAINT "plans_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."point_logs"
     ADD CONSTRAINT "point_logs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."push_subscriptions"
+    ADD CONSTRAINT "push_subscriptions_endpoint_key" UNIQUE ("endpoint");
+
+
+
+ALTER TABLE ONLY "public"."push_subscriptions"
+    ADD CONSTRAINT "push_subscriptions_pkey" PRIMARY KEY ("id");
 
 
 
@@ -587,13 +614,26 @@ ALTER TABLE ONLY "public"."users"
 
 
 
-ALTER TABLE ONLY "public"."users"
-    ADD CONSTRAINT "users_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES "public"."plans"("id");
+CREATE INDEX "idempotency_keys_created_at_idx" ON "public"."idempotency_keys" USING "btree" ("created_at");
+
+
+
+CREATE INDEX "push_subscriptions_user_id_idx" ON "public"."push_subscriptions" USING "btree" ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."groups"
+    ADD CONSTRAINT "groups_market_id_fkey" FOREIGN KEY ("market_id") REFERENCES "public"."markets"("id");
 
 
 
 ALTER TABLE ONLY "public"."market_items"
     ADD CONSTRAINT "market_items_market_id_fkey" FOREIGN KEY ("market_id") REFERENCES "public"."markets"("id");
+
+
+
+ALTER TABLE ONLY "public"."market_participants"
+    ADD CONSTRAINT "market_participants_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE SET NULL;
 
 
 
@@ -672,12 +712,36 @@ ALTER TABLE ONLY "public"."point_logs"
 
 
 
-CREATE INDEX IF NOT EXISTS "idempotency_keys_created_at_idx" ON "public"."idempotency_keys" USING "btree" ("created_at");
+ALTER TABLE ONLY "public"."push_subscriptions"
+    ADD CONSTRAINT "push_subscriptions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."users"
+    ADD CONSTRAINT "users_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES "public"."plans"("id");
+
+
+
+ALTER TABLE "public"."groups" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "groups_delete" ON "public"."groups" FOR DELETE USING ("public"."is_market_admin"("market_id"));
+
+
+
+CREATE POLICY "groups_insert" ON "public"."groups" FOR INSERT WITH CHECK ("public"."is_market_admin"("market_id"));
+
+
+
+CREATE POLICY "groups_select" ON "public"."groups" FOR SELECT USING ("public"."is_market_participant"("market_id"));
+
+
+
+CREATE POLICY "groups_update" ON "public"."groups" FOR UPDATE USING ("public"."is_market_admin"("market_id"));
 
 
 
 ALTER TABLE "public"."idempotency_keys" ENABLE ROW LEVEL SECURITY;
-
 
 
 CREATE POLICY "items_delete" ON "public"."market_items" FOR DELETE USING ("public"."is_market_admin"("market_id"));
@@ -705,7 +769,9 @@ ALTER TABLE "public"."market_participants" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."markets" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "markets_select" ON "public"."markets" FOR SELECT TO "authenticated" USING (true);
+CREATE POLICY "markets_select_authenticated" ON "public"."markets" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."market_participants" "mp"
+  WHERE (("mp"."market_id" = "markets"."id") AND ("mp"."user_id" = ( SELECT "auth"."uid"() AS "uid"))))));
 
 
 
@@ -743,7 +809,7 @@ CREATE POLICY "mlogs_select" ON "public"."mission_logs" FOR SELECT USING ((("use
 
 
 
-CREATE POLICY "mp_insert" ON "public"."market_participants" FOR INSERT TO "authenticated" WITH CHECK (((("user_id" = "auth"."uid"())) AND (("role" = 'user'::"text")) AND (("balance" = 0))));
+CREATE POLICY "mp_insert" ON "public"."market_participants" FOR INSERT TO "authenticated" WITH CHECK ((("user_id" = "auth"."uid"()) AND ("role" = 'user'::"text") AND ("balance" = 0)));
 
 
 
@@ -766,6 +832,13 @@ CREATE POLICY "orders_select" ON "public"."orders" FOR SELECT USING ((("user_id"
 
 
 
+ALTER TABLE "public"."plans" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "plans_select" ON "public"."plans" FOR SELECT TO "authenticated" USING (true);
+
+
+
 CREATE POLICY "plogs_insert" ON "public"."point_logs" FOR INSERT WITH CHECK ("public"."is_market_admin"("market_id"));
 
 
@@ -777,10 +850,7 @@ CREATE POLICY "plogs_select" ON "public"."point_logs" FOR SELECT USING ((("user_
 ALTER TABLE "public"."point_logs" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."plans" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "plans_select" ON "public"."plans" FOR SELECT TO "authenticated" USING (true);
+ALTER TABLE "public"."push_subscriptions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
@@ -801,170 +871,10 @@ CREATE POLICY "users_update" ON "public"."users" FOR UPDATE TO "authenticated" U
 
 
 
-
-
-ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
-
-
-
-
-
-
-ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."market_participants";
-
-
-
 GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1016,22 +926,12 @@ GRANT ALL ON FUNCTION "public"."transfer_points"("p_market_id" "text", "p_from_u
 
 
 
+GRANT ALL ON TABLE "public"."groups" TO "anon";
+GRANT ALL ON TABLE "public"."groups" TO "authenticated";
+GRANT ALL ON TABLE "public"."groups" TO "service_role";
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
--- 서버 전용 테이블 - 새로 만들 때부터 anon/authenticated 기본 GRANT를 주지 않는다.
 GRANT ALL ON TABLE "public"."idempotency_keys" TO "service_role";
 
 
@@ -1048,8 +948,36 @@ GRANT ALL ON TABLE "public"."market_participants" TO "service_role";
 
 
 
-GRANT SELECT ("id", "title", "description", "point_label", "starts_at", "ends_at", "created_at") ON TABLE "public"."markets" TO "authenticated";
 GRANT ALL ON TABLE "public"."markets" TO "service_role";
+GRANT SELECT ON TABLE "public"."markets" TO "authenticated";
+
+
+
+GRANT SELECT("title") ON TABLE "public"."markets" TO "authenticated";
+
+
+
+GRANT SELECT("description") ON TABLE "public"."markets" TO "authenticated";
+
+
+
+GRANT SELECT("point_label") ON TABLE "public"."markets" TO "authenticated";
+
+
+
+GRANT SELECT("starts_at") ON TABLE "public"."markets" TO "authenticated";
+
+
+
+GRANT SELECT("ends_at") ON TABLE "public"."markets" TO "authenticated";
+
+
+
+GRANT SELECT("created_at") ON TABLE "public"."markets" TO "authenticated";
+
+
+
+GRANT SELECT("id") ON TABLE "public"."markets" TO "authenticated";
 
 
 
@@ -1071,27 +999,27 @@ GRANT ALL ON TABLE "public"."orders" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."plans" TO "anon";
+GRANT ALL ON TABLE "public"."plans" TO "authenticated";
+GRANT ALL ON TABLE "public"."plans" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."point_logs" TO "anon";
 GRANT ALL ON TABLE "public"."point_logs" TO "authenticated";
 GRANT ALL ON TABLE "public"."point_logs" TO "service_role";
 
 
 
-GRANT SELECT ON TABLE "public"."plans" TO "anon";
-GRANT SELECT ON TABLE "public"."plans" TO "authenticated";
-GRANT ALL ON TABLE "public"."plans" TO "service_role";
+GRANT ALL ON TABLE "public"."push_subscriptions" TO "anon";
+GRANT ALL ON TABLE "public"."push_subscriptions" TO "authenticated";
+GRANT ALL ON TABLE "public"."push_subscriptions" TO "service_role";
 
 
 
 GRANT ALL ON TABLE "public"."users" TO "anon";
 GRANT ALL ON TABLE "public"."users" TO "authenticated";
 GRANT ALL ON TABLE "public"."users" TO "service_role";
-
-
-
-
-
-
 
 
 
@@ -1119,30 +1047,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

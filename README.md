@@ -33,7 +33,7 @@
 
 관리자도 참여자로서 동일하게 미션을 수행할 수 있습니다. 단, 자기 자신의 QR을 스캔하는 것은 서버에서 차단합니다.
 
-마켓 생성은 화이트리스트(`users.can_create_market`)된 유저만 가능하며, 생성한 유저는 해당 마켓의 `owner`가 됩니다.
+마켓 생성은 유저의 플랜(`plans` 테이블, 무료/스탠다드/프로)에 딸린 한도 내에서 가능하며, 생성한 유저는 해당 마켓의 `owner`가 됩니다. 플랜은 마켓 개수·참가자 정원·참여자 그룹 기능 사용 여부를 게이트합니다.
 
 ---
 
@@ -44,18 +44,21 @@
 - **달란트 전송** — 같은 마켓 참여자에게 달란트를 직접 전송 (QR 스캔 또는 이름 검색)
 - **달란트 내역** — 적립·차감·구매·전송 내역을 타임라인으로 확인
 - **마켓 결제** — 홈 화면에서 결제 QR을 생성하면 관리자가 스캔해서 즉시 차감
+- **랭킹** — 개인·팀(그룹) 단위 달란트 랭킹 확인
+- **리워드 목록** — 마켓에 등록된 물품(교환 가능 리워드) 목록 조회
 
 ### 관리자
 - **QR 스캔** — 참여자가 제시한 QR을 스캔해 미션 인증 또는 마켓 결제를 즉시 처리. QR 없이 미션·참여자를 직접 선택하는 수동인증도 지원
 - **활동 내역** — 업로드형 미션의 승인 대기 목록과 최근 활동을 한 화면에서 확인
 - **달란트 관리** — 참여자별 수동 지급·차감 및 전체 잔액 현황 확인
 - **미션 관리** — 미션 추가, 활성화/비활성화, 인증 타입·보상(고정 또는 범위)·횟수 설정, 드래그로 순서 변경
-- **물품 관리** — 마켓 물품 추가/수정/삭제, 드래그로 순서 변경
+- **물품 관리** — 마켓 물품 추가/수정/삭제, 활성화 토글, 드래그로 순서 변경
 - **마켓 POS** — 물품을 선택하고 참여자 QR을 스캔해 결제 처리
 - **유저 관리** — 참여자별 달란트 잔액, 미션 완료 현황 확인
+- **참여자 그룹(팀) 관리** — 참여자를 그룹으로 묶어 팀 단위 랭킹·단체 미션 지급에 활용 (스탠다드 이상 플랜)
 
 ### 소유자 (`owner`)
-- **마켓 생성** — 화이트리스트된 유저만 새 마켓 생성 가능
+- **마켓 생성** — 플랜 한도 내에서 새 마켓 생성
 - **마켓 설정** — 마켓 정보 수정, 종료 처리
 - **초대** — QR 코드 또는 링크 복사로 마켓 참여 초대
 
@@ -109,10 +112,12 @@ dalant:p:<marketId>:<userId>
 ## DB 스키마
 
 ```sql
-users               (id uuid PK, name, real_name, birth_date, gender, can_create_market)
-markets             (id text PK, title, point_label, admin_code, starts_at, ends_at)
-market_participants (id text PK, market_id text FK, user_id uuid FK, role, balance int)
-market_items        (id text PK, market_id text FK, name, price int)
+users               (id uuid PK, name, real_name, birth_date, gender, avatar_url, plan_id)
+plans               (id PK, market_limit int|null, participant_limit int|null, group_feature bool, sort_order)
+markets             (id text PK, title, point_label, admin_code, starts_at, ends_at, deleted_at)
+market_participants (id text PK, market_id text FK, user_id uuid FK, role, balance int, display_name, group_id text FK)
+groups              (id text PK, market_id text FK, name)
+market_items        (id text PK, market_id text FK, name, price int, is_active, sort_order)
 missions            (id text PK, market_id text FK, title, type, is_group, reward, reward_min, reward_max, limit_count, active_from, active_until, is_active)
 mission_logs        (id text PK, mission_id text FK, user_id uuid FK, verified_by uuid FK, slot int, photo_url)
 point_logs          (id text PK, market_id text FK, user_id uuid FK, amount int, reason_type, memo)
@@ -134,8 +139,9 @@ orders              (id text PK, market_id text FK, user_id uuid FK, verified_by
 | 프레임워크 | Next.js (App Router) |
 | UI | shadcn/ui + Tailwind CSS v4 |
 | 데이터 패칭 | TanStack Query v5 + @routar/react-query |
-| 인증 | Kakao OAuth (Supabase Auth) |
+| 인증 | Kakao / Google OAuth (Supabase Auth) |
 | DB / Storage | Supabase (PostgreSQL + RLS) |
+| PWA / 푸시 알림 | Serwist (서비스워커) + Web Push |
 | 배포 | Vercel |
 
 ### 데이터 패칭 아키텍처
@@ -147,17 +153,18 @@ orders              (id text PK, market_id text FK, user_id uuid FK, verified_by
 ## 라우팅 구조
 
 ```
-/login                              카카오 로그인
+/login                              카카오·Google 로그인
 /onboarding                         최초 1회 본명·생일·성별 입력
 /markets                            마켓 목록 (참여 중인 마켓만)
-/markets/new                        마켓 생성 (owner 화이트리스트 전용)
+/markets/new                        마켓 생성 (플랜 한도 내에서 가능)
 /markets/[id]                       QR 랜딩 · 초대 링크 진입점 (마켓 참여)
 /markets/[id]/home                  유저 홈 (잔액, 결제 QR, 전송, 최근 내역)
 /markets/[id]/missions              미션 목록
 /markets/[id]/missions/[missionId]  미션 상세 및 인증
 /markets/[id]/history               달란트 내역
 /markets/[id]/mypage                마이페이지
-/markets/[id]/ranking               달란트 랭킹
+/markets/[id]/ranking               달란트 랭킹 (개인·팀)
+/markets/[id]/rewards               리워드(물품) 목록
 /markets/[id]/admin/home            관리자 홈
 /markets/[id]/admin/scan            QR 스캔 (수동인증 포함)
 /markets/[id]/admin/activity        활동 내역 (승인 대기 등)
@@ -167,6 +174,7 @@ orders              (id text PK, market_id text FK, user_id uuid FK, verified_by
 /markets/[id]/admin/pos             마켓 POS
 /markets/[id]/admin/users           유저 관리
 /markets/[id]/admin/users/[userId]  유저 상세
+/markets/[id]/admin/users/groups    참여자 그룹(팀) 관리
 /markets/[id]/admin/settings        마켓 설정 (owner 전용)
 ```
 
