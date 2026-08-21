@@ -3,7 +3,8 @@
 > 오프라인 모임을 위한 미션 인증 기반 달란트 결제 서비스
 
 
-<img width="1200" height="630" alt="ogImage" src="https://github.com/user-attachments/assets/b0d87cb8-4605-45a4-b352-ac2e932612e4" />
+<img width="1200" height="630" alt="DP_thumb" src="https://github.com/user-attachments/assets/33770513-9201-4aea-a8f6-b48cf3aeac8b" />
+
 
 ---
 
