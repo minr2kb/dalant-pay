@@ -15,6 +15,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@next/third-parties": "^16.3.1",
     "@routar/core": "^1.12.0",
     "@routar/react-query": "^1.12.0",
     "@sentry/nextjs": "^10",
