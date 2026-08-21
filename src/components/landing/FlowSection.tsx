@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const USE_CASES = [
   "MT",
   "워크숍",
@@ -25,6 +27,16 @@ export function FlowSection() {
           달란트페이는 미션 인증부터 포인트 적립, 마켓에서 쓰는 것까지 이 전체
           흐름을 스마트폰 하나로 연결합니다.
         </p>
+
+        <div className="mt-10 overflow-hidden rounded-2xl border border-border shadow-lg">
+          <Image
+            src="/landing/dp-contr.png"
+            alt="달란트페이 관리자 콘솔 화면"
+            width={1366}
+            height={768}
+            className="w-full"
+          />
+        </div>
 
         <p className="mt-14 text-sm font-medium text-gray-500 dark:text-gray-400">
           이런 자리를 기획·운영하는 분들을 위해 만들었습니다
