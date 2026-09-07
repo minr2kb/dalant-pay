@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; if [ -n \"$f\" ] && printf '%s' \"$f\" | grep -qE '(/src/app/.*/(page|route)\\.tsx?$)|(/public/)'; then echo '{\"systemMessage\": \"새 라우트/public 에셋 추가됨 - src/proxy.ts isPublic 조건 확인 필요 (로그인 없이 접근돼야 하면 미들웨어에서 막힐 수 있음)\"}'; fi; }"
+          }
+        ]
+      }
+    ]
+  }
+}
